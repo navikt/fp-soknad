@@ -1,0 +1,26 @@
+{
+    "app": "fpmottak",
+    "namespace": "teamforeldrepenger",
+    "environment": "prod",
+    "kafkaPool": "nav-prod",
+    "dbTier": "db-custom-1-3840",
+    "dbDiskAutoresize": "true",
+    "dbHighAvailability": "true",
+    "dbPointInTimeRecovery": "true",
+    "minReplicas": "2",
+    "maxReplicas": "4",
+    "ingresses": [
+        "https://fpmottak.intern.nav.no"
+    ],
+    "groups": [
+        "0d226374-4748-4367-a38a-062dcad70034"
+    ],
+    "limits": {
+        "cpu": "2",
+        "mem": "2048Mi"
+    },
+    "requests": {
+        "cpu": "500m",
+        "mem": "1024Mi"
+    }
+}

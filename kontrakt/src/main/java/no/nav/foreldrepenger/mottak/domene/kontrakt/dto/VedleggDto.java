@@ -1,0 +1,41 @@
+package no.nav.foreldrepenger.mottak.domene.kontrakt.dto;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import no.nav.foreldrepenger.common.domain.felles.DokumentType;
+import no.nav.foreldrepenger.mottak.domene.kontrakt.dto.svangerskapspenger.ArbeidsforholdDto;
+import no.nav.vedtak.util.InputValideringRegex;
+
+import java.util.List;
+import java.util.UUID;
+
+public record VedleggDto(UUID uuid, @NotNull DokumentType skjemanummer, VedleggInnsendingType innsendingsType,
+                         @Pattern(regexp = InputValideringRegex.FRITEKST) String beskrivelse, @Valid Dokumenterer dokumenterer, @JsonIgnore VedleggReferanse referanse) {
+
+    public VedleggDto {
+        referanse = VedleggReferanse.fra(uuid);
+    }
+
+    @JsonCreator
+    public VedleggDto(UUID uuid, DokumentType skjemanummer, VedleggInnsendingType innsendingsType, String beskrivelse, Dokumenterer dokumenterer) {
+        this(uuid, skjemanummer, innsendingsType, beskrivelse, dokumenterer, null);
+    }
+
+    public boolean erOpplastetVedlegg() {
+        return innsendingsType == null || innsendingsType.equals(VedleggInnsendingType.LASTET_OPP);
+    }
+
+    public record Dokumenterer(@NotNull Type type, @Valid ArbeidsforholdDto arbeidsforhold,
+                               @Valid @Size(max = 100) List<@Valid @NotNull ÅpenPeriodeDto> perioder) {
+        public enum Type {
+            BARN,
+            OPPTJENING,
+            UTTAK,
+            TILRETTELEGGING,
+        }
+    }
+}
