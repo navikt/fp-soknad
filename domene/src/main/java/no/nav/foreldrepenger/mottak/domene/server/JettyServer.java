@@ -2,6 +2,7 @@ package no.nav.foreldrepenger.mottak.domene.server;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+
 import no.nav.foreldrepenger.konfig.Environment;
 import org.eclipse.jetty.ee10.cdi.CdiDecoratingListener;
 import org.eclipse.jetty.ee10.cdi.CdiServletContainerInitializer;
