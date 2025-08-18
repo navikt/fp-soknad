@@ -1,5 +1,9 @@
 package no.nav.foreldrepenger.mottak.domene.kontrakt.dto.svangerskapspenger;
 
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -11,10 +15,7 @@ import no.nav.foreldrepenger.mottak.domene.kontrakt.dto.NæringDto;
 import no.nav.foreldrepenger.mottak.domene.kontrakt.dto.SøknadDto;
 import no.nav.foreldrepenger.mottak.domene.kontrakt.dto.UtenlandsoppholdsperiodeDto;
 import no.nav.foreldrepenger.mottak.domene.kontrakt.dto.VedleggDto;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import no.nav.foreldrepenger.mottak.domene.kontrakt.dto.validering.VedlegglistestørrelseConstraint;
 
 public record SvangerskapspengesøknadDto(LocalDate mottattdato,
                                          @NotNull @Valid BarnSvpDto barn,
@@ -22,11 +23,12 @@ public record SvangerskapspengesøknadDto(LocalDate mottattdato,
                                          @NotNull @Valid Målform språkkode,
                                          @Valid FrilansDto frilans,
                                          @Valid NæringDto egenNæring,
-                                         @Valid @Size(max = 20) List<AnnenInntektDto.@NotNull @Valid Utlandet> andreInntekterSiste10Mnd,
+                                         @Valid @Size(max = 20) List<@Valid @NotNull AnnenInntektDto> andreInntekterSiste10Mnd,
                                          @Valid @Size(max = 20) List<@Valid @NotNull UtenlandsoppholdsperiodeDto> utenlandsopphold,
                                          @NotNull @Valid @Size(min = 1, max = 20) List<@Valid @NotNull TilretteleggingbehovDto> tilretteleggingsbehov,
                                          @NotNull @Valid @Size(max = 20) List<@Valid @NotNull AvtaltFerieDto> avtaltFerie,
-                                         @NotNull @Valid @Size(min = 1, max = 20) List<@Valid @NotNull VedleggDto> vedlegg) implements SøknadDto {
+                                         @NotNull @Valid @VedlegglistestørrelseConstraint @Size(min = 1,
+                                             max = 20) List<@Valid @NotNull VedleggDto> vedlegg) implements SøknadDto {
 
     public SvangerskapspengesøknadDto {
         utenlandsopphold = Optional.ofNullable(utenlandsopphold).orElse(List.of());

@@ -1,27 +1,23 @@
 package no.nav.foreldrepenger.mottak.domene.kontrakt.dto.endringssøknad;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import java.util.List;
+
 import no.nav.foreldrepenger.common.domain.Saksnummer;
 import no.nav.foreldrepenger.mottak.domene.kontrakt.dto.BarnDto;
 import no.nav.foreldrepenger.mottak.domene.kontrakt.dto.Innsending;
 import no.nav.foreldrepenger.mottak.domene.kontrakt.dto.VedleggDto;
 
-import java.util.List;
-
-import static com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME;
-
-@JsonTypeInfo(use = NAME, property = "type", visible = true)
-@JsonSubTypes({
-    @JsonSubTypes.Type(value = EndringssøknadForeldrepengerDto.class, name = "foreldrepenger")
-})
 public interface EndringssøknadDto extends Innsending {
     Saksnummer saksnummer();
+
     BarnDto barn();
+
     List<VedleggDto> vedlegg();
 
     default String navn() {
-        if (this instanceof EndringssøknadForeldrepengerDto) return "endringssøknad foreldrepenger";
+        if (this instanceof EndringssøknadForeldrepengerDto) {
+            return "endringssøknad foreldrepenger";
+        }
         throw new IllegalStateException("Utvikerfeil: Kan ikke ha en annen ytelse enn fp!");
     }
 }

@@ -6,7 +6,7 @@
     <parent>
         <groupId>no.nav.foreldrepenger.felles</groupId>
         <artifactId>fp-bom</artifactId>
-        <version>3.6.11</version>
+        <version>3.6.16</version>
     </parent>
 
     <groupId>no.nav.foreldrepenger.mottak</groupId>
@@ -24,11 +24,12 @@
         <sonar.projectName>fp-mottak</sonar.projectName>
         <sonar.projectKey>navikt_fp-mottak</sonar.projectKey>
 
-        <felles.version>7.5.6</felles.version>
-        <fpsoknad-felles.version>3.2.7</fpsoknad-felles.version> <!-- fjern på sikt ...-->
-        <prosesstask.version>5.1.7</prosesstask.version>
+        <felles.version>7.5.10</felles.version>
+        <fpsoknad-felles.version>3.3.2</fpsoknad-felles.version> <!-- fjern på sikt ...-->
+        <prosesstask.version>5.1.11</prosesstask.version>
 
         <nv.version>1.29</nv.version>
+        <pdfbox.version>3.0.5</pdfbox.version>
     </properties>
 
     <dependencyManagement>
@@ -36,7 +37,7 @@
             <dependency>
                 <groupId>no.nav.foreldrepenger.felles</groupId>
                 <artifactId>fp-bom</artifactId>
-                <version>3.6.11</version>
+                <version>3.6.16</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -58,6 +59,11 @@
                 <groupId>no.nav.foreldrepenger.mottak</groupId>
                 <artifactId>kontrakt</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.pdfbox</groupId>
+                <artifactId>pdfbox</artifactId>
+                <version>${pdfbox.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

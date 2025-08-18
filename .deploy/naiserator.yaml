@@ -57,16 +57,8 @@ spec:
         collation: nb_NO.UTF8
   tokenx:
     enabled: true
-  azure:
-    application:
-      enabled: true
-      claims:
-        extra:
-          - "azp_name"
-        groups:
-          {{#each groups as |group|}}
-             - id: "{{group}}"
-         {{/each}}
+  #envFrom: # Krypteringsnøkkel for mellomlagring passage.storage
+  #  - secret: api-storage
   observability:
     autoInstrumentation:
       enabled: true
@@ -78,29 +70,10 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: foreldrepengesoknad-api
+        - application: foreldrepengesoknad
           namespace: teamforeldrepenger
           cluster: {{environment}}-gcp
-        - application: fpsoknad-mottak
-          namespace: teamforeldrepenger
-          cluster: {{environment}}-fss
-        - application: fp-swagger
-          namespace: teamforeldrepenger
-          cluster: {{environment}}-gcp
-          permissions:
-            scopes:
-              - swagger
     outbound:
       rules:
-        - application: digdir-krr-proxy
-          namespace: team-rocket
-        - application: sokos-kontoregister-person
-          namespace: okonomi
-      external:
-        - host: pdl-api.{{environment}}-fss-pub.nais.io
-        - host: aareg-services.{{environment}}-fss-pub.nais.io
-        - host: ereg-services.{{environment}}-fss-pub.nais.io
-        - host: fpsak-api.{{environment}}-fss-pub.nais.io
-        - host: fptilbake.{{environment}}-fss-pub.nais.io
-        - host: saf.{{environment}}-fss-pub.nais.io
-        - host: safselvbetjening.{{environment}}-fss-pub.nais.io
+        - application: clamav
+          namespace: nais-system

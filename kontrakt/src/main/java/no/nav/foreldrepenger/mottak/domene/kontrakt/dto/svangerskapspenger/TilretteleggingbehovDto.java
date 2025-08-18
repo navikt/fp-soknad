@@ -1,7 +1,15 @@
 package no.nav.foreldrepenger.mottak.domene.kontrakt.dto.svangerskapspenger;
 
+import static com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY;
+import static com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME;
+import static no.nav.foreldrepenger.common.domain.validation.InputValideringRegex.FRITEKST;
+
+import java.time.LocalDate;
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Max;
@@ -9,13 +17,6 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-
-import java.time.LocalDate;
-import java.util.List;
-
-import static com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY;
-import static com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME;
-import static no.nav.foreldrepenger.common.domain.validation.InputValideringRegex.FRITEKST;
 
 public record TilretteleggingbehovDto(@Valid @NotNull ArbeidsforholdDto arbeidsforhold,
                                       @NotNull LocalDate behovForTilretteleggingFom,
@@ -35,13 +36,17 @@ public record TilretteleggingbehovDto(@Valid @NotNull ArbeidsforholdDto arbeidsf
     @JsonSubTypes({
         @JsonSubTypes.Type(value = TilretteleggingDto.Hel.class, name = "hel"),
         @JsonSubTypes.Type(value = TilretteleggingDto.Del.class, name = "delvis"),
-        @JsonSubTypes.Type(value = TilretteleggingDto.Ingen.class, name = "ingen")
-    })
+        @JsonSubTypes.Type(value = TilretteleggingDto.Ingen.class, name = "ingen")})
     public interface TilretteleggingDto {
         LocalDate fom();
 
-        record Hel(@NotNull LocalDate fom) implements TilretteleggingDto {}
-        record Del(@NotNull LocalDate fom, @NotNull @Min(0) @Max(100) Double stillingsprosent) implements TilretteleggingDto {}
-        record Ingen(@NotNull LocalDate fom) implements TilretteleggingDto {}
+        record Hel(@NotNull LocalDate fom) implements TilretteleggingDto {
+        }
+
+        record Del(@NotNull LocalDate fom, @NotNull @Min(0) @Max(100) Double stillingsprosent) implements TilretteleggingDto {
+        }
+
+        record Ingen(@NotNull LocalDate fom) implements TilretteleggingDto {
+        }
     }
 }

@@ -9,8 +9,12 @@ import io.swagger.v3.oas.models.servers.Server;
 import jakarta.ws.rs.ApplicationPath;
 import jakarta.ws.rs.core.Application;
 import no.nav.foreldrepenger.konfig.Environment;
+import no.nav.foreldrepenger.mottak.domene.innsending.SøknadRest;
+import no.nav.foreldrepenger.mottak.domene.innsending.VedleggRest;
 import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.rest.ProsessTaskRestTjeneste;
+
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ServerProperties;
 
 import java.util.HashMap;
@@ -51,7 +55,11 @@ public class ApiConfig extends Application {
     @Override
     public Set<Class<?>> getClasses() {
         // eksponert grensesnitt bak sikkerhet. Nå er vi på max Set.of før varargs-versjonen.
-        return Set.of();
+        return Set.of(
+            SøknadRest.class,
+            VedleggRest.class,
+            MultiPartFeature.class
+        );
     }
 
     @Override

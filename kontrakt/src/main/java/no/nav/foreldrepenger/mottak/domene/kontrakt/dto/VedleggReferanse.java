@@ -1,11 +1,12 @@
 package no.nav.foreldrepenger.mottak.domene.kontrakt.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreType;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-
 import java.util.Objects;
 import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreType;
+
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 
 @JsonIgnoreType
 public record VedleggReferanse(@NotNull @Pattern(regexp = "^[\\p{Digit}\\p{L}-_]*$") String verdi) {

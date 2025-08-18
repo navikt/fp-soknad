@@ -1,10 +1,11 @@
 package no.nav.foreldrepenger.mottak.domene.kontrakt.dto;
 
+import java.time.LocalDate;
+
 import com.neovisionaries.i18n.CountryCode;
+
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
-
-import java.time.LocalDate;
 
 public record UtenlandsoppholdsperiodeDto(@NotNull LocalDate fom, @NotNull LocalDate tom, @NotNull CountryCode landkode) {
 

@@ -1,10 +1,10 @@
 package no.nav.foreldrepenger.mottak.domene.kontrakt.dto.svangerskapspenger;
 
+import java.time.LocalDate;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
-
-import java.time.LocalDate;
 
 public record AvtaltFerieDto(@Valid @NotNull ArbeidsforholdDto arbeidsforhold, @NotNull LocalDate fom, @NotNull LocalDate tom) {
 

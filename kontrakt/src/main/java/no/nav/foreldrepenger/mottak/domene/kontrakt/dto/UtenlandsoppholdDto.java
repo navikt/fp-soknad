@@ -1,16 +1,17 @@
 package no.nav.foreldrepenger.mottak.domene.kontrakt.dto;
 
-import com.neovisionaries.i18n.CountryCode;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import static java.util.Collections.emptyList;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import static java.util.Collections.emptyList;
+import com.neovisionaries.i18n.CountryCode;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 public record UtenlandsoppholdDto(@Valid @Size(max = 20) List<@Valid @NotNull Periode> utenlandsoppholdSiste12Mnd,
                                   @Valid @Size(max = 20) List<@Valid @NotNull Periode> utenlandsoppholdNeste12Mnd) {
