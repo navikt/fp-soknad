@@ -3,13 +3,13 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>no.nav.foreldrepenger.mottak</groupId>
-        <artifactId>fp-mottak</artifactId>
+        <artifactId>fp-soknad</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>domene</artifactId>
     <packaging>jar</packaging>
-    <name>Fpmottak : domene</name>
+    <name>Fp-soknad : domene</name>
 
     <dependencies>
         <dependency>
@@ -31,6 +31,12 @@
         <dependency>
             <groupId>no.nav.foreldrepenger.felles.integrasjon</groupId>
             <artifactId>felles-integrasjon-rest-klient</artifactId>
+        </dependency>
+
+        <!-- Google Cloud Storage - Buckets -->
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-storage</artifactId>
         </dependency>
 
         <!-- CDI -->
@@ -150,11 +156,6 @@
             <artifactId>jakarta.transaction-api</artifactId>
         </dependency>
 
-        <!--        <dependency>-->
-        <!--            <groupId>no.nav.fpsak.tidsserie</groupId>-->
-        <!--            <artifactId>fpsak-tidsserie</artifactId>-->
-        <!--            <version>${fp-tidsserie.version}</version>-->
-        <!--        </dependency>-->
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>

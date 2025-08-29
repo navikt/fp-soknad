@@ -10,7 +10,7 @@
     </parent>
 
     <groupId>no.nav.foreldrepenger.mottak</groupId>
-    <artifactId>fp-mottak</artifactId>
+    <artifactId>fp-soknad</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
@@ -21,8 +21,8 @@
 
     <properties>
         <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
-        <sonar.projectName>fp-mottak</sonar.projectName>
-        <sonar.projectKey>navikt_fp-mottak</sonar.projectKey>
+        <sonar.projectName>fp-soknad</sonar.projectName>
+        <sonar.projectKey>navikt_fp-soknad</sonar.projectKey>
 
         <felles.version>7.5.10</felles.version>
         <fpsoknad-felles.version>3.3.2</fpsoknad-felles.version> <!-- fjern på sikt ...-->
@@ -30,6 +30,7 @@
 
         <nv.version>1.29</nv.version>
         <pdfbox.version>3.0.5</pdfbox.version>
+        <gcp.storage.version>2.54.0</gcp.storage.version>
     </properties>
 
     <dependencyManagement>
@@ -40,6 +41,13 @@
                 <version>3.6.16</version>
                 <scope>import</scope>
                 <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>com.google.cloud</groupId>
+                <artifactId>google-cloud-storage-bom</artifactId>
+                <version>${gcp.storage.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>no.nav.foreldrepenger.felles</groupId>
@@ -137,7 +145,7 @@
         <repository>
             <id>fp-oversikt</id>
             <name>Github navikt Maven Packages</name>
-            <url>https://maven.pkg.github.com/navikt/fp-mottak</url>
+            <url>https://maven.pkg.github.com/navikt/fp-soknad</url>
         </repository>
     </distributionManagement>
 </project>

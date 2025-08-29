@@ -1,0 +1,81 @@
+package no.nav.foreldrepenger.mottak.domene.mellomlagring;
+
+import static javax.crypto.Cipher.DECRYPT_MODE;
+import static javax.crypto.Cipher.ENCRYPT_MODE;
+
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+
+import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
+
+public class KrypteringHjelper {
+
+    private final SecretKey key;
+    private final String iv;
+
+    private static final String ALGO = "AES/GCM/NoPadding";
+
+    public KrypteringHjelper(String passphrase, String fnr) {
+        if (passphrase == null || passphrase.isEmpty() || fnr == null || fnr.isEmpty()) {
+            throw new IllegalArgumentException("Both passphrase and fnr must be provided");
+        }
+        key = key(passphrase, fnr);
+        iv = fnr;
+    }
+
+    public String encrypt(String plainText) {
+        try {
+            return Base64.getEncoder().encodeToString(cipher(ENCRYPT_MODE).doFinal(plainText.getBytes()));
+        } catch (Exception ex) {
+            throw new RuntimeException("Error while encrypting text", ex); // TODO: Bedre excetpions med riktig håndtering!
+        }
+    }
+    public byte[] encryptVedlegg(byte[] innhold) {
+        try {
+            return cipher(ENCRYPT_MODE).doFinal(innhold);
+        } catch (Exception ex) {
+            throw new RuntimeException("Error while encrypting bytes", ex);
+        }
+    }
+
+    public byte[] decryptVedlegg(byte[] encrypted) {
+        try {
+            return cipher(DECRYPT_MODE).doFinal(encrypted);
+        } catch (Exception ex) {
+            throw new RuntimeException("Error while decrypting text", ex);
+        }
+    }
+
+    public String decrypt(String encrypted) {
+        try {
+            return new String(cipher(DECRYPT_MODE).doFinal(Base64.getDecoder().decode(encrypted)));
+        } catch (Exception ex) {
+            throw new RuntimeException("Error while decrypting text", ex);
+        }
+    }
+
+    private Cipher cipher(int mode) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException {
+        var cipher = Cipher.getInstance(ALGO);
+        cipher.init(mode, key, new GCMParameterSpec(128, iv.getBytes()));
+        return cipher;
+    }
+
+    private static SecretKey key(String passphrase, String salt) {
+        try {
+            return new SecretKeySpec(SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
+                    .generateSecret(new PBEKeySpec(passphrase.toCharArray(), salt.getBytes(), 10000, 256)).getEncoded(),
+                    "AES");
+        } catch (Exception ex) {
+            throw new RuntimeException("Error while generating key", ex);
+        }
+    }
+
+}
