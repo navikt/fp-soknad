@@ -1,8 +1,6 @@
 package no.nav.foreldrepenger.mottak.domene.mellomlagring;
 
 import jakarta.enterprise.context.RequestScoped;
-import jakarta.enterprise.inject.Any;
-import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
@@ -17,13 +15,15 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import no.nav.foreldrepenger.mottak.domene.vedlegg.Vedlegg;
+import no.nav.foreldrepenger.mottak.domene.vedlegg.VedleggSjekkerTjeneste;
 import no.nav.foreldrepenger.mottak.domene.vedlegg.image2pdf.Image2PDFConverter;
-import no.nav.foreldrepenger.mottak.domene.vedlegg.sjekkere.VedleggSjekker;
 
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
-import java.util.List;
 import java.util.UUID;
 
 import static no.nav.foreldrepenger.common.domain.validation.InputValideringRegex.FRITEKST;
@@ -35,17 +35,17 @@ public class MellomlagringRest {
 
     private MellomlagringTjeneste mellomlagring;
     private Image2PDFConverter converter;
-    private List<VedleggSjekker> vedleggSjekkere;
+    private VedleggSjekkerTjeneste vedleggSjekkerTjeneste;
 
     MellomlagringRest() {
         // CDI
     }
 
     @Inject
-    public MellomlagringRest(MellomlagringTjeneste mellomlagring, Image2PDFConverter converter, @Any Instance<VedleggSjekker> vedleggSjekkere) {
+    public MellomlagringRest(MellomlagringTjeneste mellomlagring, Image2PDFConverter converter, VedleggSjekkerTjeneste vedleggSjekkerTjeneste) {
         this.mellomlagring = mellomlagring;
         this.converter = converter;
-        this.vedleggSjekkere = vedleggSjekkere.stream().toList();
+        this.vedleggSjekkerTjeneste = vedleggSjekkerTjeneste;
     }
 
     @GET
@@ -91,15 +91,15 @@ public class MellomlagringRest {
     @POST
     @Path("/{ytelse}/vedlegg")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response lagreVedlegg(FormDataMultiPart multiPart,
+    public Response lagreVedlegg(@FormDataParam("vedlegg") InputStream fileInputStream,
+                                 @FormDataParam("vedlegg") FormDataContentDisposition fileMetaData,
                                  @PathParam("ytelse") @Valid YtelseMellomlagringType ytelse,
                                  @QueryParam("uuid") UUID uuid) {
-        var bodyPart = multiPart.getField("vedlegg");
-        var file = bodyPart.getEntityAs(byte[].class);
-        var contentType = bodyPart.getMediaType().toString();
-        var fileName = bodyPart.getContentDisposition().getFileName();
-        var orginalVedlegg = new Vedlegg(file, MediaType.valueOf(contentType), fileName, uuid != null ? uuid : UUID.randomUUID());
-        vedleggSjekkere.forEach(sjekker -> sjekker.sjekk(orginalVedlegg));
+        var fileName = fileMetaData.getFileName(); // e.g. image.png, document.pdf
+        var contentType = MediaType.valueOf(fileMetaData.getType()); // image/png, application/pdf, etc.
+        var innhold = lesBytesFraInputStream(fileInputStream);
+        var orginalVedlegg = new Vedlegg(innhold, contentType, fileName, uuid != null ? uuid : UUID.randomUUID());
+        vedleggSjekkerTjeneste.sjekkVedlegg(orginalVedlegg);
         var pdfBytes = converter.convert(orginalVedlegg);
         mellomlagring.lagreKryptertVedlegg(pdfBytes, ytelse);
         var uri = URI.create("TEST"); // TODO: lage URI for vedlegg. Hva brukes denne til?
@@ -119,5 +119,13 @@ public class MellomlagringRest {
             .type("application/pdf")
             .header("Content-Length", innhold.length)
             .build();
+    }
+
+    private static byte[] lesBytesFraInputStream(InputStream fileInputStream) {
+        try {
+            return fileInputStream.readAllBytes();
+        } catch (IOException e) {
+            throw new RuntimeException(e); // TODO: Bedre feilhåndtering
+        }
     }
 }

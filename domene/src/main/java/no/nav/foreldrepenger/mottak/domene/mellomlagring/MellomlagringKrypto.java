@@ -4,6 +4,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 
 import jakarta.inject.Inject;
 import no.nav.foreldrepenger.konfig.KonfigVerdi;
+import no.nav.foreldrepenger.mottak.domene.utils.InnloggetBruker;
 import no.nav.vedtak.sikkerhet.kontekst.KontekstHolder;
 
 
@@ -12,34 +13,37 @@ public class MellomlagringKrypto {
     private static final char[] HEXCODE = "0123456789ABCDEF".toCharArray();
 
     private String passphrase;
+    private InnloggetBruker innloggetBruker;
 
     public MellomlagringKrypto() {
         // CDI
     }
 
     @Inject
-    public MellomlagringKrypto(@KonfigVerdi(value = "KRYPTERING_NOKKEL") String passphrase) {
+    public MellomlagringKrypto(@KonfigVerdi(value = "KRYPTERING_NOKKEL") String passphrase,
+                               InnloggetBruker innloggetBruker) {
         this.passphrase = passphrase;
+        this.innloggetBruker = innloggetBruker;
     }
 
     public String mappenavn() {
-        return hexBinary(encrypt(brukerFraKonteks()).getBytes());
+        return hexBinary(encrypt(innloggetBruker.brukerFraKontekst()).getBytes());
     }
 
     public String encrypt(String plaintext) {
-        return new KrypteringHjelper(passphrase, brukerFraKonteks()).encrypt(plaintext);
+        return new KrypteringHjelper(passphrase, innloggetBruker.brukerFraKontekst()).encrypt(plaintext);
     }
 
     public byte[] encryptVedlegg(byte[] innhold) {
-        return new KrypteringHjelper(passphrase, brukerFraKonteks()).encryptVedlegg(innhold);
+        return new KrypteringHjelper(passphrase, innloggetBruker.brukerFraKontekst()).encryptVedlegg(innhold);
     }
 
     public String decrypt(String encrypted) {
-        return new KrypteringHjelper(passphrase, brukerFraKonteks()).decrypt(encrypted);
+        return new KrypteringHjelper(passphrase, innloggetBruker.brukerFraKontekst()).decrypt(encrypted);
     }
 
     public byte[] decryptVedlegg(byte[] encrypted) {
-        return new KrypteringHjelper(passphrase, brukerFraKonteks()).decryptVedlegg(encrypted);
+        return new KrypteringHjelper(passphrase, innloggetBruker.brukerFraKontekst()).decryptVedlegg(encrypted);
     }
 
     public String hexBinary(byte[] data) {
@@ -51,7 +55,5 @@ public class MellomlagringKrypto {
         return r.toString();
     }
 
-    public String brukerFraKonteks() {
-        return KontekstHolder.getKontekst().getUid();
-    }
+
 }

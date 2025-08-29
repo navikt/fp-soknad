@@ -22,9 +22,15 @@ import no.nav.foreldrepenger.mottak.domene.kontrakt.dto.svangerskapspenger.Svang
 @Transactional
 public class SøknadRest {
 
-    @Inject
+    private SøknadInnsendingTjeneste søknadInnsendingTjeneste;
+
     public SøknadRest() {
         // CDI
+    }
+
+    @Inject
+    public SøknadRest(SøknadInnsendingTjeneste søknadInnsendingTjeneste) {
+        this.søknadInnsendingTjeneste = søknadInnsendingTjeneste;
     }
 
     @POST
