@@ -19,7 +19,7 @@ public record Vedlegg(byte[] bytes, MediaType mediaType, String filnavn, UUID uu
     @Override
     public String toString() {
         return "Attachment{" +
-                "uuid='" + uuid + '\'' +
+                "uuid='" + uuid + '\'' + // Ønsker ikke logge bytes eller filnavn som kan inneholde sensitiv info
                 '}';
     }
 }

@@ -1,7 +1,7 @@
 kind: Application
 apiVersion: nais.io/v1alpha1
 metadata:
-  name: {{app}}
+  name: fpsoknad
   namespace: {{namespace}}
   labels:
     team: {{namespace}}
@@ -46,10 +46,19 @@ spec:
   kafka:
     pool: {{kafkaPool}}
   gcp:
+    buckets:
+      - name: {{tmpbucket}}
+        retentionPeriodDays: 30
+        lifecycleCondition:
+          age: 7
+          # daysSinceCustomTime: 7 // TODO: Skal slettes 7 dager etter custom time, side dette er en verdi som dynamsik oppdaters ved endringer
+          createdBefore: 2020-01-01
+          numNewerVersions: 2
+          withState: ANY
     sqlInstances:
       - type: POSTGRES_16
         databases:
-          - name: fpmottak
+          - name: fpsoknad
         tier: {{dbTier}}
         diskAutoresize: {{dbDiskAutoresize}}
         highAvailability: {{dbHighAvailability}}
@@ -57,8 +66,8 @@ spec:
         collation: nb_NO.UTF8
   tokenx:
     enabled: true
-  #envFrom: # Krypteringsnøkkel for mellomlagring passage.storage
-  #  - secret: api-storage
+  envFrom:
+    - secret: mellomlagring-kryptering # krypteringsnøkkel for mellomlagring
   observability:
     autoInstrumentation:
       enabled: true

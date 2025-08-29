@@ -1,5 +1,4 @@
 {
-    "app": "fpmottak",
     "namespace": "teamforeldrepenger",
     "environment": "prod",
     "kafkaPool": "nav-prod",
@@ -7,10 +6,11 @@
     "dbDiskAutoresize": "true",
     "dbHighAvailability": "true",
     "dbPointInTimeRecovery": "true",
+    "tmpbucket": "fp-soknad-mellomlagring-prod",
     "minReplicas": "2",
     "maxReplicas": "4",
     "ingresses": [
-        "https://fpmottak.intern.nav.no"
+        "https://fpsoknad.intern.nav.no"
     ],
     "groups": [
         "0d226374-4748-4367-a38a-062dcad70034"
