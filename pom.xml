@@ -21,6 +21,7 @@
         <felles.version>7.5.10</felles.version>
         <fpsoknad-felles.version>3.3.2</fpsoknad-felles.version> <!-- fjern på sikt ...-->
         <prosesstask.version>5.1.11</prosesstask.version>
+        <fp-kontrakter.version>9.2.2</fp-kontrakter.version>
 
         <nv.version>1.29</nv.version>
         <pdfbox.version>3.0.5</pdfbox.version>
@@ -54,6 +55,13 @@
                 <groupId>no.nav.vedtak.prosesstask</groupId>
                 <artifactId>prosesstask-root</artifactId>
                 <version>${prosesstask.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>no.nav.foreldrepenger.kontrakter</groupId>
+                <artifactId>fp-kontrakter-root</artifactId>
+                <version>${fp-kontrakter.version}</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -95,6 +103,15 @@
         <dependency>
             <groupId>no.nav.foreldrepenger.felles.integrasjon</groupId>
             <artifactId>felles-integrasjon-rest-klient</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>no.nav.foreldrepenger.kontrakter</groupId>
+            <artifactId>fordel-v1</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>no.nav.foreldrepenger.felles.integrasjon</groupId>
+            <artifactId>dokarkiv-klient</artifactId>
+            <version>${felles.version}</version>
         </dependency>
 
         <!-- Google Cloud Storage - Buckets -->
