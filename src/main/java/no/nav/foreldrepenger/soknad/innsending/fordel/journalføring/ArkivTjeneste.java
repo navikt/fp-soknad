@@ -3,13 +3,11 @@ package no.nav.foreldrepenger.soknad.innsending.fordel.journalføring;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivUtil;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Dokument;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentKategori;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.MapNAVSkjemaDokumentTypeId;
 import no.nav.vedtak.felles.integrasjon.dokarkiv.DokArkiv;
 import no.nav.vedtak.felles.integrasjon.dokarkiv.dto.AvsenderMottaker;
 import no.nav.vedtak.felles.integrasjon.dokarkiv.dto.Bruker;
@@ -113,15 +111,9 @@ public class ArkivTjeneste {
         var arkiv = new Dokumentvariant(Dokumentvariant.Variantformat.ARKIV, Dokumentvariant.Filtype.valueOf(arkivdokument.getArkivFilType().name()),
             arkivdokument.getByteArrayDokument());
         var type = DokumentTypeId.UDEFINERT.equals(arkivdokument.getDokumentTypeId()) ? DokumentTypeId.ANNET : arkivdokument.getDokumentTypeId();
-        var tittel =
-            DokumentTypeId.ANNET.equals(type) && (arkivdokument.getBeskrivelse() != null) ? arkivdokument.getBeskrivelse() : type.getTermNavn();
+        var tittel = DokumentTypeId.ANNET.equals(type) && (arkivdokument.getBeskrivelse() != null) ? arkivdokument.getBeskrivelse() : type.getTermNavn();
         var brevkode = MapNAVSkjemaDokumentTypeId.mapDokumentTypeId(type);
-        final DokumentKategori kategori;
-        if (DokumentTypeId.erSøknadType(type)) {
-            kategori = DokumentKategori.SØKNAD;
-        } else {
-            kategori = DokumentTypeId.erKlageType(type) ? DokumentKategori.KLAGE_ELLER_ANKE : DokumentKategori.IKKE_TOLKBART_SKJEMA;
-        }
+        var kategori = ArkivUtil.utledKategoriFraDokumentType(type);
         var builder = DokumentInfoOpprett.builder()
             .medTittel(tittel)
             .medBrevkode(brevkode.getOffisiellKode())

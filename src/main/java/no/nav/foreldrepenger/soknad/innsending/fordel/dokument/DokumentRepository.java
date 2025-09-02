@@ -1,10 +1,8 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.dokument;
 
-import static no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.ArkivTjeneste.MOTTAK_KANAL;
 import static no.nav.vedtak.felles.jpa.HibernateVerktøy.hentEksaktResultat;
 import static no.nav.vedtak.felles.jpa.HibernateVerktøy.hentUniktResultat;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -14,6 +12,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
+import no.nav.foreldrepenger.soknad.innsending.fordel.fpsak.Destinasjon;
 import no.nav.vedtak.exception.TekniskException;
 
 @ApplicationScoped
@@ -79,11 +78,11 @@ public class DokumentRepository {
         em.flush();
     }
 
-    public void oppdaterForsendelseMetadata(UUID forsendelseId, String arkivId, String saksnummer, ForsendelseStatus status) {
+    public void oppdaterForsendelseMetadata(UUID forsendelseId, String arkivId, Destinasjon destinasjon) {
         var metadata = hentEksaktDokumentMetadata(forsendelseId);
         metadata.setArkivId(arkivId);
-        metadata.setSaksnummer(saksnummer);
-        metadata.setStatus(status);
+        metadata.setSaksnummer(destinasjon.saksnummer());
+        metadata.setStatus(destinasjon.system());
         lagre(metadata);
     }
 

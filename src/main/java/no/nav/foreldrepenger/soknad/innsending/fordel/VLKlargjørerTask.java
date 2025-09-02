@@ -16,7 +16,7 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivUtil.utledKategoriFraDokumentType;
+import static no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.ArkivUtil.utledKategoriFraDokumentType;
 
 /*
  * Sender dokument til fpsak og evt til fptilbake
@@ -50,7 +50,7 @@ public class VLKlargjørerTask implements ProsessTaskHandler {
 
 
         var metadata = dokumentRepository.hentEksaktDokumentMetadata(forsendelseId); // Eller hente fra prosesstask prop?
-        var hoverdDokument = dokumentRepository.hentUnikDokument(forsendelseId, true, ArkivFilType.JSON); // TODO
+        var hoverdDokument = dokumentRepository.hentUnikDokument(forsendelseId, true, ArkivFilType.XML); // TODO
         var arkivId = metadata.getArkivId().orElseThrow();
         var jsonPayload = hoverdDokument.map(Dokument::getKlartekstDokument).orElse(null);
 

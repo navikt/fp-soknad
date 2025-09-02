@@ -45,7 +45,7 @@ public class VLKlargjører {
                          UUID forsendelseId,
                          DokumentKategori dokumentKategori) {
         String behandlingTemaString = (behandlingsTema == null) || BehandlingTema.UDEFINERT.equals(
-            behandlingsTema) ? BehandlingTema.UDEFINERT.getKode() : behandlingsTema.getOffisiellKode();
+            behandlingsTema) ? BehandlingTema.UDEFINERT.getOffisiellKode() : behandlingsTema.getOffisiellKode();
         String dokumentTypeIdOffisiellKode = null;
         String dokumentKategoriOffisiellKode = null;
         if (dokumenttypeId != null) {

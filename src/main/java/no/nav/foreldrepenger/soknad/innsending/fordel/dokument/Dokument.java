@@ -16,6 +16,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
+import no.nav.foreldrepenger.common.domain.felles.DokumentType;
 
 @Entity(name = "Dokument")
 @Table(name = "DOKUMENT")
@@ -30,7 +31,7 @@ public class Dokument {
 
     @Convert(converter = DokumentTypeId.KodeverdiConverter.class)
     @Column(name = "dokument_type_id", nullable = false)
-    private DokumentTypeId dokumentTypeId = DokumentTypeId.UDEFINERT;
+    private DokumentTypeId dokumentTypeId = DokumentTypeId.UDEFINERT; // TODO: Hva hvis udefinert? "-"
 
     @Lob
     @Column(name = "BLOB", nullable = false)

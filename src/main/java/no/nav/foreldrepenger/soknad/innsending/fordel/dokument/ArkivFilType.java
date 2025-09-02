@@ -3,31 +3,11 @@ package no.nav.foreldrepenger.soknad.innsending.fordel.dokument;
 import java.util.Set;
 
 public enum ArkivFilType {
-
-    PDF,
     PDFA,
     XML,
-    JSON,
-    AXML,
-    AFP,
-    DLF,
-    DOC,
-    DOCX,
-    RTF,
-    XLS,
-    XLSX,
-    JPEG,
-    JPG,
-    PNG,
-    TIF,
-    TIFF,
-    ;
+    JSON;
 
     private static final Set<ArkivFilType> KLARTEKST = Set.of(XML, JSON);
-
-    ArkivFilType() {
-        // Hibernate trenger den
-    }
 
     public static boolean erKlartekstType(ArkivFilType arkivFilType) {
         return KLARTEKST.contains(arkivFilType);

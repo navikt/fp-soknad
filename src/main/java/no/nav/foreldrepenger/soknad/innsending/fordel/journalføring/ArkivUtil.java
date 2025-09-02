@@ -1,4 +1,8 @@
-package no.nav.foreldrepenger.soknad.innsending.fordel.dokument;
+package no.nav.foreldrepenger.soknad.innsending.fordel.journalføring;
+
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentKategori;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -14,13 +18,6 @@ import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Behandling
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema.FORELDREPENGER_FØDSEL;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema.SVANGERSKAPSPENGER;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema.UDEFINERT;
-import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId.ETTERSENDT_FLEKSIBELT_UTTAK_FORELDREPENGER;
-import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId.ETTERSENDT_FORELDREPENGER_ENDRING_SØKNAD;
-import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId.ETTERSENDT_SØKNAD_ENGANGSSTØNAD_ADOPSJON;
-import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId.ETTERSENDT_SØKNAD_ENGANGSSTØNAD_FØDSEL;
-import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId.ETTERSENDT_SØKNAD_FORELDREPENGER_ADOPSJON;
-import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId.ETTERSENDT_SØKNAD_FORELDREPENGER_FØDSEL;
-import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId.ETTERSENDT_SØKNAD_SVANGERSKAPSPENGER_SELVSTENDIG;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId.FLEKSIBELT_UTTAK_FORELDREPENGER;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId.FORELDREPENGER_ENDRING_SØKNAD;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId.SØKNAD_ENGANGSSTØNAD_ADOPSJON;
@@ -35,20 +32,23 @@ public final class ArkivUtil {
     private static final int UDEF_RANK = 99;
 
     private static final Map<DokumentTypeId, BehandlingTema> DOKUMENT_BEHANDLING_TEMA = Map.ofEntries(
-        Map.entry(SØKNAD_SVANGERSKAPSPENGER, SVANGERSKAPSPENGER), Map.entry(SØKNAD_FORELDREPENGER_ADOPSJON, FORELDREPENGER_ADOPSJON),
-        Map.entry(SØKNAD_FORELDREPENGER_FØDSEL, FORELDREPENGER_FØDSEL), Map.entry(SØKNAD_ENGANGSSTØNAD_ADOPSJON, ENGANGSSTØNAD_ADOPSJON),
-        Map.entry(SØKNAD_ENGANGSSTØNAD_FØDSEL, ENGANGSSTØNAD_FØDSEL), Map.entry(FLEKSIBELT_UTTAK_FORELDREPENGER, FORELDREPENGER),
-        Map.entry(FORELDREPENGER_ENDRING_SØKNAD, FORELDREPENGER), Map.entry(ETTERSENDT_SØKNAD_SVANGERSKAPSPENGER_SELVSTENDIG, SVANGERSKAPSPENGER),
-        Map.entry(ETTERSENDT_SØKNAD_FORELDREPENGER_ADOPSJON, FORELDREPENGER_ADOPSJON),
-        Map.entry(ETTERSENDT_SØKNAD_FORELDREPENGER_FØDSEL, FORELDREPENGER_FØDSEL),
-        Map.entry(ETTERSENDT_SØKNAD_ENGANGSSTØNAD_ADOPSJON, ENGANGSSTØNAD_ADOPSJON),
-        Map.entry(ETTERSENDT_SØKNAD_ENGANGSSTØNAD_FØDSEL, ENGANGSSTØNAD_FØDSEL),
-        Map.entry(ETTERSENDT_FLEKSIBELT_UTTAK_FORELDREPENGER, FORELDREPENGER), Map.entry(ETTERSENDT_FORELDREPENGER_ENDRING_SØKNAD, FORELDREPENGER));
+        Map.entry(SØKNAD_SVANGERSKAPSPENGER, SVANGERSKAPSPENGER),
+        Map.entry(SØKNAD_FORELDREPENGER_ADOPSJON, FORELDREPENGER_ADOPSJON),
+        Map.entry(SØKNAD_FORELDREPENGER_FØDSEL, FORELDREPENGER_FØDSEL),
+        Map.entry(SØKNAD_ENGANGSSTØNAD_ADOPSJON, ENGANGSSTØNAD_ADOPSJON),
+        Map.entry(SØKNAD_ENGANGSSTØNAD_FØDSEL, ENGANGSSTØNAD_FØDSEL),
+        Map.entry(FLEKSIBELT_UTTAK_FORELDREPENGER, FORELDREPENGER),
+        Map.entry(FORELDREPENGER_ENDRING_SØKNAD, FORELDREPENGER));
 
-    private static final Map<BehandlingTema, Integer> BTEMA_RANK = Map.ofEntries(Map.entry(BehandlingTema.FORELDREPENGER_FØDSEL, 1),
-        Map.entry(BehandlingTema.ENGANGSSTØNAD_FØDSEL, 2), Map.entry(BehandlingTema.FORELDREPENGER_ADOPSJON, 3),
-        Map.entry(BehandlingTema.ENGANGSSTØNAD_ADOPSJON, 4), Map.entry(BehandlingTema.FORELDREPENGER, 5), Map.entry(BehandlingTema.ENGANGSSTØNAD, 6),
-        Map.entry(BehandlingTema.SVANGERSKAPSPENGER, 7), Map.entry(UDEFINERT, UDEF_RANK));
+    private static final Map<BehandlingTema, Integer> BTEMA_RANK = Map.ofEntries(
+        Map.entry(BehandlingTema.FORELDREPENGER_FØDSEL, 1),
+        Map.entry(BehandlingTema.ENGANGSSTØNAD_FØDSEL, 2),
+        Map.entry(BehandlingTema.FORELDREPENGER_ADOPSJON, 3),
+        Map.entry(BehandlingTema.ENGANGSSTØNAD_ADOPSJON, 4),
+        Map.entry(BehandlingTema.FORELDREPENGER, 5),
+        Map.entry(BehandlingTema.ENGANGSSTØNAD, 6),
+        Map.entry(BehandlingTema.SVANGERSKAPSPENGER, 7),
+        Map.entry(UDEFINERT, UDEF_RANK));
 
     private static final Map<Integer, BehandlingTema> RANK_BTEMA = BTEMA_RANK.entrySet()
         .stream()
@@ -61,9 +61,6 @@ public final class ArkivUtil {
     public static DokumentKategori utledKategoriFraDokumentType(DokumentTypeId doktype) {
         if (DokumentTypeId.erSøknadType(doktype)) {
             return DokumentKategori.SØKNAD;
-        }
-        if (DokumentTypeId.erKlageType(doktype)) {
-            return DokumentKategori.KLAGE_ELLER_ANKE;
         }
         return DokumentKategori.IKKE_TOLKBART_SKJEMA;
     }

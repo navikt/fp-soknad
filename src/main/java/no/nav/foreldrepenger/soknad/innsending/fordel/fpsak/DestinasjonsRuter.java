@@ -12,7 +12,6 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus
 
 import java.time.LocalDate;
 
-import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId.INNTEKTSMELDING;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId.erFørsteSøknadType;
 
 /**
@@ -68,7 +67,7 @@ public class DestinasjonsRuter {
     }
 
     public SaksnummerDto opprettSak(DokumentMetadata metadata, DokumentTypeId dokumentTypeId, BehandlingTema behandlingTema) {
-        if (!erFørsteSøknadType(dokumentTypeId) && !INNTEKTSMELDING.equals(dokumentTypeId)) {
+        if (!erFørsteSøknadType(dokumentTypeId)) {
             throw new IllegalArgumentException("Kan ikke opprette sak for dokument");
         }
         return fpsakTjeneste.opprettSak(new OpprettSakDto(metadata.getArkivId().orElse(null), behandlingTema.getOffisiellKode(), metadata.getBrukerId()));
