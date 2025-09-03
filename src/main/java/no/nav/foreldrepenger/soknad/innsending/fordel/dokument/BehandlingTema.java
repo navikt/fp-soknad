@@ -2,10 +2,6 @@ package no.nav.foreldrepenger.soknad.innsending.fordel.dokument;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
-import com.fasterxml.jackson.annotation.JsonValue;
 
 
 public enum BehandlingTema {

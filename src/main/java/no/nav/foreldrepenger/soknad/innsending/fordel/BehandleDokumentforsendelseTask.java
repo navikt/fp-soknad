@@ -29,7 +29,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.ArkivUtil.behandlingTemaFraDokumentType;
+import static no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.ArkivUtil.mapDokumenttype;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.ArkivUtil.utledHovedDokumentType;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus.FPSAK;
 
@@ -76,10 +76,10 @@ public class BehandleDokumentforsendelseTask implements ProsessTaskHandler {
         // setFellesWrapperAttributter(w, hovedDokument.orElse(null), metadata);
 
         var fagsakInfoOpt = fagsakInformasjon(metadata);
-        var behandlingTema = utledBehandlingstema(hovedDokument, fagsakInfoOpt);
         var dokumentTypeId = utledDokumentTypeId(hovedDokument, dokumenter);
-        var destinasjon = utledDestinasjonForForsendelse(metadata, dokumentTypeId, behandlingTema, fagsakInfoOpt);
-        var journalpost = opprettJournalpostFerdigstillHvisSaksnummer(forsendelseId, metadata.getBrukerId(), destinasjon);
+        var behandlingTema = utledBehandlingstema(hovedDokument, dokumentTypeId, fagsakInfoOpt);
+        var destinasjon = utledDestinasjonForForsendelse(metadata, behandlingTema, fagsakInfoOpt);
+        var opprettetJournalpost = opprettJournalpostFerdigstillHvisSaksnummer(forsendelseId, metadata.getBrukerId(), destinasjon);
 
         // Ikke nødvendig kanskje?
         // if (!journalpost.ferdigstilt()) {
@@ -87,8 +87,8 @@ public class BehandleDokumentforsendelseTask implements ProsessTaskHandler {
         //     dokumentRepository.lagreJournalpostLokal(null, metadata.getForsendelseId().toString(), , "MIDLERTIDIG");
         // }
 
-        dokumentRepository.oppdaterForsendelseMetadata(forsendelseId, journalpost.journalpostId(), destinasjon);
-        utledNesteSteg(behandlingTema, dokumentTypeId, forsendelseId, destinasjon);
+        dokumentRepository.oppdaterForsendelseMetadata(forsendelseId, opprettetJournalpost.journalpostId(), destinasjon);
+        utledNesteSteg(opprettetJournalpost, behandlingTema, dokumentTypeId, forsendelseId, destinasjon);
     }
 
     private DokumentTypeId utledDokumentTypeId(Optional<Dokument> hovedDokument, List<Dokument> dokumenter) {
@@ -99,13 +99,12 @@ public class BehandleDokumentforsendelseTask implements ProsessTaskHandler {
         return utledHovedDokumentType(dokumenter.stream().map(Dokument::getDokumentTypeId).collect(Collectors.toSet()));
     }
 
-    private static BehandlingTema utledBehandlingstema(Optional<Dokument> hovedDokument, Optional<FagsakInfomasjonDto> fagsakInfoOpt) {
+    private static BehandlingTema utledBehandlingstema(Optional<Dokument> hovedDokument, DokumentTypeId dokumentTypeId, Optional<FagsakInfomasjonDto> fagsakInfoOpt) {
         if (fagsakInfoOpt.isPresent() && hovedDokument.isEmpty()) { // Ettersendelse?
             return BehandlingTema.fraOffisiellKode(fagsakInfoOpt.get().getBehandlingstemaOffisiellKode());
         }
 
-        return behandlingTemaFraDokumentType(BehandlingTema.UDEFINERT,
-            hovedDokument.map(Dokument::getDokumentTypeId).orElse(DokumentTypeId.UDEFINERT));
+        return mapDokumenttype(dokumentTypeId); // Hoveddokumenttype
     }
 
     private Optional<FagsakInfomasjonDto> fagsakInformasjon(DokumentMetadata metadata) {
@@ -116,10 +115,10 @@ public class BehandleDokumentforsendelseTask implements ProsessTaskHandler {
     }
 
 
-    private Destinasjon utledDestinasjonForForsendelse(DokumentMetadata metadata, DokumentTypeId dokumentTypeId, BehandlingTema behandlingTema,
+    private Destinasjon utledDestinasjonForForsendelse(DokumentMetadata metadata, BehandlingTema behandlingTema,
                                                        Optional<FagsakInfomasjonDto> fagsakInfoOpt) {
         if (metadata.getSaksnummer().isEmpty()) {
-            return ruter.bestemDestinasjon(metadata, dokumentTypeId, behandlingTema);
+            return ruter.bestemDestinasjon(metadata, behandlingTema);
         }
 
         var saksnummer = metadata.getSaksnummer().orElseThrow();
@@ -152,15 +151,18 @@ public class BehandleDokumentforsendelseTask implements ProsessTaskHandler {
         return opprettetJournalpost;
     }
 
-    private void utledNesteSteg(BehandlingTema behandlingTema, DokumentTypeId dokumentTypeId, UUID forsendelseId, Destinasjon destinasjon) {
-        if (FPSAK.equals(destinasjon.system()) && destinasjon.saksnummer() != null) {
-            var task = ProsessTaskData.forProsessTask(VLKlargjørerTask.class);
-            task.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
-            task.setProperty(SAKSNUMMER_PROPERTY, destinasjon.saksnummer());
-            task.setProperty(BEHANDLING_TEMA_PROPERTY, behandlingTema.getOffisiellKode());
-            task.setProperty(DOKUMENT_TYPE_ID_PROPERTY, dokumentTypeId.getOffisiellKode());
-            taskTjeneste.lagre(task);
+    private void utledNesteSteg(OpprettetJournalpost opprettetJournalpost, BehandlingTema behandlingTema, DokumentTypeId dokumentTypeId,
+                                UUID forsendelseId, Destinasjon destinasjon) {
+        if (!opprettetJournalpost.ferdigstilt() || destinasjon.erGosys() || destinasjon.saksnummer() == null) {
+            return; // Ikke ferdigstilt journalpost, eller Gosys - da er det ikke mer å gjøre her.
         }
+
+        var task = ProsessTaskData.forProsessTask(VLKlargjørerTask.class);
+        task.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
+        task.setProperty(SAKSNUMMER_PROPERTY, destinasjon.saksnummer());
+        task.setProperty(BEHANDLING_TEMA_PROPERTY, behandlingTema.getOffisiellKode());
+        task.setProperty(DOKUMENT_TYPE_ID_PROPERTY, dokumentTypeId.getKode());
+        taskTjeneste.lagre(task);
     }
 
 }

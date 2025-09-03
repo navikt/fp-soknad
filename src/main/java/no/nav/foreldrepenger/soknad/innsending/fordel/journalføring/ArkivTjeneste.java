@@ -5,7 +5,6 @@ import jakarta.inject.Inject;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Dokument;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentKategori;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
 import no.nav.vedtak.felles.integrasjon.dokarkiv.DokArkiv;
@@ -60,23 +59,20 @@ public class ArkivTjeneste {
         return new OpprettetJournalpost(response.journalpostId(), response.journalpostferdigstilt());
     }
 
-    private OpprettJournalpostRequest.OpprettJournalpostRequestBuilder lagOpprettRequest(UUID forsendelseId,
-                                                                                         UUID eksternReferanse,
-                                                                                         String avsenderAktørId) {
+    private OpprettJournalpostRequest.OpprettJournalpostRequestBuilder lagOpprettRequest(UUID forsendelseId, UUID eksternReferanse, String avsenderAktørId) {
         var metadata = dokumentRepository.hentEksaktDokumentMetadata(forsendelseId);
         var dokumenter = dokumentRepository.hentDokumenter(forsendelseId);
         var opprettDokumenter = lagAlleDokumentForOpprett(dokumenter);
         var dokumenttyper = dokumenter.stream().map(Dokument::getDokumentTypeId).collect(Collectors.toSet());
         var hovedtype = ArkivUtil.utledHovedDokumentType(dokumenttyper);
         var behandlingstema = utledBehandlingTema(dokumenttyper);
-        var tittel = DokumentTypeId.UDEFINERT.equals(hovedtype) ? DokumentTypeId.ANNET.getTermNavn() : hovedtype.getTermNavn();
         var bruker = new Bruker(metadata.getBrukerId(), Bruker.BrukerIdType.AKTOERID);
         var ident = personTjeneste.hentPersonIdentForAktørId(avsenderAktørId).orElseThrow(() -> new IllegalStateException("Aktør uten personident"));
         var avsender = new AvsenderMottaker(ident, AvsenderMottaker.AvsenderMottakerIdType.FNR,
             personTjeneste.hentNavn(behandlingstema, avsenderAktørId));
 
         return OpprettJournalpostRequest.nyInngående()
-            .medTittel(tittel)
+            .medTittel(hovedtype.getTittel())
             .medKanal(MOTTAK_KANAL)
             .medTema(TEMA)
             .medBehandlingstema(behandlingstema.getOffisiellKode())
@@ -85,11 +81,11 @@ public class ArkivTjeneste {
             .medBruker(bruker)
             .medAvsenderMottaker(avsender)
             .medDokumenter(opprettDokumenter)
-            .medTilleggsopplysninger(DokumentTypeId.UDEFINERT.equals(hovedtype) ? List.of() : List.of(new Tilleggsopplysning(FP_DOK_TYPE, hovedtype.getOffisiellKode())));
+            .medTilleggsopplysninger(List.of(new Tilleggsopplysning(FP_DOK_TYPE, hovedtype.name())));
     }
 
     private static BehandlingTema utledBehandlingTema(Set<DokumentTypeId> dokumenttyper) {
-        return ArkivUtil.behandlingTemaFraDokumentTypeSet(BehandlingTema.UDEFINERT, dokumenttyper);
+        return ArkivUtil.utledBehandlingTemaFraHovedDokumentType(dokumenttyper);
     }
 
     private static List<DokumentInfoOpprett> lagAlleDokumentForOpprett(List<Dokument> dokumenter) {
@@ -110,14 +106,12 @@ public class ArkivTjeneste {
     private static DokumentInfoOpprett lagDokumentForOpprett(Dokument arkivdokument, Dokument struktuert) {
         var arkiv = new Dokumentvariant(Dokumentvariant.Variantformat.ARKIV, Dokumentvariant.Filtype.valueOf(arkivdokument.getArkivFilType().name()),
             arkivdokument.getByteArrayDokument());
-        var type = DokumentTypeId.UDEFINERT.equals(arkivdokument.getDokumentTypeId()) ? DokumentTypeId.ANNET : arkivdokument.getDokumentTypeId();
-        var tittel = DokumentTypeId.ANNET.equals(type) && (arkivdokument.getBeskrivelse() != null) ? arkivdokument.getBeskrivelse() : type.getTermNavn();
+        var type = arkivdokument.getDokumentTypeId();
+        var tittel = DokumentTypeId.I000060.equals(type) && (arkivdokument.getBeskrivelse() != null) ? arkivdokument.getBeskrivelse() : type.getTittel();
         var brevkode = MapNAVSkjemaDokumentTypeId.mapDokumentTypeId(type);
-        var kategori = ArkivUtil.utledKategoriFraDokumentType(type);
         var builder = DokumentInfoOpprett.builder()
             .medTittel(tittel)
             .medBrevkode(brevkode.getOffisiellKode())
-            .medDokumentkategori(kategori.getOffisiellKode())
             .leggTilDokumentvariant(arkiv);
         Optional.ofNullable(struktuert)
             .map(s -> new Dokumentvariant(Dokumentvariant.Variantformat.ORIGINAL, Dokumentvariant.Filtype.valueOf(s.getArkivFilType().name()),

@@ -34,8 +34,8 @@ public class DokumentMetadata {
     @Column(name = "ARKIV_ID")
     private String arkivId;
 
-    @Column(name = "FORSENDELSE_STATUS")
     @Enumerated(EnumType.STRING)
+    @Column(name = "FORSENDELSE_STATUS")
     private ForsendelseStatus status;
 
     @Column(name = "FORSENDELSE_MOTTATT")

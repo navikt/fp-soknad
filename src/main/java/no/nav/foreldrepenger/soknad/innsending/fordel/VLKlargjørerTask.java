@@ -16,8 +16,6 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.ArkivUtil.utledKategoriFraDokumentType;
-
 /*
  * Sender dokument til fpsak og evt til fptilbake
  */
@@ -44,8 +42,7 @@ public class VLKlargjørerTask implements ProsessTaskHandler {
     public void doTask(ProsessTaskData prosessTaskData) {
         var forsendelseId = UUID.fromString(prosessTaskData.getPropertyValue(BehandleDokumentforsendelseTask.FORSENDELSE_ID_PROPERTY));
         var saksnummer = prosessTaskData.getPropertyValue(BehandleDokumentforsendelseTask.SAKSNUMMER_PROPERTY);
-        var dokumenttypeId = DokumentTypeId.fraOffisiellKode(prosessTaskData.getPropertyValue(BehandleDokumentforsendelseTask.DOKUMENT_TYPE_ID_PROPERTY));
-        var dokumentKategori = utledKategoriFraDokumentType(dokumenttypeId);
+        var dokumenttypeId = DokumentTypeId.valueOf(prosessTaskData.getPropertyValue(BehandleDokumentforsendelseTask.DOKUMENT_TYPE_ID_PROPERTY));
         var behandlingsTema = BehandlingTema.fraOffisiellKode(prosessTaskData.getPropertyValue(BehandleDokumentforsendelseTask.BEHANDLING_TEMA_PROPERTY));
 
 
@@ -57,8 +54,7 @@ public class VLKlargjørerTask implements ProsessTaskHandler {
         String journalEnhet; // Settes av JournalføringHendelseHåndterer i fpfordel. Alltid null? TODO
         String eksternReferanseId; // Settes av JournalføringHendelseHåndterer i fpfordel. Alltid null? TODO
 
-        klargjører.klargjør(jsonPayload, saksnummer, arkivId, dokumenttypeId, metadata.getForsendelseMottatt(),
-            behandlingsTema, forsendelseId, dokumentKategori);
+        klargjører.klargjør(jsonPayload, saksnummer, arkivId, dokumenttypeId, metadata.getForsendelseMottatt(), behandlingsTema, forsendelseId);
 
         slettForsendelseTask(forsendelseId);
     }

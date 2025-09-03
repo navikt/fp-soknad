@@ -26,14 +26,12 @@ public class FpsakRestKlient implements FpsakTjeneste {
     private static final String FAGSAKINFORMASJON_PATH = "/api/fordel/fagsak/informasjon";
     private static final String FAGSAK_OPPRETT_PATH = "/api/fordel/fagsak/opprett";
     private static final String VURDER_FAGSYSTEM_PATH = "/api/fordel/vurderFagsystem";
-    private static final String KLAGEINSTANS_FAGSYSTEM_PATH = "/api/fordel/klageinstans";
 
 
     private final URI knytningEndpoint;
     private final URI fagsakinfoEndpoint;
     private final URI opprettsakEndpoint;
     private final URI fagsystemEndpoint;
-    private final URI klageinstansEndpoint;
 
     private final RestClient restKlient;
     private final RestConfig restConfig;
@@ -46,17 +44,14 @@ public class FpsakRestKlient implements FpsakTjeneste {
         this.fagsakinfoEndpoint = lagURI(endpoint, FAGSAKINFORMASJON_PATH);
         this.opprettsakEndpoint = lagURI(endpoint, FAGSAK_OPPRETT_PATH);
         this.fagsystemEndpoint = lagURI(endpoint, VURDER_FAGSYSTEM_PATH);
-        this.klageinstansEndpoint = lagURI(endpoint, KLAGEINSTANS_FAGSYSTEM_PATH);
     }
 
     @Override
     public VurderFagsystemResultat vurderFagsystem() {
         var dto = new VurderFagsystemDto();
         // TODO: Set fiels basert på søknad som sendes inn + metadata
-
-        var brukPath = true ? fagsystemEndpoint : klageinstansEndpoint; // TODO: KlageinstansEndpoint ved klage?
-
-        var request = RestRequest.newPOSTJson(dto, brukPath, restConfig);
+        // Fjernet klage endepunkt, ettersom vi ikke skal motta klager her => Går alltid mot fagsystemEndpoint
+        var request = RestRequest.newPOSTJson(dto, fagsystemEndpoint, restConfig);
         var respons = restKlient.send(request, BehandlendeFagsystemDto.class);
         return VurderFagsystemResultat.fra( respons);
     }
