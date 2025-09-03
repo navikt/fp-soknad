@@ -161,7 +161,7 @@ public class BehandleDokumentforsendelseTask implements ProsessTaskHandler {
         task.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
         task.setProperty(SAKSNUMMER_PROPERTY, destinasjon.saksnummer());
         task.setProperty(BEHANDLING_TEMA_PROPERTY, behandlingTema.getOffisiellKode());
-        task.setProperty(DOKUMENT_TYPE_ID_PROPERTY, dokumentTypeId.getKode());
+        task.setProperty(DOKUMENT_TYPE_ID_PROPERTY, dokumentTypeId.name());
         taskTjeneste.lagre(task);
     }
 
