@@ -39,7 +39,7 @@ public class Dokument {
     private byte[] blob;
 
     @Column(name = "HOVED_DOKUMENT")
-    private Boolean hovedDokument;
+    private boolean hovedDokument;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "arkiv_filtype")

@@ -10,6 +10,7 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.endringssøknad.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.engangsstønad.EngangsstønadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse.EttersendelseDto;
@@ -35,33 +36,42 @@ public class SøknadRest {
     @POST
     @Path("/foreldrepenger")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void send(@Valid @NotNull ForeldrepengesøknadDto foreldrepengesøknadDto) {
-
+    public Response send(@Valid @NotNull ForeldrepengesøknadDto foreldrepengesøknadDto) {
+        søknadInnsendingTjeneste.lagreInnsending(foreldrepengesøknadDto);
+        return Response.ok().build();
     }
 
     @POST
     @Path("/engangsstonad")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void send(@Valid @NotNull EngangsstønadDto engangsstønadDto) {
+    public Response send(@Valid @NotNull EngangsstønadDto engangsstønadDto) {
+        søknadInnsendingTjeneste.lagreInnsending(engangsstønadDto);
+        return Response.ok().build();
     }
 
     @POST
     @Path("/svangerskapspenger")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void send(@Valid @NotNull SvangerskapspengesøknadDto svangerskapspengesøknadDto) {
+    public Response send(@Valid @NotNull SvangerskapspengesøknadDto svangerskapspengesøknadDto) {
+        søknadInnsendingTjeneste.lagreInnsending(svangerskapspengesøknadDto);
+        return Response.ok().build();
     }
 
     @POST
     @Path("/endre/foreldrepenger")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void send(@Valid @NotNull EndringssøknadForeldrepengerDto endringssøknadForeldrepengerDto) {
+    public Response send(@Valid @NotNull EndringssøknadForeldrepengerDto endringssøknadForeldrepengerDto) {
+//        søknadInnsendingTjeneste.lagreInnsending(endringssøknadForeldrepengerDto);
+        return Response.ok().build();
     }
 
 
     @POST
     @Path("/ettersend")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void send(@Valid @NotNull EttersendelseDto ettersendelseDto) {
+    public Response send(@Valid @NotNull EttersendelseDto ettersendelseDto) {
+//        søknadInnsendingTjeneste.lagreInnsending(ettersendelseDto);
+        return Response.ok().build();
     }
 
 }

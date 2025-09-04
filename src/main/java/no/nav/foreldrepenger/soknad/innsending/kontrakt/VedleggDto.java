@@ -13,10 +13,11 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import no.nav.foreldrepenger.common.domain.felles.DokumentType;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.ArbeidsforholdDto;
 
 public record VedleggDto(UUID uuid,
-                         @NotNull DokumentType skjemanummer,
+                         @NotNull DokumentTypeId skjemanummer,
                          VedleggInnsendingType innsendingsType,
                          @Pattern(regexp = FRITEKST) String beskrivelse,
                          @Valid Dokumenterer dokumenterer,
@@ -27,7 +28,7 @@ public record VedleggDto(UUID uuid,
     }
 
     @JsonCreator
-    public VedleggDto(UUID uuid, DokumentType skjemanummer, VedleggInnsendingType innsendingsType, String beskrivelse, Dokumenterer dokumenterer) {
+    public VedleggDto(UUID uuid, DokumentTypeId skjemanummer, VedleggInnsendingType innsendingsType, String beskrivelse, Dokumenterer dokumenterer) {
         this(uuid, skjemanummer, innsendingsType, beskrivelse, dokumenterer, null);
     }
 
