@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -16,6 +17,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
+import no.nav.foreldrepenger.common.domain.felles.DokumentType;
 
 @Entity(name = "Dokument")
 @Table(name = "DOKUMENT")
@@ -28,9 +30,9 @@ public class Dokument {
     @Column(name = "FORSENDELSE_ID")
     private UUID forsendelseId;
 
-    @Convert(converter = DokumentTypeId.KodeverdiConverter.class)
+    @Enumerated(EnumType.STRING)
     @Column(name = "dokument_type_id", nullable = false)
-    private DokumentTypeId dokumentTypeId = DokumentTypeId.UDEFINERT;
+    private DokumentTypeId dokumentTypeId;
 
     @Lob
     @Column(name = "BLOB", nullable = false)

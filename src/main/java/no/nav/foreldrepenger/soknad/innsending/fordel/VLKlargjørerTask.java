@@ -16,8 +16,6 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivUtil.utledKategoriFraDokumentType;
-
 /*
  * Sender dokument til fpsak og evt til fptilbake
  */
@@ -44,21 +42,19 @@ public class VLKlargjørerTask implements ProsessTaskHandler {
     public void doTask(ProsessTaskData prosessTaskData) {
         var forsendelseId = UUID.fromString(prosessTaskData.getPropertyValue(BehandleDokumentforsendelseTask.FORSENDELSE_ID_PROPERTY));
         var saksnummer = prosessTaskData.getPropertyValue(BehandleDokumentforsendelseTask.SAKSNUMMER_PROPERTY);
-        var dokumenttypeId = DokumentTypeId.fraOffisiellKode(prosessTaskData.getPropertyValue(BehandleDokumentforsendelseTask.DOKUMENT_TYPE_ID_PROPERTY));
-        var dokumentKategori = utledKategoriFraDokumentType(dokumenttypeId);
+        var dokumenttypeId = DokumentTypeId.valueOf(prosessTaskData.getPropertyValue(BehandleDokumentforsendelseTask.DOKUMENT_TYPE_ID_PROPERTY));
         var behandlingsTema = BehandlingTema.fraOffisiellKode(prosessTaskData.getPropertyValue(BehandleDokumentforsendelseTask.BEHANDLING_TEMA_PROPERTY));
 
 
         var metadata = dokumentRepository.hentEksaktDokumentMetadata(forsendelseId); // Eller hente fra prosesstask prop?
-        var hoverdDokument = dokumentRepository.hentUnikDokument(forsendelseId, true, ArkivFilType.JSON); // TODO
-        var arkivId = metadata.getArkivId().orElseThrow();
+        var hoverdDokument = dokumentRepository.hentUnikDokument(forsendelseId, true, ArkivFilType.XML); // TODO
+        var arkivId = metadata.getJournalpostId().orElseThrow();
         var jsonPayload = hoverdDokument.map(Dokument::getKlartekstDokument).orElse(null);
 
         String journalEnhet; // Settes av JournalføringHendelseHåndterer i fpfordel. Alltid null? TODO
         String eksternReferanseId; // Settes av JournalføringHendelseHåndterer i fpfordel. Alltid null? TODO
 
-        klargjører.klargjør(jsonPayload, saksnummer, arkivId, dokumenttypeId, metadata.getForsendelseMottatt(),
-            behandlingsTema, forsendelseId, dokumentKategori);
+        klargjører.klargjør(jsonPayload, saksnummer, arkivId, dokumenttypeId, metadata.getForsendelseMottatt(), behandlingsTema, forsendelseId);
 
         slettForsendelseTask(forsendelseId);
     }

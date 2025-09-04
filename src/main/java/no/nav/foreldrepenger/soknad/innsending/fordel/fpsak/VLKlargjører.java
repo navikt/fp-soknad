@@ -6,7 +6,6 @@ import jakarta.inject.Inject;
 import no.nav.foreldrepenger.kontrakter.fordel.JournalpostKnyttningDto;
 import no.nav.foreldrepenger.kontrakter.fordel.JournalpostMottakDto;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentKategori;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.fptilbake.TilbakekrevingKlient;
 
@@ -42,30 +41,38 @@ public class VLKlargjører {
                          DokumentTypeId dokumenttypeId,
                          LocalDateTime forsendelseMottatt,
                          BehandlingTema behandlingsTema,
-                         UUID forsendelseId,
-                         DokumentKategori dokumentKategori) {
-        String behandlingTemaString = (behandlingsTema == null) || BehandlingTema.UDEFINERT.equals(
-            behandlingsTema) ? BehandlingTema.UDEFINERT.getKode() : behandlingsTema.getOffisiellKode();
-        String dokumentTypeIdOffisiellKode = null;
-        String dokumentKategoriOffisiellKode = null;
-        if (dokumenttypeId != null) {
-            dokumentTypeIdOffisiellKode = dokumenttypeId.getOffisiellKode();
-        }
-        if (dokumentKategori != null) {
-            dokumentKategoriOffisiellKode = dokumentKategori.getOffisiellKode();
-        }
+                         UUID forsendelseId) {
+        var behandlingTemaString = (behandlingsTema == null) || BehandlingTema.UDEFINERT.equals(behandlingsTema)
+            ? BehandlingTema.UDEFINERT.getOffisiellKode()
+            : behandlingsTema.getOffisiellKode();
         fagsak.knyttSakOgJournalpost(new JournalpostKnyttningDto(saksnummer, arkivId));
+        sendForsendelseTilFpsak(jsonPayload, saksnummer, arkivId, dokumenttypeId, forsendelseMottatt, forsendelseId, behandlingTemaString);
+        sendForsendelseTilFptilbake(saksnummer, arkivId, dokumenttypeId, forsendelseMottatt, forsendelseId, behandlingTemaString);
+    }
 
-        var journalpost = new JournalpostMottakDto(saksnummer, arkivId, behandlingTemaString, dokumentTypeIdOffisiellKode, forsendelseMottatt, jsonPayload); // TODO: Payload lagret på payload xml nå
+    private void sendForsendelseTilFpsak(String jsonPayload,
+                           String saksnummer,
+                           String arkivId,
+                           DokumentTypeId dokumenttypeId,
+                           LocalDateTime forsendelseMottatt,
+                           UUID forsendelseId,
+                           String behandlingTemaString) {
+        var journalpost = new JournalpostMottakDto(saksnummer, arkivId, behandlingTemaString, dokumenttypeId.name(), forsendelseMottatt,
+            jsonPayload // TODO: Payload lagret på payload xml nå
+        );
         journalpost.setForsendelseId(forsendelseId);
-        journalpost.setDokumentKategoriOffisiellKode(dokumentKategoriOffisiellKode);
         dokumentJournalpostSender.send(journalpost);
+    }
 
+    private void sendForsendelseTilFptilbake(String saksnummer,
+                           String arkivId,
+                           DokumentTypeId dokumenttypeId,
+                           LocalDateTime forsendelseMottatt,
+                           UUID forsendelseId,
+                           String behandlingTemaString) {
         try {
-            var tilbakeMottakDto = new JournalpostMottakDto(saksnummer, arkivId, behandlingTemaString, dokumentTypeIdOffisiellKode,
-                forsendelseMottatt, null);
+            var tilbakeMottakDto = new JournalpostMottakDto(saksnummer, arkivId, behandlingTemaString, dokumenttypeId.name(), forsendelseMottatt, null);
             tilbakeMottakDto.setForsendelseId(forsendelseId);
-            tilbakeMottakDto.setDokumentKategoriOffisiellKode(dokumentKategoriOffisiellKode);
             tilbakeJournalpostSender.send(tilbakeMottakDto);
         } catch (Exception e) {
             LOG.warn("Feil ved sending av forsendelse til fptilbake, ukjent feil", e);

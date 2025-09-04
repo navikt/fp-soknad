@@ -7,13 +7,9 @@ import no.nav.foreldrepenger.kontrakter.fordel.OpprettSakDto;
 import no.nav.foreldrepenger.kontrakter.fordel.SaksnummerDto;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentMetadata;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus;
 
 import java.time.LocalDate;
-
-import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId.INNTEKTSMELDING;
-import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId.erFørsteSøknadType;
 
 /**
  * Tjeneste som henter ut informasjon fra søknadsskjema og vurderer denne i
@@ -48,7 +44,7 @@ public class DestinasjonsRuter {
         this.fpsakTjeneste = fpsakTjeneste;
     }
 
-    public Destinasjon bestemDestinasjon(DokumentMetadata metadata, DokumentTypeId dokumentTypeId, BehandlingTema behandlingTema) {
+    public Destinasjon bestemDestinasjon(DokumentMetadata metadata, BehandlingTema behandlingTema) {
         var res = fpsakTjeneste.vurderFagsystem(); // TODO: Trenger mye input fra søknaden!
 
         if (VurderFagsystemResultat.SendTil.FPSAK.equals(res.destinasjon()) && res.getSaksnummer().isPresent()) {
@@ -58,7 +54,7 @@ public class DestinasjonsRuter {
             return Destinasjon.GOSYS;
         }
         if (VurderFagsystemResultat.SendTil.FPSAK.equals(res.destinasjon())) {
-            var nyttSaksnummer = opprettSak(metadata, dokumentTypeId, behandlingTema);
+            var nyttSaksnummer = opprettSak(metadata, behandlingTema);
             return new Destinasjon(ForsendelseStatus.FPSAK, nyttSaksnummer.getSaksnummer());
         }
         if (VurderFagsystemResultat.SendTil.GOSYS.equals(res.destinasjon())) {
@@ -67,11 +63,8 @@ public class DestinasjonsRuter {
         throw new IllegalStateException("Utviklerfeil"); // fix korrekt feilhåndtering
     }
 
-    public SaksnummerDto opprettSak(DokumentMetadata metadata, DokumentTypeId dokumentTypeId, BehandlingTema behandlingTema) {
-        if (!erFørsteSøknadType(dokumentTypeId) && !INNTEKTSMELDING.equals(dokumentTypeId)) {
-            throw new IllegalArgumentException("Kan ikke opprette sak for dokument");
-        }
-        return fpsakTjeneste.opprettSak(new OpprettSakDto(metadata.getArkivId().orElse(null), behandlingTema.getOffisiellKode(), metadata.getBrukerId()));
+    public SaksnummerDto opprettSak(DokumentMetadata metadata, BehandlingTema behandlingTema) {
+        return fpsakTjeneste.opprettSak(new OpprettSakDto(metadata.getJournalpostId().orElse(null), behandlingTema.getOffisiellKode(), metadata.getBrukerId()));
     }
 
 
