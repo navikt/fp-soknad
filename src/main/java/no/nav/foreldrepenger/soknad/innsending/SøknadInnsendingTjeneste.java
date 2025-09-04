@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import no.nav.foreldrepenger.soknad.innsending.fordel.BehandleDokumentforsendelseTask;
+import no.nav.foreldrepenger.soknad.innsending.fordel.BehandleSøknadTask;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Dokument;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentMetadata;
@@ -19,6 +19,8 @@ import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggReferanse;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.engangsstønad.EngangsstønadDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse.EttersendelseDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse.YtelseType;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.ForeldrepengesøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.SvangerskapspengesøknadDto;
 import no.nav.foreldrepenger.soknad.mellomlagring.MellomlagringTjeneste;
@@ -33,7 +35,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import static no.nav.foreldrepenger.soknad.innsending.fordel.BehandleDokumentforsendelseTask.FORSENDELSE_ID_PROPERTY;
+import static no.nav.foreldrepenger.soknad.innsending.fordel.BehandleSøknadTask.FORSENDELSE_ID_PROPERTY;
 
 @ApplicationScoped
 public class SøknadInnsendingTjeneste {
@@ -61,7 +63,28 @@ public class SøknadInnsendingTjeneste {
         this.prosessTaskTjeneste = prosessTaskTjeneste;
     }
 
-    public void lagreInnsending(SøknadDto søknad) {
+    public void lagreEttersendelseInnsending(EttersendelseDto ettersendelse) {
+        var forsendelseId = UUID.randomUUID();  // TODO: skal denne komme fra FE?
+
+        var metadata = DokumentMetadata.builder()
+            .setBrukerId(innloggetBruker.brukerFraKontekst())
+            .setStatus(ForsendelseStatus.PENDING)
+            .setForsendelseId(forsendelseId)
+            .setForsendelseMottatt(LocalDateTime.now())
+            .build();
+        dokumentRepository.lagre(metadata);
+
+        var vedleggDokumenter = hentAlleVedlegg(ettersendelse.vedlegg(), tilYtelseTypeMellomlagring(ettersendelse.type())).stream()
+            .map(v -> lagDokumentFraVedlegg(v.innhold(), forsendelseId, v.skjemanummer()))
+            .toList();
+        vedleggDokumenter.forEach(dokumentRepository::lagre);
+
+        var task = ProsessTaskData.forProsessTask(BehandleSøknadTask.class);
+        task.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
+        prosessTaskTjeneste.lagre(task);
+    }
+
+    public void lagreSøknadInnsending(SøknadDto søknad) {
         var forsendelseId = UUID.randomUUID();  // TODO: skal denne komme fra FE?
 
         var metadata = DokumentMetadata.builder()
@@ -81,27 +104,37 @@ public class SøknadInnsendingTjeneste {
         dokumentRepository.lagre(metadata);
         dokumentRepository.lagre(søknadDokument);
 
-        var vedlegg = hentAlleVedlegg(søknad);
-        vedlegg.forEach((v) -> {
-            var vedleggDokument = Dokument.builder()
-                .setDokumentInnhold(v.innhold(), ArkivFilType.PDFA)
-                .setHovedDokument(false)
-                .setForsendelseId(forsendelseId)
-                .setDokumentTypeId(v.skjemanummer())
-                .build();
+        var vedleggDokumenter = hentAlleVedlegg(søknad.vedlegg(), finnYtelseType(søknad)).stream()
+            .map(v -> lagDokumentFraVedlegg(v.innhold(), forsendelseId, v.skjemanummer()))
+            .toList();
+        vedleggDokumenter.forEach(dokumentRepository::lagre);
 
-            dokumentRepository.lagre(vedleggDokument);
-        });
-
-        var task = ProsessTaskData.forProsessTask(BehandleDokumentforsendelseTask.class);
+        var task = ProsessTaskData.forProsessTask(BehandleSøknadTask.class);
         task.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
         prosessTaskTjeneste.lagre(task);
+    }
+
+    private static Dokument lagDokumentFraVedlegg(byte[] v, UUID forsendelseId, DokumentTypeId skjemanummer) {
+        return Dokument.builder()
+            .setDokumentInnhold(v, ArkivFilType.PDFA)
+            .setHovedDokument(false)
+            .setForsendelseId(forsendelseId)
+            .setDokumentTypeId(skjemanummer)
+            .build();
+    }
+
+    private static YtelseMellomlagringType tilYtelseTypeMellomlagring(YtelseType type) {
+        return switch (type) {
+            case ENGANGSSTØNAD -> YtelseMellomlagringType.ENGANGSSTONAD;
+            case FORELDREPENGER -> YtelseMellomlagringType.FORELDREPENGER;
+            case SVANGERSKAPSPENGER -> YtelseMellomlagringType.SVANGERSKAPSPENGER;
+        };
     }
 
     private static DokumentTypeId utledDokumentType(SøknadDto dto) {
         return switch (dto) {
             case ForeldrepengesøknadDto fpSøknad -> erAdopsjonEllerOmsorgsovertakelse(fpSøknad.barn()) ? DokumentTypeId.I000002 : DokumentTypeId.I000005;
-            case SvangerskapspengesøknadDto svangerskapspengesøknadDto ->  DokumentTypeId.I000001;
+            case SvangerskapspengesøknadDto ignored ->  DokumentTypeId.I000001;
             case EngangsstønadDto esSøknad ->  erAdopsjonEllerOmsorgsovertakelse(esSøknad.barn()) ? DokumentTypeId.I000004 : DokumentTypeId.I000003;
             default -> throw new IllegalStateException("Fant ikke dokumenttype for søknad"); // TODO: exception handling
         };
@@ -115,17 +148,17 @@ public class SøknadInnsendingTjeneste {
         try {
             return MAPPER.writeValueAsBytes(søknad);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException(e); // TODO
         }
     }
 
-    private List<VedleggSkjemanummerWrapper> hentAlleVedlegg(SøknadDto dto) {
-        return dto.vedlegg().stream().map(vedleggDto -> getVedleggSkjemanummerWrapper(dto, vedleggDto)).toList();
+    private List<VedleggSkjemanummerWrapper> hentAlleVedlegg(List<VedleggDto> vedleggene, YtelseMellomlagringType ytelseMellomlagringType) {
+        return vedleggene.stream().map(v -> getVedleggSkjemanummerWrapper(ytelseMellomlagringType, v)).toList();
     }
 
-    private VedleggSkjemanummerWrapper getVedleggSkjemanummerWrapper(SøknadDto dto, VedleggDto vedleggDto) {
+    private VedleggSkjemanummerWrapper getVedleggSkjemanummerWrapper(YtelseMellomlagringType ytelseType, VedleggDto vedleggDto) {
         var referanse = vedleggDto.referanse();
-        var innhold = mellomlagringTjeneste.lesKryptertVedlegg(referanse.verdi(), finnYtelseType(dto)).orElseThrow(() -> new IllegalStateException("Fant ikke mellomlagret vedlegg med uuid " + referanse.verdi()));
+        var innhold = mellomlagringTjeneste.lesKryptertVedlegg(referanse.verdi(), ytelseType).orElseThrow(() -> new IllegalStateException("Fant ikke mellomlagret vedlegg med uuid " + referanse.verdi()));
         return new VedleggSkjemanummerWrapper(referanse, innhold, vedleggDto.skjemanummer());
     }
 

@@ -90,16 +90,19 @@ public class ArkivTjeneste {
 
     private static List<DokumentInfoOpprett> lagAlleDokumentForOpprett(List<Dokument> dokumenter) {
         List<DokumentInfoOpprett> dokumenterRequest = new ArrayList<>();
-        var hoveddokument = dokumenter.stream().filter(Dokument::erHovedDokument).toList();
-        if (!hoveddokument.isEmpty()) {
-            var strukturert = hoveddokument.stream().filter(dok -> ArkivFilType.XML.equals(dok.getArkivFilType())).findFirst().orElse(null);
-            var arkivvariant = hoveddokument.stream()
-                .filter(dok -> !ArkivFilType.XML.equals(dok.getArkivFilType()))
+        if (dokumenter.stream().anyMatch(Dokument::erSøknad)) {
+            var søknadene = dokumenter.stream().filter(Dokument::erSøknad).toList();
+            var søknadXML = søknadene.stream()
+                .filter(dok -> ArkivFilType.XML.equals(dok.getArkivFilType()))
                 .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Utviklerfeil mangler arkivversjon"));
-            dokumenterRequest.add(lagDokumentForOpprett(arkivvariant, strukturert));
+                .orElseThrow(() -> new IllegalStateException("Utviklerfeil mangler XML versjon"));
+            var søknadPDF = søknadene.stream()
+                .filter(dok -> ArkivFilType.PDFA.equals(dok.getArkivFilType()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Utviklerfeil mangler PDF (arkivversjon)"));
+            dokumenterRequest.add(lagDokumentForOpprett(søknadPDF, søknadXML));
         }
-        dokumenter.stream().filter(d -> !d.erHovedDokument()).map(d -> lagDokumentForOpprett(d, null)).forEach(dokumenterRequest::add);
+        dokumenter.stream().filter(d -> !d.erSøknad()).map(d -> lagDokumentForOpprett(d, null)).forEach(dokumenterRequest::add);
         return dokumenterRequest;
     }
 

@@ -28,7 +28,7 @@ public class SlettForsendelseTask implements ProsessTaskHandler {
 
     @Override
     public void doTask(ProsessTaskData prosessTaskData) {
-        var forsendelseId = UUID.fromString(prosessTaskData.getPropertyValue(BehandleDokumentforsendelseTask.FORSENDELSE_ID_PROPERTY));
+        var forsendelseId = UUID.fromString(prosessTaskData.getPropertyValue(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY));
         var metadata = dokumentRepository.hentUnikDokumentMetadata(forsendelseId);
         if (metadata.flatMap(DokumentMetadata::getJournalpostId).isPresent() && metadata.filter(m -> !ForsendelseStatus.PENDING.equals(m.getStatus()))
                 .isPresent()) {

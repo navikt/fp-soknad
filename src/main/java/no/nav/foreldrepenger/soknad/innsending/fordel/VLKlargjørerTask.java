@@ -40,10 +40,10 @@ public class VLKlargjørerTask implements ProsessTaskHandler {
 
     @Override
     public void doTask(ProsessTaskData prosessTaskData) {
-        var forsendelseId = UUID.fromString(prosessTaskData.getPropertyValue(BehandleDokumentforsendelseTask.FORSENDELSE_ID_PROPERTY));
-        var saksnummer = prosessTaskData.getPropertyValue(BehandleDokumentforsendelseTask.SAKSNUMMER_PROPERTY);
-        var dokumenttypeId = DokumentTypeId.valueOf(prosessTaskData.getPropertyValue(BehandleDokumentforsendelseTask.DOKUMENT_TYPE_ID_PROPERTY));
-        var behandlingsTema = BehandlingTema.fraOffisiellKode(prosessTaskData.getPropertyValue(BehandleDokumentforsendelseTask.BEHANDLING_TEMA_PROPERTY));
+        var forsendelseId = UUID.fromString(prosessTaskData.getPropertyValue(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY));
+        var saksnummer = prosessTaskData.getPropertyValue(BehandleSøknadTask.SAKSNUMMER_PROPERTY);
+        var dokumenttypeId = DokumentTypeId.valueOf(prosessTaskData.getPropertyValue(BehandleSøknadTask.DOKUMENT_TYPE_ID_PROPERTY));
+        var behandlingsTema = BehandlingTema.fraOffisiellKode(prosessTaskData.getPropertyValue(BehandleSøknadTask.BEHANDLING_TEMA_PROPERTY));
 
 
         var metadata = dokumentRepository.hentEksaktDokumentMetadata(forsendelseId); // Eller hente fra prosesstask prop?
@@ -61,7 +61,7 @@ public class VLKlargjørerTask implements ProsessTaskHandler {
 
     private void slettForsendelseTask(UUID forsendelseId) {
         var task = ProsessTaskData.forProsessTask(SlettForsendelseTask.class);
-        task.setProperty(BehandleDokumentforsendelseTask.FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
+        task.setProperty(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
         task.setNesteKjøringEtter(LocalDateTime.now().plusHours(2));
         taskTjeneste.lagre(task);
     }

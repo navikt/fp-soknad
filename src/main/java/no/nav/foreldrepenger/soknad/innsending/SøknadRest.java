@@ -37,7 +37,7 @@ public class SøknadRest {
     @Path("/foreldrepenger")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response send(@Valid @NotNull ForeldrepengesøknadDto foreldrepengesøknadDto) {
-        søknadInnsendingTjeneste.lagreInnsending(foreldrepengesøknadDto);
+        søknadInnsendingTjeneste.lagreSøknadInnsending(foreldrepengesøknadDto);
         return Response.ok().build();
     }
 
@@ -45,7 +45,7 @@ public class SøknadRest {
     @Path("/engangsstonad")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response send(@Valid @NotNull EngangsstønadDto engangsstønadDto) {
-        søknadInnsendingTjeneste.lagreInnsending(engangsstønadDto);
+        søknadInnsendingTjeneste.lagreSøknadInnsending(engangsstønadDto);
         return Response.ok().build();
     }
 
@@ -53,7 +53,7 @@ public class SøknadRest {
     @Path("/svangerskapspenger")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response send(@Valid @NotNull SvangerskapspengesøknadDto svangerskapspengesøknadDto) {
-        søknadInnsendingTjeneste.lagreInnsending(svangerskapspengesøknadDto);
+        søknadInnsendingTjeneste.lagreSøknadInnsending(svangerskapspengesøknadDto);
         return Response.ok().build();
     }
 
@@ -61,6 +61,7 @@ public class SøknadRest {
     @Path("/endre/foreldrepenger")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response send(@Valid @NotNull EndringssøknadForeldrepengerDto endringssøknadForeldrepengerDto) {
+        // TODO: Valider at søker er søker i oppgitt fagsak
 //        søknadInnsendingTjeneste.lagreInnsending(endringssøknadForeldrepengerDto);
         return Response.ok().build();
     }
@@ -70,7 +71,8 @@ public class SøknadRest {
     @Path("/ettersend")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response send(@Valid @NotNull EttersendelseDto ettersendelseDto) {
-//        søknadInnsendingTjeneste.lagreInnsending(ettersendelseDto);
+        // TODO: Valider at søker er søker i oppgitt fagsak
+        søknadInnsendingTjeneste.lagreEttersendelseInnsending(ettersendelseDto);
         return Response.ok().build();
     }
 

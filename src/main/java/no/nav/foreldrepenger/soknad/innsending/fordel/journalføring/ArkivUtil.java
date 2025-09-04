@@ -34,10 +34,10 @@ public final class ArkivUtil {
     }
 
     public static BehandlingTema utledBehandlingTemaFraHovedDokumentType(Set<DokumentTypeId> alleTyper) {
-        return mapDokumenttype(utledHovedDokumentType(alleTyper));
+        return behandlingtemaFraDokumentType(utledHovedDokumentType(alleTyper));
     }
 
-    public static BehandlingTema mapDokumenttype(DokumentTypeId type) {
+    public static BehandlingTema behandlingtemaFraDokumentType(DokumentTypeId type) {
         return Optional.ofNullable(type).map(DOKUMENT_BEHANDLING_TEMA::get).orElse(UDEFINERT);
     }
 }
