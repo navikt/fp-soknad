@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import no.nav.foreldrepenger.soknad.innsending.fordel.BehandleEttersendelseTask;
 import no.nav.foreldrepenger.soknad.innsending.fordel.BehandleSøknadTask;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Dokument;
@@ -14,15 +15,16 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.AdopsjonDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.BarnDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.OmsorgsovertakelseDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggReferanse;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.engangsstønad.EngangsstønadDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.EngangsstønadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse.EttersendelseDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse.YtelseType;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.ForeldrepengesøknadDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.SvangerskapspengesøknadDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.SvangerskapspengesøknadDto;
 import no.nav.foreldrepenger.soknad.mellomlagring.MellomlagringTjeneste;
 import no.nav.foreldrepenger.soknad.mellomlagring.YtelseMellomlagringType;
 import no.nav.foreldrepenger.soknad.utils.InnloggetBruker;
@@ -41,7 +43,6 @@ import static no.nav.foreldrepenger.soknad.innsending.fordel.BehandleSøknadTask
 public class SøknadInnsendingTjeneste {
 
     private MellomlagringTjeneste mellomlagringTjeneste;
-    private VedleggTjeneste vedleggTjeneste;
     private InnloggetBruker innloggetBruker;
     private DokumentRepository dokumentRepository;
     private static final ObjectMapper MAPPER = DefaultJsonMapper.getObjectMapper();
@@ -52,12 +53,10 @@ public class SøknadInnsendingTjeneste {
     }
     @Inject
     public SøknadInnsendingTjeneste(MellomlagringTjeneste mellomlagringTjeneste,
-                                    VedleggTjeneste vedleggTjeneste,
                                     InnloggetBruker innloggetBruker,
                                     DokumentRepository dokumentRepository,
                                     ProsessTaskTjeneste prosessTaskTjeneste) {
         this.mellomlagringTjeneste = mellomlagringTjeneste;
-        this.vedleggTjeneste = vedleggTjeneste;
         this.innloggetBruker = innloggetBruker;
         this.dokumentRepository = dokumentRepository;
         this.prosessTaskTjeneste = prosessTaskTjeneste;
@@ -79,7 +78,7 @@ public class SøknadInnsendingTjeneste {
             .toList();
         vedleggDokumenter.forEach(dokumentRepository::lagre);
 
-        var task = ProsessTaskData.forProsessTask(BehandleSøknadTask.class);
+        var task = ProsessTaskData.forProsessTask(BehandleEttersendelseTask.class);
         task.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
         prosessTaskTjeneste.lagre(task);
     }
@@ -133,10 +132,10 @@ public class SøknadInnsendingTjeneste {
 
     private static DokumentTypeId utledDokumentType(SøknadDto dto) {
         return switch (dto) {
-            case ForeldrepengesøknadDto fpSøknad -> erAdopsjonEllerOmsorgsovertakelse(fpSøknad.barn()) ? DokumentTypeId.I000002 : DokumentTypeId.I000005;
+            case ForeldrepengesøknadDto fp-> erAdopsjonEllerOmsorgsovertakelse(fp.barn()) ? DokumentTypeId.I000002 : DokumentTypeId.I000005;
+            case EngangsstønadDto es ->  erAdopsjonEllerOmsorgsovertakelse(es.barn()) ? DokumentTypeId.I000004 : DokumentTypeId.I000003;
             case SvangerskapspengesøknadDto ignored ->  DokumentTypeId.I000001;
-            case EngangsstønadDto esSøknad ->  erAdopsjonEllerOmsorgsovertakelse(esSøknad.barn()) ? DokumentTypeId.I000004 : DokumentTypeId.I000003;
-            default -> throw new IllegalStateException("Fant ikke dokumenttype for søknad"); // TODO: exception handling
+            case EndringssøknadForeldrepengerDto fpEndring -> erAdopsjonEllerOmsorgsovertakelse(fpEndring.barn()) ? DokumentTypeId.I000002 : DokumentTypeId.I000005;
         };
     }
 
@@ -148,8 +147,17 @@ public class SøknadInnsendingTjeneste {
         try {
             return MAPPER.writeValueAsBytes(søknad);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e); // TODO
+            throw new RuntimeException(e); // TODO: Exceaption handling
         }
+    }
+
+    private static YtelseMellomlagringType finnYtelseType(SøknadDto dto) {
+        return switch (dto) {
+            case ForeldrepengesøknadDto ignored -> YtelseMellomlagringType.FORELDREPENGER;
+            case EndringssøknadForeldrepengerDto ignored -> YtelseMellomlagringType.FORELDREPENGER;
+            case EngangsstønadDto ignored ->  YtelseMellomlagringType.ENGANGSSTONAD;
+            case SvangerskapspengesøknadDto ignored ->  YtelseMellomlagringType.SVANGERSKAPSPENGER;
+        };
     }
 
     private List<VedleggSkjemanummerWrapper> hentAlleVedlegg(List<VedleggDto> vedleggene, YtelseMellomlagringType ytelseMellomlagringType) {
@@ -160,17 +168,6 @@ public class SøknadInnsendingTjeneste {
         var referanse = vedleggDto.referanse();
         var innhold = mellomlagringTjeneste.lesKryptertVedlegg(referanse.verdi(), ytelseType).orElseThrow(() -> new IllegalStateException("Fant ikke mellomlagret vedlegg med uuid " + referanse.verdi()));
         return new VedleggSkjemanummerWrapper(referanse, innhold, vedleggDto.skjemanummer());
-    }
-
-    private static YtelseMellomlagringType finnYtelseType(SøknadDto dto) {
-        if (dto instanceof ForeldrepengesøknadDto) {
-            return YtelseMellomlagringType.FORELDREPENGER;
-        }
-        if (dto instanceof EngangsstønadDto) {
-            return YtelseMellomlagringType.ENGANGSSTONAD;
-        }
-
-        return YtelseMellomlagringType.SVANGERSKAPSPENGER;
     }
 
     private record VedleggSkjemanummerWrapper(VedleggReferanse referanse, byte[] innhold, DokumentTypeId skjemanummer) {}

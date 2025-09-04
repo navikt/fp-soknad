@@ -1,4 +1,4 @@
-package no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger;
+package no.nav.foreldrepenger.soknad.innsending.kontrakt;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -9,12 +9,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import no.nav.foreldrepenger.common.domain.BrukerRolle;
 import no.nav.foreldrepenger.common.oppslag.dkif.Målform;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.AnnenInntektDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.FrilansDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.NæringDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøknadDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.UtenlandsoppholdsperiodeDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.AvtaltFerieDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.BarnSvpDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.TilretteleggingbehovDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.validering.VedlegglistestørrelseConstraint;
 
 public record SvangerskapspengesøknadDto(LocalDate mottattdato,

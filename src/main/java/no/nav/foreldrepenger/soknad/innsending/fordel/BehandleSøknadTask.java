@@ -20,6 +20,7 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.UUID;
 
 import static no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.ArkivUtil.behandlingtemaFraDokumentType;
@@ -57,18 +58,20 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
     public void doTask(ProsessTaskData prosessTaskData) {
         var forsendelseId = UUID.fromString(prosessTaskData.getPropertyValue(FORSENDELSE_ID_PROPERTY));
 
+        var metadata = dokumentRepository.hentEksaktDokumentMetadata(forsendelseId);
         var dokumenter = dokumentRepository.hentDokumenter(forsendelseId);
         var søknad = dokumenter.stream().filter(Dokument::erSøknad).findFirst().orElseThrow();
-        var metadata = dokumentRepository.hentEksaktDokumentMetadata(forsendelseId);
 
         // TODO: Setter mange verdier, og henter informasjon ut fra SØKNAD og setter i wrapper som brukes videre i mye logikk...
         // setFellesWrapperAttributter(w, hovedDokument.orElse(null), metadata);
+
+        // TODO: Husk å generer XML og PDF fra søknad her, og legg til i dokumenter-listen
 
         var dokumentTypeId = søknad.getDokumentTypeId();
         var behandlingTema = behandlingtemaFraDokumentType(dokumentTypeId);
         var destinasjon = utledDestinasjonForForsendelse(metadata, behandlingTema);
 
-        var opprettetJournalpost = opprettJournalpostFerdigstillHvisSaksnummer(forsendelseId, metadata.getBrukerId(), destinasjon);
+        var opprettetJournalpost = journalførForsøkEndelig(metadata, dokumenter, forsendelseId, metadata.getBrukerId(), destinasjon);
 
         dokumentRepository.oppdaterForsendelseMetadata(forsendelseId, opprettetJournalpost.journalpostId(), destinasjon);
         utledNesteSteg(opprettetJournalpost, behandlingTema, dokumentTypeId, forsendelseId, destinasjon);
@@ -81,14 +84,15 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
         return ruter.bestemDestinasjon(metadata, behandlingTema);
     }
 
-    private OpprettetJournalpost opprettJournalpostFerdigstillHvisSaksnummer(UUID forsendelseId, String aktørId, Destinasjon destinasjon) {
+    private OpprettetJournalpost journalførForsøkEndelig(DokumentMetadata metadata, List<Dokument> dokumenter, UUID forsendelseId,
+                                                         String aktørId, Destinasjon destinasjon) {
         if (destinasjon.erGosys()) {
             // Midlertidig journalføring, håndteres av fp-mottak.
             // var referanseId = w.getRetryingTask().map(s -> UUID.randomUUID()).Else(forsendelseId); TODO: Fjerne?
-            return arkivTjeneste.midlertidigJournalføring(forsendelseId, forsendelseId, aktørId);
+            return arkivTjeneste.midlertidigJournalføring(metadata, dokumenter, forsendelseId, aktørId);
         }
 
-        var opprettetJournalpost = arkivTjeneste.forsøkEndeligJournalføring(forsendelseId, aktørId, destinasjon.saksnummer());
+        var opprettetJournalpost = arkivTjeneste.forsøkEndeligJournalføring(metadata, dokumenter, forsendelseId, aktørId, destinasjon.saksnummer());
         if (!opprettetJournalpost.ferdigstilt()) {
             LOG.info("FORDEL FORSENDELSE kunne ikke ferdigstille sak {} forsendelse {}", destinasjon.saksnummer(), forsendelseId);
         }
@@ -97,8 +101,8 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
 
     private void utledNesteSteg(OpprettetJournalpost opprettetJournalpost, BehandlingTema behandlingTema, DokumentTypeId dokumentTypeId,
                                 UUID forsendelseId, Destinasjon destinasjon) {
-        if (!opprettetJournalpost.ferdigstilt() || destinasjon.erGosys() || destinasjon.saksnummer() == null) {
-            return; // Ikke ferdigstilt journalpost, eller Gosys - da er det ikke mer å gjøre her.
+        if (!opprettetJournalpost.ferdigstilt()) {
+            return; // Midlertidig journalført, avventer handling
         }
 
         var task = ProsessTaskData.forProsessTask(VLKlargjørerTask.class);

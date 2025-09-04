@@ -37,8 +37,6 @@ public class BehandleEttersendelseTask implements ProsessTaskHandler {
     public static final String DOKUMENT_TYPE_ID_PROPERTY = "behandlingTema";
     public static final String BEHANDLING_TEMA_PROPERTY = "dokumentTypeId";
 
-    private static final Logger LOG = LoggerFactory.getLogger(BehandleEttersendelseTask.class);
-
     private DokumentRepository dokumentRepository;
     private FpsakTjeneste fpsakTjeneste;
     private ArkivTjeneste arkivTjeneste;
@@ -70,9 +68,9 @@ public class BehandleEttersendelseTask implements ProsessTaskHandler {
         var fagsakInfo = fagsakInformasjon(metadata);
         var dokumentTypeId = utledDokumentTypeId(dokumenter);
         var behandlingTema = utledBehandlingstema(fagsakInfo);
-        var destinasjon = new Destinasjon(FPSAK, metadata.getSaksnummer().orElseThrow()); // Alltid fpsak
+        var destinasjon = new Destinasjon(FPSAK, metadata.getSaksnummer().orElseThrow());
 
-        var opprettetJournalpost = arkivTjeneste.forsøkEndeligJournalføring(forsendelseId, fagsakInfo.getAktørId(), destinasjon.saksnummer());
+        var opprettetJournalpost = arkivTjeneste.forsøkEndeligJournalføring(metadata, dokumenter, forsendelseId, fagsakInfo.getAktørId(), destinasjon.saksnummer());
 
         dokumentRepository.oppdaterForsendelseMetadata(forsendelseId, opprettetJournalpost.journalpostId(), destinasjon);
         utledNesteSteg(opprettetJournalpost, behandlingTema, dokumentTypeId, forsendelseId, destinasjon);
@@ -92,8 +90,8 @@ public class BehandleEttersendelseTask implements ProsessTaskHandler {
 
     private void utledNesteSteg(OpprettetJournalpost opprettetJournalpost, BehandlingTema behandlingTema, DokumentTypeId dokumentTypeId,
                                 UUID forsendelseId, Destinasjon destinasjon) {
-        if (!opprettetJournalpost.ferdigstilt() || destinasjon.erGosys() || destinasjon.saksnummer() == null) {
-            return; // Ikke ferdigstilt journalpost, eller Gosys - da er det ikke mer å gjøre her.
+        if (!opprettetJournalpost.ferdigstilt()) {
+            return; // Midlertidig journalført, avventer handling
         }
 
         var task = ProsessTaskData.forProsessTask(VLKlargjørerTask.class);

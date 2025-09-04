@@ -11,11 +11,11 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.endringssøknad.EndringssøknadForeldrepengerDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.engangsstønad.EngangsstønadDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.EndringssøknadForeldrepengerDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.EngangsstønadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse.EttersendelseDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.ForeldrepengesøknadDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.SvangerskapspengesøknadDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.SvangerskapspengesøknadDto;
 
 @Path("/soknad")
 @ApplicationScoped
@@ -58,11 +58,11 @@ public class SøknadRest {
     }
 
     @POST
-    @Path("/endre/foreldrepenger")
+    @Path("/foreldrepenger/endre")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response send(@Valid @NotNull EndringssøknadForeldrepengerDto endringssøknadForeldrepengerDto) {
-        // TODO: Valider at søker er søker i oppgitt fagsak
-//        søknadInnsendingTjeneste.lagreInnsending(endringssøknadForeldrepengerDto);
+        // TODO: Valider at søker er søker i oppgitt fagsak. Slå opp fagsakinfo fra fpsak og valider aktørid er like aktørid til søker. Feil hardt hvis ikke!
+        søknadInnsendingTjeneste.lagreSøknadInnsending(endringssøknadForeldrepengerDto);
         return Response.ok().build();
     }
 
@@ -71,7 +71,8 @@ public class SøknadRest {
     @Path("/ettersend")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response send(@Valid @NotNull EttersendelseDto ettersendelseDto) {
-        // TODO: Valider at søker er søker i oppgitt fagsak
+        // TODO: Valider at søker er søker i oppgitt fagsak. Slå opp fagsakinfo fra fpsak og valider aktørid er like aktørid til søker. Feil hardt hvis ikke!
+        //
         søknadInnsendingTjeneste.lagreEttersendelseInnsending(ettersendelseDto);
         return Response.ok().build();
     }
