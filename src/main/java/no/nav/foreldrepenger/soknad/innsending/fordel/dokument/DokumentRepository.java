@@ -80,7 +80,7 @@ public class DokumentRepository {
 
     public void oppdaterForsendelseMetadata(UUID forsendelseId, String arkivId, Destinasjon destinasjon) {
         var metadata = hentEksaktDokumentMetadata(forsendelseId);
-        metadata.setArkivId(arkivId);
+        metadata.setJournalpostId(arkivId);
         metadata.setSaksnummer(destinasjon.saksnummer());
         metadata.setStatus(destinasjon.system());
         lagre(metadata);

@@ -64,7 +64,7 @@ public class DestinasjonsRuter {
     }
 
     public SaksnummerDto opprettSak(DokumentMetadata metadata, BehandlingTema behandlingTema) {
-        return fpsakTjeneste.opprettSak(new OpprettSakDto(metadata.getArkivId().orElse(null), behandlingTema.getOffisiellKode(), metadata.getBrukerId()));
+        return fpsakTjeneste.opprettSak(new OpprettSakDto(metadata.getJournalpostId().orElse(null), behandlingTema.getOffisiellKode(), metadata.getBrukerId()));
     }
 
 

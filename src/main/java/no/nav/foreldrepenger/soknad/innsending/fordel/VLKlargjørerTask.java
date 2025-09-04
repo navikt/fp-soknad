@@ -48,7 +48,7 @@ public class VLKlargjørerTask implements ProsessTaskHandler {
 
         var metadata = dokumentRepository.hentEksaktDokumentMetadata(forsendelseId); // Eller hente fra prosesstask prop?
         var hoverdDokument = dokumentRepository.hentUnikDokument(forsendelseId, true, ArkivFilType.XML); // TODO
-        var arkivId = metadata.getArkivId().orElseThrow();
+        var arkivId = metadata.getJournalpostId().orElseThrow();
         var jsonPayload = hoverdDokument.map(Dokument::getKlartekstDokument).orElse(null);
 
         String journalEnhet; // Settes av JournalføringHendelseHåndterer i fpfordel. Alltid null? TODO

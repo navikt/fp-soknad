@@ -31,8 +31,8 @@ public class DokumentMetadata {
     @Column(name = "SAKSNUMMER")
     private String saksnummer;
 
-    @Column(name = "ARKIV_ID")
-    private String arkivId;
+    @Column(name = "JOURNALPOST_ID")
+    private String journalpostId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "FORSENDELSE_STATUS")
@@ -68,12 +68,12 @@ public class DokumentMetadata {
         this.saksnummer = saksnummer;
     }
 
-    public Optional<String> getArkivId() {
-        return Optional.ofNullable(arkivId);
+    public Optional<String> getJournalpostId() {
+        return Optional.ofNullable(journalpostId);
     }
 
-    public void setArkivId(String arkivId) {
-        this.arkivId = arkivId;
+    public void setJournalpostId(String arkivId) {
+        this.journalpostId = arkivId;
     }
 
     public ForsendelseStatus getStatus() {
@@ -129,7 +129,7 @@ public class DokumentMetadata {
         public DokumentMetadata build() {
             DokumentMetadata dokumentMetadata = new DokumentMetadata();
             dokumentMetadata.brukerId = brukerId;
-            dokumentMetadata.arkivId = arkivId;
+            dokumentMetadata.journalpostId = arkivId;
             dokumentMetadata.saksnummer = saksnummer;
             dokumentMetadata.forsendelseId = forsendelseId;
             dokumentMetadata.forsendelseMottatt = forsendelseMottatt;

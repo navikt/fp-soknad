@@ -81,12 +81,6 @@ public class BehandleDokumentforsendelseTask implements ProsessTaskHandler {
         var destinasjon = utledDestinasjonForForsendelse(metadata, behandlingTema, fagsakInfoOpt);
         var opprettetJournalpost = opprettJournalpostFerdigstillHvisSaksnummer(forsendelseId, metadata.getBrukerId(), destinasjon);
 
-        // Ikke nødvendig kanskje?
-        // if (!journalpost.ferdigstilt()) {
-        //     // Det vil komme en Kafka-hendelse om noen sekunder - denne sørger for at vi ikke trigger på den.
-        //     dokumentRepository.lagreJournalpostLokal(null, metadata.getForsendelseId().toString(), , "MIDLERTIDIG");
-        // }
-
         dokumentRepository.oppdaterForsendelseMetadata(forsendelseId, opprettetJournalpost.journalpostId(), destinasjon);
         utledNesteSteg(opprettetJournalpost, behandlingTema, dokumentTypeId, forsendelseId, destinasjon);
     }
@@ -130,7 +124,7 @@ public class BehandleDokumentforsendelseTask implements ProsessTaskHandler {
     }
 
     private boolean erGyldigSaksnummer(FagsakInfomasjonDto fagsakInfo, String saksnummer, DokumentMetadata metadata) {
-        if (!Objects.equals(fagsakInfo.getAktørId(), metadata.getBrukerId())) { // brukerid == aktørid ved nåværende innseindg. Endre navn/spesifiser.
+        if (!Objects.equals(fagsakInfo.getAktørId(), metadata.getBrukerId())) { // brukerid == aktørid ved nåværende innsending. Endre navn/spesifiser.
             LOG.warn("Søkers ID samsvarer ikke med søkers ID i eksisterende sak {}", saksnummer);
             return false;
         }
