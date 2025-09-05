@@ -47,11 +47,8 @@ public class FpsakRestKlient implements FpsakTjeneste {
     }
 
     @Override
-    public VurderFagsystemResultat vurderFagsystem() {
-        var dto = new VurderFagsystemDto();
-        // TODO: Set fiels basert på søknad som sendes inn + metadata
-        // Fjernet klage endepunkt, ettersom vi ikke skal motta klager her => Går alltid mot fagsystemEndpoint
-        var request = RestRequest.newPOSTJson(dto, fagsystemEndpoint, restConfig);
+    public VurderFagsystemResultat vurderFagsystem(VurderFagsystemDto vurderFagsystemDto) {
+        var request = RestRequest.newPOSTJson(vurderFagsystemDto, fagsystemEndpoint, restConfig);
         var respons = restKlient.send(request, BehandlendeFagsystemDto.class);
         return VurderFagsystemResultat.fra( respons);
     }

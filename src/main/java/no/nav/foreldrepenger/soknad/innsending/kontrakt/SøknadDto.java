@@ -7,5 +7,6 @@ import no.nav.foreldrepenger.common.oppslag.dkif.Målform;
 
 public sealed interface SøknadDto permits EndringssøknadForeldrepengerDto, ForeldrepengesøknadDto, EngangsstønadDto, SvangerskapspengesøknadDto {
 
+    BarnDto barn();
     List<VedleggDto> vedlegg();
 }

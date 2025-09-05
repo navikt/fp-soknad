@@ -1,6 +1,6 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.dokument;
 
-public enum DokumentTypeId {
+public enum DokumentTypeId implements Kodeverdi{
 
     // Søknader
     I000001("Søknad om svangerskapspenger"),
@@ -60,5 +60,10 @@ public enum DokumentTypeId {
 
     public String getTittel() {
         return tittel;
+    }
+
+    @Override
+    public String getKode() {
+        return name();
     }
 }

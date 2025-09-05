@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -15,7 +17,7 @@ import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.Tilre
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.validering.VedlegglistestørrelseConstraint;
 
 public record SvangerskapspengesøknadDto(LocalDate mottattdato,
-                                         @NotNull @Valid BarnSvpDto barn,
+                                         @NotNull @Valid @JsonProperty("barn") BarnSvpDto barnSvp, // Litt hack eller?
                                          @Valid BrukerRolle rolle,
                                          @NotNull @Valid Målform språkkode,
                                          @Valid FrilansDto frilans,
@@ -33,5 +35,14 @@ public record SvangerskapspengesøknadDto(LocalDate mottattdato,
         andreInntekterSiste10Mnd = Optional.ofNullable(andreInntekterSiste10Mnd).orElse(List.of());
         avtaltFerie = Optional.ofNullable(avtaltFerie).orElse(List.of());
         vedlegg = Optional.ofNullable(vedlegg).orElse(List.of());
+    }
+
+    @Override
+    public BarnDto barn() {
+        var barnet = barnSvp();
+        if (barnet.fødselsdato() != null) {
+            return new FødselDto(1, barnet.fødselsdato(), barnet.termindato());
+        }
+        return new TerminDto(1, barnet.termindato(), null);
     }
 }

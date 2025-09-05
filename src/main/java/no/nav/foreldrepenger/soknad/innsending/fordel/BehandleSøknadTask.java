@@ -62,14 +62,12 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
         var dokumenter = dokumentRepository.hentDokumenter(forsendelseId);
         var søknad = dokumenter.stream().filter(Dokument::erSøknad).findFirst().orElseThrow();
 
-        // TODO: Setter mange verdier, og henter informasjon ut fra SØKNAD og setter i wrapper som brukes videre i mye logikk...
-        // setFellesWrapperAttributter(w, hovedDokument.orElse(null), metadata);
-
+        // TODO: Aktørid og ikke fødselsnummer!
         // TODO: Husk å generer XML og PDF fra søknad her, og legg til i dokumenter-listen
 
         var dokumentTypeId = søknad.getDokumentTypeId();
         var behandlingTema = behandlingtemaFraDokumentType(dokumentTypeId);
-        var destinasjon = utledDestinasjonForForsendelse(metadata, behandlingTema);
+        var destinasjon = utledDestinasjonForForsendelse(metadata, søknad, behandlingTema);
 
         var opprettetJournalpost = journalførForsøkEndelig(metadata, dokumenter, forsendelseId, metadata.getBrukerId(), destinasjon);
 
@@ -77,11 +75,12 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
         utledNesteSteg(opprettetJournalpost, behandlingTema, dokumentTypeId, forsendelseId, destinasjon);
     }
 
-    private Destinasjon utledDestinasjonForForsendelse(DokumentMetadata metadata, BehandlingTema behandlingTema) {
+    private Destinasjon utledDestinasjonForForsendelse(DokumentMetadata metadata, Dokument søknad, BehandlingTema behandlingTema) {
         if (metadata.getSaksnummer().isPresent()) {
             return new Destinasjon(FPSAK, metadata.getSaksnummer().orElseThrow());
         }
-        return ruter.bestemDestinasjon(metadata, behandlingTema);
+
+        return ruter.bestemDestinasjon(metadata, søknad, behandlingTema);
     }
 
     private OpprettetJournalpost journalførForsøkEndelig(DokumentMetadata metadata, List<Dokument> dokumenter, UUID forsendelseId,
@@ -94,7 +93,7 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
 
         var opprettetJournalpost = arkivTjeneste.forsøkEndeligJournalføring(metadata, dokumenter, forsendelseId, aktørId, destinasjon.saksnummer());
         if (!opprettetJournalpost.ferdigstilt()) {
-            LOG.info("FORDEL FORSENDELSE kunne ikke ferdigstille sak {} forsendelse {}", destinasjon.saksnummer(), forsendelseId);
+            LOG.info("FP-SOKNAD FORSENDELSE kunne ikke ferdigstille sak {} forsendelse {}", destinasjon.saksnummer(), forsendelseId);
         }
         return opprettetJournalpost;
     }

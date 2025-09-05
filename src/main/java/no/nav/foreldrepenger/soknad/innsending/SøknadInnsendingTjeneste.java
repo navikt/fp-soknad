@@ -28,7 +28,6 @@ import no.nav.foreldrepenger.soknad.innsending.kontrakt.Svangerskapspengesøknad
 import no.nav.foreldrepenger.soknad.mellomlagring.MellomlagringTjeneste;
 import no.nav.foreldrepenger.soknad.mellomlagring.YtelseMellomlagringType;
 import no.nav.foreldrepenger.soknad.utils.InnloggetBruker;
-import no.nav.foreldrepenger.soknad.vedlegg.VedleggTjeneste;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 import no.nav.vedtak.mapper.json.DefaultJsonMapper;
