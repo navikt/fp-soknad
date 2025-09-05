@@ -1,4 +1,4 @@
-package no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger;
+package no.nav.foreldrepenger.soknad.innsending.kontrakt;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -9,13 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import no.nav.foreldrepenger.common.domain.BrukerRolle;
 import no.nav.foreldrepenger.common.oppslag.dkif.Målform;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.AnnenInntektDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.BarnDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.FrilansDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.NæringDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøknadDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.UtenlandsoppholdsperiodeDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.Dekningsgrad;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.annenpart.AnnenForelderDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.UttaksplanDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.validering.VedlegglistestørrelseConstraint;

@@ -72,8 +72,8 @@ public class DokumentMetadata {
         return Optional.ofNullable(journalpostId);
     }
 
-    public void setJournalpostId(String arkivId) {
-        this.journalpostId = arkivId;
+    public void setJournalpostId(String journalpostId) {
+        this.journalpostId = journalpostId;
     }
 
     public ForsendelseStatus getStatus() {
@@ -92,7 +92,7 @@ public class DokumentMetadata {
         private UUID forsendelseId;
         private String brukerId;
         private String saksnummer;
-        private String arkivId;
+        private String journalpostId;
         private ForsendelseStatus status = ForsendelseStatus.PENDING;
         private LocalDateTime forsendelseMottatt;
 
@@ -111,8 +111,8 @@ public class DokumentMetadata {
             return this;
         }
 
-        public Builder setArkivId(String arkivId) {
-            this.arkivId = arkivId;
+        public Builder setJournalpostId(String journalpostId) {
+            this.journalpostId = journalpostId;
             return this;
         }
 
@@ -129,7 +129,7 @@ public class DokumentMetadata {
         public DokumentMetadata build() {
             DokumentMetadata dokumentMetadata = new DokumentMetadata();
             dokumentMetadata.brukerId = brukerId;
-            dokumentMetadata.journalpostId = arkivId;
+            dokumentMetadata.journalpostId = journalpostId;
             dokumentMetadata.saksnummer = saksnummer;
             dokumentMetadata.forsendelseId = forsendelseId;
             dokumentMetadata.forsendelseMottatt = forsendelseMottatt;

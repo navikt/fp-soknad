@@ -4,29 +4,8 @@ import java.util.List;
 
 import no.nav.foreldrepenger.common.domain.BrukerRolle;
 import no.nav.foreldrepenger.common.oppslag.dkif.Målform;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.engangsstønad.EngangsstønadDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.ForeldrepengesøknadDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.SvangerskapspengesøknadDto;
 
-public interface SøknadDto extends Innsending {
-    BrukerRolle rolle();
-
-    Målform språkkode();
-
-    List<UtenlandsoppholdsperiodeDto> utenlandsopphold();
+public sealed interface SøknadDto permits EndringssøknadForeldrepengerDto, ForeldrepengesøknadDto, EngangsstønadDto, SvangerskapspengesøknadDto {
 
     List<VedleggDto> vedlegg();
-
-    default String navn() {
-        if (this instanceof ForeldrepengesøknadDto) {
-            return "foreldrepenger";
-        }
-        if (this instanceof EngangsstønadDto) {
-            return "engangsstønad";
-        }
-        if (this instanceof SvangerskapspengesøknadDto) {
-            return "svangersskapspenger";
-        }
-        throw new IllegalStateException("Utvikerfeil: Kan ikke ha en annen ytelse enn fp, svp eller es!");
-    }
 }

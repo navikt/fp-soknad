@@ -4,11 +4,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -17,7 +15,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
-import no.nav.foreldrepenger.common.domain.felles.DokumentType;
 
 @Entity(name = "Dokument")
 @Table(name = "DOKUMENT")
@@ -38,8 +35,8 @@ public class Dokument {
     @Column(name = "BLOB", nullable = false)
     private byte[] blob;
 
-    @Column(name = "HOVED_DOKUMENT")
-    private Boolean hovedDokument;
+    @Column(name = "ER_SØKNAD") // TODO: Ø i database?
+    private boolean erSøknad;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "arkiv_filtype")
@@ -86,8 +83,8 @@ public class Dokument {
         return blob;
     }
 
-    public Boolean erHovedDokument() {
-        return hovedDokument;
+    public boolean erSøknad() {
+        return erSøknad;
     }
 
     public ArkivFilType getArkivFilType() {
@@ -102,7 +99,7 @@ public class Dokument {
 
         private DokumentTypeId dokumentTypeId;
         private byte[] blob;
-        private Boolean hovedDokument;
+        private boolean erSøknad;
         private UUID forsendelseId;
         private ArkivFilType arkivFilType;
         private String beskrivelse;
@@ -132,8 +129,8 @@ public class Dokument {
             return this;
         }
 
-        public Builder setHovedDokument(boolean hovedDokument) {
-            this.hovedDokument = hovedDokument;
+        public Builder setHovedDokument(boolean erSøknad) {
+            this.erSøknad = erSøknad;
             return this;
         }
 
@@ -143,7 +140,7 @@ public class Dokument {
             dokument.dokumentTypeId = dokumentTypeId;
             dokument.forsendelseId = forsendelseId;
             dokument.blob = blob;
-            dokument.hovedDokument = hovedDokument;
+            dokument.erSøknad = erSøknad;
             dokument.arkivFilType = arkivFilType;
             dokument.beskrivelse = beskrivelse;
             return dokument;
@@ -153,7 +150,7 @@ public class Dokument {
             // TODO humle vurder denne når vi har full oversikt over hva som er påkrevd
             Objects.requireNonNull(blob);
             Objects.requireNonNull(dokumentTypeId);
-            Objects.requireNonNull(hovedDokument);
+            Objects.requireNonNull(erSøknad);
             Objects.requireNonNull(forsendelseId);
             Objects.requireNonNull(arkivFilType);
         }

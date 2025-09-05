@@ -50,7 +50,7 @@ public class DokumentRepository {
         if (resultatListe.isEmpty()) {
             return Optional.empty();
         }
-        return Optional.of(resultatListe.get(0));
+        return Optional.of(resultatListe.getFirst());
     }
 
     public List<Dokument> hentDokumenter(UUID forsendelseId) {
