@@ -6,8 +6,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-@Entity(name = "vedlegg")
-@Table(name = "vedlegg")
+@Entity(name = "Søknad")
+@Table(name = "SOKNAD")
 public class SøknadEntitet {
 
     @Id

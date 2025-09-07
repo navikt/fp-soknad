@@ -65,7 +65,7 @@ public class DestinasjonsRuter {
         }
         if (VurderFagsystemResultat.SendTil.FPSAK.equals(res.destinasjon())) {
             var nyttSaksnummer = opprettSak(metadata, behandlingTema);
-            return new Destinasjon(ForsendelseStatus.FPSAK, nyttSaksnummer.getSaksnummer());
+            return new Destinasjon(ForsendelseStatus.FPSAK, nyttSaksnummer.saksnummer());
         }
         if (VurderFagsystemResultat.SendTil.GOSYS.equals(res.destinasjon())) {
             return Destinasjon.GOSYS;

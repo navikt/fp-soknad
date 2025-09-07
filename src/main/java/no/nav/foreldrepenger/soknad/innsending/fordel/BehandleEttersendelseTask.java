@@ -70,7 +70,7 @@ public class BehandleEttersendelseTask implements ProsessTaskHandler {
         var behandlingTema = utledBehandlingstema(fagsakInfo);
         var destinasjon = new Destinasjon(FPSAK, metadata.getSaksnummer().orElseThrow());
 
-        var opprettetJournalpost = arkivTjeneste.forsøkEndeligJournalføring(metadata, dokumenter, forsendelseId, fagsakInfo.getAktørId(), destinasjon.saksnummer());
+        var opprettetJournalpost = arkivTjeneste.forsøkEndeligJournalføring(metadata, dokumenter, forsendelseId, fagsakInfo.aktørId(), destinasjon.saksnummer());
 
         dokumentRepository.oppdaterForsendelseMetadata(forsendelseId, opprettetJournalpost.journalpostId(), destinasjon);
         utledNesteSteg(opprettetJournalpost, behandlingTema, dokumentTypeId, forsendelseId, destinasjon);
@@ -81,7 +81,7 @@ public class BehandleEttersendelseTask implements ProsessTaskHandler {
     }
 
     private static BehandlingTema utledBehandlingstema(FagsakInfomasjonDto fagsakInfo) {
-        return BehandlingTema.fraOffisiellKode(fagsakInfo.getBehandlingstemaOffisiellKode());
+        return BehandlingTema.fraOffisiellKode(fagsakInfo.behandlingstemaOffisiellKode());
     }
 
     private FagsakInfomasjonDto fagsakInformasjon(DokumentMetadata metadata) {

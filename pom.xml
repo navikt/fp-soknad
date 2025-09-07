@@ -6,7 +6,7 @@
     <parent>
         <groupId>no.nav.foreldrepenger.felles</groupId>
         <artifactId>fp-bom</artifactId>
-        <version>3.6.16</version>
+        <version>4.0.0</version>
     </parent>
 
     <groupId>no.nav.foreldrepenger.mottak</groupId>
@@ -18,10 +18,10 @@
         <sonar.projectName>fp-soknad</sonar.projectName>
         <sonar.projectKey>navikt_fp-soknad</sonar.projectKey>
 
-        <felles.version>7.5.10</felles.version>
+        <felles.version>7.6.0</felles.version>
         <fpsoknad-felles.version>3.3.2</fpsoknad-felles.version> <!-- fjern på sikt ...-->
-        <prosesstask.version>5.1.11</prosesstask.version>
-        <fp-kontrakter.version>9.2.2</fp-kontrakter.version>
+        <prosesstask.version>5.2.0</prosesstask.version>
+        <fp-kontrakter.version>9.4.1</fp-kontrakter.version>
 
         <nv.version>1.29</nv.version>
         <pdfbox.version>3.0.5</pdfbox.version>
@@ -33,7 +33,7 @@
             <dependency>
                 <groupId>no.nav.foreldrepenger.felles</groupId>
                 <artifactId>fp-bom</artifactId>
-                <version>3.6.16</version>
+                <version>4.0.0</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -160,12 +160,12 @@
 
         <!-- Server -->
         <dependency>
-            <groupId>org.eclipse.jetty.ee10</groupId>
-            <artifactId>jetty-ee10-webapp</artifactId>
+            <groupId>org.eclipse.jetty.ee11</groupId>
+            <artifactId>jetty-ee11-webapp</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jetty.ee10</groupId>
-            <artifactId>jetty-ee10-cdi</artifactId>
+            <groupId>org.eclipse.jetty.ee11</groupId>
+            <artifactId>jetty-ee11-cdi</artifactId>
         </dependency>
 
         <!-- REST -->
