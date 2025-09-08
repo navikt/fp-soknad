@@ -2,6 +2,8 @@ package no.nav.foreldrepenger.soknad.innsending.fordel;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import no.nav.foreldrepenger.common.domain.AktørId;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Dokument;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentMetadata;
@@ -11,6 +13,9 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.fpsak.Destinasjon;
 import no.nav.foreldrepenger.soknad.innsending.fordel.fpsak.DestinasjonsRuter;
 import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.ArkivTjeneste;
 import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.OpprettetJournalpost;
+import no.nav.foreldrepenger.soknad.innsending.fordel.pdf.PdfTjeneste;
+import no.nav.foreldrepenger.soknad.innsending.fordel.xml.StrukturertDokumentMapperXML;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøknadDto;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
@@ -22,7 +27,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
+import static no.nav.foreldrepenger.common.mapper.DefaultJsonMapper.MAPPER;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.ArkivUtil.behandlingtemaFraDokumentType;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus.FPSAK;
 
@@ -41,6 +48,8 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
     private DestinasjonsRuter ruter;
     private ArkivTjeneste arkivTjeneste;
     private ProsessTaskTjeneste taskTjeneste;
+    private StrukturertDokumentMapperXML strukturertDokumentMapperXML;
+    private PdfTjeneste pdfTjeneste;
 
     public BehandleSøknadTask() {
         // for CDI
@@ -59,17 +68,22 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
         var forsendelseId = UUID.fromString(prosessTaskData.getPropertyValue(FORSENDELSE_ID_PROPERTY));
 
         var metadata = dokumentRepository.hentEksaktDokumentMetadata(forsendelseId);
-        var dokumenter = dokumentRepository.hentDokumenter(forsendelseId);
-        var søknad = dokumenter.stream().filter(Dokument::erSøknad).findFirst().orElseThrow();
+        var orginaleDokumenter = dokumentRepository.hentDokumenter(forsendelseId);
+        var søknad = orginaleDokumenter.stream().filter(Dokument::erSøknad).findFirst().orElseThrow();
+        var xml = strukturertDokumentMapperXML.lagStrukturertDokumentForArkivering(søknad, metadata);
+        var pdf = pdfTjeneste.lagPDFFraSøknad(søknad);
 
         // TODO: Aktørid og ikke fødselsnummer!
-        // TODO: Husk å generer XML og PDF fra søknad her, og legg til i dokumenter-listen
 
         var dokumentTypeId = søknad.getDokumentTypeId();
         var behandlingTema = behandlingtemaFraDokumentType(dokumentTypeId);
         var destinasjon = utledDestinasjonForForsendelse(metadata, søknad, behandlingTema);
 
-        var opprettetJournalpost = journalførForsøkEndelig(metadata, dokumenter, forsendelseId, metadata.getBrukerId(), destinasjon);
+        var dokumenterForInnsending = Stream.concat(
+            orginaleDokumenter.stream().filter(d -> (ArkivFilType.JSON.equals(d.getArkivFilType()) && d.erSøknad())),
+            Stream.of(xml, pdf))
+            .toList();
+        var opprettetJournalpost = journalførForsøkEndelig(metadata, dokumenterForInnsending, forsendelseId, metadata.getBrukerId(), destinasjon);
 
         dokumentRepository.oppdaterForsendelseMetadata(forsendelseId, opprettetJournalpost.journalpostId(), destinasjon);
         utledNesteSteg(opprettetJournalpost, behandlingTema, dokumentTypeId, forsendelseId, destinasjon);

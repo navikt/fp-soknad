@@ -94,7 +94,7 @@ public class SøknadInnsendingTjeneste {
 
         var søknadDokument = Dokument.builder()
             .setDokumentInnhold(getInnhold(søknad), ArkivFilType.JSON)
-            .setHovedDokument(true)
+            .setErSøknad(true)
             .setForsendelseId(forsendelseId)
             .setDokumentTypeId(utledDokumentType(søknad))
             .build();
@@ -115,7 +115,7 @@ public class SøknadInnsendingTjeneste {
     private static Dokument lagDokumentFraVedlegg(byte[] v, UUID forsendelseId, DokumentTypeId skjemanummer) {
         return Dokument.builder()
             .setDokumentInnhold(v, ArkivFilType.PDFA)
-            .setHovedDokument(false)
+            .setErSøknad(false)
             .setForsendelseId(forsendelseId)
             .setDokumentTypeId(skjemanummer)
             .build();

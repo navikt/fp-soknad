@@ -20,6 +20,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
     @JsonSubTypes.Type(value = TerminDto.class, name = "termin"),
     @JsonSubTypes.Type(value = AdopsjonDto.class, name = "adopsjon"),
     @JsonSubTypes.Type(value = OmsorgsovertakelseDto.class, name = "omsorgsovertakelse")})
-public interface BarnDto {
+public sealed interface BarnDto permits FødselDto, TerminDto, AdopsjonDto, OmsorgsovertakelseDto {
     int antallBarn();
 }

@@ -25,7 +25,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
     @JsonSubTypes.Type(value = OverføringsPeriodeDto.class, name = "overføring"),
     @JsonSubTypes.Type(value = OppholdsPeriodeDto.class, name = "opphold"),
     @JsonSubTypes.Type(value = UtsettelsesPeriodeDto.class, name = "utsettelse")})
-public interface Uttaksplanperiode {
+public sealed interface Uttaksplanperiode permits UttaksPeriodeDto, OverføringsPeriodeDto, OppholdsPeriodeDto, UtsettelsesPeriodeDto {
     LocalDate fom();
 
     LocalDate tom();

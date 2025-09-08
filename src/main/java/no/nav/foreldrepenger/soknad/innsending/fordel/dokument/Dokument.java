@@ -129,7 +129,7 @@ public class Dokument {
             return this;
         }
 
-        public Builder setHovedDokument(boolean erSøknad) {
+        public Builder setErSøknad(boolean erSøknad) {
             this.erSøknad = erSøknad;
             return this;
         }
