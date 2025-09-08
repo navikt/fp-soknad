@@ -1,10 +1,10 @@
 package no.nav.foreldrepenger.soknad.server;
 
 
+import java.util.Set;
+
 import jakarta.ws.rs.ApplicationPath;
 import jakarta.ws.rs.core.Application;
-
-import java.util.Set;
 
 @ApplicationPath(InternalApiConfig.API_URI)
 public class InternalApiConfig extends Application {

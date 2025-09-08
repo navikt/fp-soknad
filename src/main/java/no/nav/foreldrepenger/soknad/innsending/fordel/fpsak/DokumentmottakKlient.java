@@ -1,5 +1,9 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.fpsak;
 
+import java.net.URI;
+
+import org.slf4j.LoggerFactory;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.UriBuilder;
 import no.nav.foreldrepenger.kontrakter.fordel.JournalpostMottakDto;
@@ -9,10 +13,6 @@ import no.nav.vedtak.felles.integrasjon.rest.RestClientConfig;
 import no.nav.vedtak.felles.integrasjon.rest.RestConfig;
 import no.nav.vedtak.felles.integrasjon.rest.RestRequest;
 import no.nav.vedtak.felles.integrasjon.rest.TokenFlow;
-
-import org.slf4j.LoggerFactory;
-
-import java.net.URI;
 
 @ApplicationScoped
 @RestClientConfig(tokenConfig = TokenFlow.ADAPTIVE, application = FpApplication.FPSAK)

@@ -1,5 +1,12 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.journalføring;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
@@ -16,13 +23,6 @@ import no.nav.vedtak.felles.integrasjon.dokarkiv.dto.OpprettJournalpostRequest;
 import no.nav.vedtak.felles.integrasjon.dokarkiv.dto.Sak;
 import no.nav.vedtak.felles.integrasjon.dokarkiv.dto.Tilleggsopplysning;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 @ApplicationScoped
 public class ArkivTjeneste {
 
@@ -31,45 +31,40 @@ public class ArkivTjeneste {
     private static final String FP_DOK_TYPE = "fp_innholdtype";
 
     private DokArkiv dokArkivTjeneste;
-    private PersonInformasjon personTjeneste;
+    private PersonOppslagTjeneste personOppslagTjeneste;
 
     public ArkivTjeneste() {
         // for CDI
     }
 
     @Inject
-    public ArkivTjeneste(DokArkiv dokArkivTjeneste, PersonInformasjon personTjeneste) {
+    public ArkivTjeneste(DokArkiv dokArkivTjeneste, PersonOppslagTjeneste personOppslagTjeneste) {
         this.dokArkivTjeneste = dokArkivTjeneste;
-        this.personTjeneste = personTjeneste;
+        this.personOppslagTjeneste = personOppslagTjeneste;
     }
 
-    public OpprettetJournalpost midlertidigJournalføring(DokumentMetadata metadata, List<Dokument> dokumenter, UUID forsendelseId, String avsenderAktørId) {
-        var request = lagOpprettRequest(metadata, dokumenter, forsendelseId, avsenderAktørId);
+    public OpprettetJournalpost midlertidigJournalføring(DokumentMetadata metadata, List<Dokument> dokumenter, UUID forsendelseId) {
+        var request = lagOpprettRequest(metadata, dokumenter, forsendelseId);
         var response = dokArkivTjeneste.opprettJournalpost(request.build(), false);
         return new OpprettetJournalpost(response.journalpostId(), response.journalpostferdigstilt());
     }
 
-    public OpprettetJournalpost forsøkEndeligJournalføring(DokumentMetadata metadata, List<Dokument> dokumenter,
-                                                           UUID forsendelseId, String avsenderAktørId, String saksnummer) {
-        var request = lagOpprettRequest(metadata, dokumenter, forsendelseId, avsenderAktørId)
+    public OpprettetJournalpost forsøkEndeligJournalføring(DokumentMetadata metadata, List<Dokument> dokumenter, UUID forsendelseId, String saksnummer) {
+        var request = lagOpprettRequest(metadata, dokumenter, forsendelseId)
             .medSak(new Sak(saksnummer, "FS36", Sak.Sakstype.FAGSAK))
             .medJournalfoerendeEnhet("9999");
         var response = dokArkivTjeneste.opprettJournalpost(request.build(), true);
         return new OpprettetJournalpost(response.journalpostId(), response.journalpostferdigstilt());
     }
 
-    private OpprettJournalpostRequest.OpprettJournalpostRequestBuilder lagOpprettRequest(DokumentMetadata metadata, List<Dokument> dokumenter,
-                                                                                         UUID forsendelseId, String avsenderAktørId) {
+    private OpprettJournalpostRequest.OpprettJournalpostRequestBuilder lagOpprettRequest(DokumentMetadata metadata, List<Dokument> dokumenter, UUID forsendelseId) {
         var søknad = lagDokumenterForSøknad(dokumenter);
         var vedleggg = lagDokumenterForVedlegg(dokumenter);
         var dokumenttyper = dokumenter.stream().map(Dokument::getDokumentTypeId).collect(Collectors.toSet());
         var hovedtype = ArkivUtil.utledHovedDokumentType(dokumenttyper);
         var behandlingstema = utledBehandlingTema(dokumenttyper);
-        var bruker = new Bruker(metadata.getBrukerId(), Bruker.BrukerIdType.AKTOERID);
-        var ident = personTjeneste.hentPersonIdentForAktørId(avsenderAktørId).orElseThrow(() -> new IllegalStateException("Aktør uten personident"));
-        var avsender = new AvsenderMottaker(ident, AvsenderMottaker.AvsenderMottakerIdType.FNR,
-            personTjeneste.hentNavn(behandlingstema, avsenderAktørId));
-
+        var bruker = new Bruker(personOppslagTjeneste.hentAkøridFor(metadata.getBrukersFnr()).value(), Bruker.BrukerIdType.AKTOERID);
+        var avsender = new AvsenderMottaker(metadata.getBrukersFnr(), AvsenderMottaker.AvsenderMottakerIdType.FNR, null); // Hvis fnr, så er ikke navn nødvendig
         return OpprettJournalpostRequest.nyInngående()
             .medTittel(hovedtype.getTittel())
             .medKanal(MOTTAK_KANAL)

@@ -1,7 +1,6 @@
 package no.nav.foreldrepenger.soknad.mellomlagring;
 
 import jakarta.enterprise.context.ApplicationScoped;
-
 import jakarta.inject.Inject;
 import no.nav.foreldrepenger.konfig.KonfigVerdi;
 import no.nav.foreldrepenger.soknad.utils.InnloggetBruker;

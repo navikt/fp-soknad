@@ -13,15 +13,16 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
-@Entity(name = "Dokument")
+@SequenceGenerator(name = "GLOBAL_PK_SEQ_GENERATOR", sequenceName = "SEQ_GLOBAL_PK")
+@Entity
 @Table(name = "DOKUMENT")
 public class Dokument {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_DOKUMENT")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GLOBAL_PK_SEQ_GENERATOR")
     private Long id;
 
     @Column(name = "FORSENDELSE_ID")
@@ -31,7 +32,6 @@ public class Dokument {
     @Column(name = "dokument_type_id", nullable = false)
     private DokumentTypeId dokumentTypeId;
 
-    @Lob
     @Column(name = "BLOB", nullable = false)
     private byte[] blob;
 
@@ -129,7 +129,7 @@ public class Dokument {
             return this;
         }
 
-        public Builder setHovedDokument(boolean erSøknad) {
+        public Builder setErSøknad(boolean erSøknad) {
             this.erSøknad = erSøknad;
             return this;
         }
@@ -147,10 +147,8 @@ public class Dokument {
         }
 
         private void verifyStateForBuild() {
-            // TODO humle vurder denne når vi har full oversikt over hva som er påkrevd
             Objects.requireNonNull(blob);
             Objects.requireNonNull(dokumentTypeId);
-            Objects.requireNonNull(erSøknad);
             Objects.requireNonNull(forsendelseId);
             Objects.requireNonNull(arkivFilType);
         }

@@ -1,11 +1,11 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.journalføring;
 
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
-
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
 
 public class MapNAVSkjemaDokumentTypeId {
 

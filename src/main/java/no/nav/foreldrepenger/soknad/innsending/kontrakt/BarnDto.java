@@ -14,12 +14,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
     @DiscriminatorMapping(value = "termin", schema = TerminDto.class),
     @DiscriminatorMapping(value = "adopsjon", schema = AdopsjonDto.class),
     @DiscriminatorMapping(value = "omsorgsovertakelse", schema = OmsorgsovertakelseDto.class)})
-@JsonTypeInfo(use = NAME, property = "type", visible = true)
+@JsonTypeInfo(use = NAME, property = "type")
 @JsonSubTypes({
     @JsonSubTypes.Type(value = FødselDto.class, name = "fødsel"),
     @JsonSubTypes.Type(value = TerminDto.class, name = "termin"),
     @JsonSubTypes.Type(value = AdopsjonDto.class, name = "adopsjon"),
     @JsonSubTypes.Type(value = OmsorgsovertakelseDto.class, name = "omsorgsovertakelse")})
-public interface BarnDto {
+public sealed interface BarnDto permits FødselDto, TerminDto, AdopsjonDto, OmsorgsovertakelseDto {
     int antallBarn();
 }

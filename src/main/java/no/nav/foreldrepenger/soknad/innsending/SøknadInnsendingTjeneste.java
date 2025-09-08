@@ -1,10 +1,18 @@
 package no.nav.foreldrepenger.soknad.innsending;
 
+import static no.nav.foreldrepenger.soknad.innsending.fordel.BehandleSøknadTask.FORSENDELSE_ID_PROPERTY;
+
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.UUID;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.foreldrepenger.soknad.innsending.fordel.BehandleEttersendelseTask;
 import no.nav.foreldrepenger.soknad.innsending.fordel.BehandleSøknadTask;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
@@ -16,15 +24,14 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.AdopsjonDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.BarnDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.EndringssøknadForeldrepengerDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.EngangsstønadDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.OmsorgsovertakelseDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.SvangerskapspengesøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggReferanse;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.EngangsstønadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse.EttersendelseDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse.YtelseType;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.SvangerskapspengesøknadDto;
 import no.nav.foreldrepenger.soknad.mellomlagring.MellomlagringTjeneste;
 import no.nav.foreldrepenger.soknad.mellomlagring.YtelseMellomlagringType;
 import no.nav.foreldrepenger.soknad.utils.InnloggetBruker;
@@ -32,19 +39,14 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
-
-import static no.nav.foreldrepenger.soknad.innsending.fordel.BehandleSøknadTask.FORSENDELSE_ID_PROPERTY;
-
 @ApplicationScoped
 public class SøknadInnsendingTjeneste {
+    private static final ObjectMapper MAPPER = DefaultJsonMapper.getObjectMapper();
+    private static final Environment ENV = Environment.current();
 
     private MellomlagringTjeneste mellomlagringTjeneste;
     private InnloggetBruker innloggetBruker;
     private DokumentRepository dokumentRepository;
-    private static final ObjectMapper MAPPER = DefaultJsonMapper.getObjectMapper();
     private ProsessTaskTjeneste prosessTaskTjeneste;
 
     public SøknadInnsendingTjeneste() {
@@ -89,12 +91,12 @@ public class SøknadInnsendingTjeneste {
             .setBrukerId(innloggetBruker.brukerFraKontekst())
             .setStatus(ForsendelseStatus.PENDING)
             .setForsendelseId(forsendelseId)
-            .setForsendelseMottatt(LocalDateTime.now())
+            .setForsendelseMottatt(forsendelsesTidspunkt(søknad))
             .build();
 
         var søknadDokument = Dokument.builder()
             .setDokumentInnhold(getInnhold(søknad), ArkivFilType.JSON)
-            .setHovedDokument(true)
+            .setErSøknad(true)
             .setForsendelseId(forsendelseId)
             .setDokumentTypeId(utledDokumentType(søknad))
             .build();
@@ -112,10 +114,17 @@ public class SøknadInnsendingTjeneste {
         prosessTaskTjeneste.lagre(task);
     }
 
+    private static LocalDateTime forsendelsesTidspunkt(SøknadDto søknad) {
+        if (ENV.isProd() || søknad.mottattdato() == null) {
+            return LocalDateTime.now();
+        }
+        return LocalDateTime.of(søknad.mottattdato(), LocalTime.now()); // Brukes av autotest for å spesifisere mottatttidspunkt annet enn dagens dato
+    }
+
     private static Dokument lagDokumentFraVedlegg(byte[] v, UUID forsendelseId, DokumentTypeId skjemanummer) {
         return Dokument.builder()
             .setDokumentInnhold(v, ArkivFilType.PDFA)
-            .setHovedDokument(false)
+            .setErSøknad(false)
             .setForsendelseId(forsendelseId)
             .setDokumentTypeId(skjemanummer)
             .build();
@@ -160,14 +169,16 @@ public class SøknadInnsendingTjeneste {
     }
 
     private List<VedleggSkjemanummerWrapper> hentAlleVedlegg(List<VedleggDto> vedleggene, YtelseMellomlagringType ytelseMellomlagringType) {
-        return vedleggene.stream().map(v -> getVedleggSkjemanummerWrapper(ytelseMellomlagringType, v)).toList();
+        return vedleggene.stream()
+            .filter(VedleggDto::erOpplastetVedlegg)
+            .map(v -> getVedleggSkjemanummerWrapper(ytelseMellomlagringType, v))
+            .toList();
     }
 
     private VedleggSkjemanummerWrapper getVedleggSkjemanummerWrapper(YtelseMellomlagringType ytelseType, VedleggDto vedleggDto) {
-        var referanse = vedleggDto.referanse();
-        var innhold = mellomlagringTjeneste.lesKryptertVedlegg(referanse.verdi(), ytelseType).orElseThrow(() -> new IllegalStateException("Fant ikke mellomlagret vedlegg med uuid " + referanse.verdi()));
-        return new VedleggSkjemanummerWrapper(referanse, innhold, vedleggDto.skjemanummer());
+        var innhold = mellomlagringTjeneste.lesKryptertVedlegg(vedleggDto.uuid().toString(), ytelseType).orElseThrow(() -> new IllegalStateException("Fant ikke mellomlagret vedlegg med uuid " + vedleggDto.uuid()));
+        return new VedleggSkjemanummerWrapper(innhold, vedleggDto.skjemanummer());
     }
 
-    private record VedleggSkjemanummerWrapper(VedleggReferanse referanse, byte[] innhold, DokumentTypeId skjemanummer) {}
+    private record VedleggSkjemanummerWrapper(byte[] innhold, DokumentTypeId skjemanummer) {}
 }

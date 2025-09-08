@@ -1,5 +1,7 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel;
 
+import java.util.UUID;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentMetadata;
@@ -8,8 +10,6 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
-
-import java.util.UUID;
 
 @ApplicationScoped
 @ProsessTask(value = "fordeling.slettForsendelse", prioritet = 3)

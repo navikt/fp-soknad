@@ -7,9 +7,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import no.nav.foreldrepenger.kontrakter.fordel.FagsakInfomasjonDto;
@@ -23,6 +20,7 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.fpsak.Destinasjon;
 import no.nav.foreldrepenger.soknad.innsending.fordel.fpsak.FpsakTjeneste;
 import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.ArkivTjeneste;
 import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.OpprettetJournalpost;
+import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.PersonOppslagTjeneste;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
@@ -41,6 +39,7 @@ public class BehandleEttersendelseTask implements ProsessTaskHandler {
     private FpsakTjeneste fpsakTjeneste;
     private ArkivTjeneste arkivTjeneste;
     private ProsessTaskTjeneste taskTjeneste;
+    private PersonOppslagTjeneste personOppslagTjeneste;
 
     public BehandleEttersendelseTask() {
         // for CDI
@@ -48,11 +47,12 @@ public class BehandleEttersendelseTask implements ProsessTaskHandler {
 
     @Inject
     public BehandleEttersendelseTask(DokumentRepository dokumentRepository, FpsakTjeneste fpsakTjeneste,
-                                     ArkivTjeneste arkivTjeneste, ProsessTaskTjeneste taskTjeneste) {
+                                     ArkivTjeneste arkivTjeneste, ProsessTaskTjeneste taskTjeneste, PersonOppslagTjeneste personOppslagTjeneste) {
         this.dokumentRepository = dokumentRepository;
         this.fpsakTjeneste = fpsakTjeneste;
         this.arkivTjeneste = arkivTjeneste;
         this.taskTjeneste = taskTjeneste;
+        this.personOppslagTjeneste = personOppslagTjeneste;
     }
 
     @Override
@@ -62,15 +62,11 @@ public class BehandleEttersendelseTask implements ProsessTaskHandler {
         var dokumenter = dokumentRepository.hentDokumenter(forsendelseId);
         var metadata = dokumentRepository.hentEksaktDokumentMetadata(forsendelseId);
 
-        // TODO: Setter mange verdier, og henter informasjon ut fra SØKNAD og setter i wrapper som brukes videre i mye logikk...
-        // setFellesWrapperAttributter(w, hovedDokument.orElse(null), metadata);
-
         var fagsakInfo = fagsakInformasjon(metadata);
         var dokumentTypeId = utledDokumentTypeId(dokumenter);
         var behandlingTema = utledBehandlingstema(fagsakInfo);
         var destinasjon = new Destinasjon(FPSAK, metadata.getSaksnummer().orElseThrow());
-
-        var opprettetJournalpost = arkivTjeneste.forsøkEndeligJournalføring(metadata, dokumenter, forsendelseId, fagsakInfo.aktørId(), destinasjon.saksnummer());
+        var opprettetJournalpost = arkivTjeneste.forsøkEndeligJournalføring(metadata, dokumenter, forsendelseId, destinasjon.saksnummer());
 
         dokumentRepository.oppdaterForsendelseMetadata(forsendelseId, opprettetJournalpost.journalpostId(), destinasjon);
         utledNesteSteg(opprettetJournalpost, behandlingTema, dokumentTypeId, forsendelseId, destinasjon);

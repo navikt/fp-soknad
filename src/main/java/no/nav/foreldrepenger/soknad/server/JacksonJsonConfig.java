@@ -1,13 +1,15 @@
 package no.nav.foreldrepenger.soknad.server;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.ws.rs.ext.ContextResolver;
-import jakarta.ws.rs.ext.Provider;
-import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 import org.hibernate.type.descriptor.WrapperOptions;
 import org.hibernate.type.descriptor.java.JavaType;
 import org.hibernate.type.format.FormatMapper;
 import org.hibernate.type.format.jackson.JacksonJsonFormatMapper;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import jakarta.ws.rs.ext.ContextResolver;
+import jakarta.ws.rs.ext.Provider;
+import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 
 @Provider
 public class JacksonJsonConfig implements ContextResolver<ObjectMapper>, FormatMapper {

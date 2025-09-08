@@ -3,7 +3,6 @@ package no.nav.foreldrepenger.soknad.vedlegg.sjekkere;
 import java.util.List;
 
 import jakarta.enterprise.context.ApplicationScoped;
-
 import jakarta.ws.rs.core.MediaType;
 import no.nav.foreldrepenger.soknad.vedlegg.Vedlegg;
 import no.nav.foreldrepenger.soknad.vedlegg.error.AttachmentTypeUnsupportedException;

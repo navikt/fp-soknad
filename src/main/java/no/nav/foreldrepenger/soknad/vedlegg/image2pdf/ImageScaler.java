@@ -1,7 +1,12 @@
 package no.nav.foreldrepenger.soknad.vedlegg.image2pdf;
 
-import jakarta.ws.rs.core.MediaType;
-import no.nav.foreldrepenger.soknad.vedlegg.error.AttachmentConversionException;
+import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.function.Predicate;
+
+import javax.imageio.ImageIO;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -14,13 +19,8 @@ import org.apache.pdfbox.util.Matrix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.imageio.ImageIO;
-
-import java.awt.geom.AffineTransform;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.function.Predicate;
+import jakarta.ws.rs.core.MediaType;
+import no.nav.foreldrepenger.soknad.vedlegg.error.AttachmentConversionException;
 
 class ImageScaler {
 

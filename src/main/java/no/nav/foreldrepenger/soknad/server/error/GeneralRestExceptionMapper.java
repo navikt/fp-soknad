@@ -1,11 +1,12 @@
 package no.nav.foreldrepenger.soknad.server.error;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
 import no.nav.vedtak.exception.ManglerTilgangException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Provider
 public class GeneralRestExceptionMapper implements ExceptionMapper<Throwable> {

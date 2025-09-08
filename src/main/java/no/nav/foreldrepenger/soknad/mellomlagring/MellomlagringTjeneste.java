@@ -3,14 +3,15 @@ package no.nav.foreldrepenger.soknad.mellomlagring;
 import java.util.Optional;
 
 import jakarta.enterprise.context.ApplicationScoped;
-
 import jakarta.inject.Inject;
+import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.foreldrepenger.soknad.vedlegg.Vedlegg;
 
 
 @ApplicationScoped
 public class MellomlagringTjeneste {
     private static final String SØKNAD = "soknad";
+    private static final Environment ENV = Environment.current();
 
     private Mellomlagring mellomlagring;
     private MellomlagringKrypto krypto;
@@ -21,7 +22,7 @@ public class MellomlagringTjeneste {
 
     @Inject
     public MellomlagringTjeneste(Mellomlagring mellomlagring, MellomlagringKrypto krypto) {
-        this.mellomlagring = mellomlagring;
+        this.mellomlagring = ENV.isLocal() ? new InMemoryMellomlagring() : mellomlagring;
         this.krypto = krypto;
     }
 

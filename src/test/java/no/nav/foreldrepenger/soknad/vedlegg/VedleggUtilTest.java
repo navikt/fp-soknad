@@ -2,8 +2,6 @@ package no.nav.foreldrepenger.soknad.vedlegg;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class VedleggUtilTest {
 
 

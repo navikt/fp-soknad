@@ -1,19 +1,7 @@
 package no.nav.foreldrepenger.soknad.vedlegg.sjekkere.virusscan;
 
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.UriBuilder;
-import no.nav.foreldrepenger.soknad.vedlegg.error.AttachmentVirusException;
-import no.nav.vedtak.exception.IntegrasjonException;
-import no.nav.vedtak.exception.ManglerTilgangException;
-import no.nav.vedtak.felles.integrasjon.rest.RestClientConfig;
-import no.nav.vedtak.felles.integrasjon.rest.RestConfig;
-import no.nav.vedtak.felles.integrasjon.rest.TokenFlow;
-import no.nav.vedtak.mapper.json.DefaultJsonMapper;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static no.nav.foreldrepenger.soknad.vedlegg.sjekkere.virusscan.Result.OK;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -24,7 +12,20 @@ import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
-import static no.nav.foreldrepenger.soknad.vedlegg.sjekkere.virusscan.Result.OK;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.UriBuilder;
+import no.nav.foreldrepenger.konfig.Environment;
+import no.nav.foreldrepenger.soknad.vedlegg.error.AttachmentVirusException;
+import no.nav.vedtak.exception.IntegrasjonException;
+import no.nav.vedtak.exception.ManglerTilgangException;
+import no.nav.vedtak.felles.integrasjon.rest.RestClientConfig;
+import no.nav.vedtak.felles.integrasjon.rest.RestConfig;
+import no.nav.vedtak.felles.integrasjon.rest.TokenFlow;
+import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 
 
 // TODO: Denne må nokk fikses/endres på! Er ikke støtte for Mulitpart eller Put i felles.
@@ -34,11 +35,11 @@ import static no.nav.foreldrepenger.soknad.vedlegg.sjekkere.virusscan.Result.OK;
 @RestClientConfig(
     tokenConfig = TokenFlow.NO_AUTH_NEEDED,
     endpointProperty = "clamav.base.url",
-    //endpointDefault = "http://clamav.nais-system.svc.nais.local"
     endpointDefault = "http://clamav.nais-system"
 )
 public class VirusScanKlient {
     private static final Logger LOG = LoggerFactory.getLogger(VirusScanKlient.class);
+    private static final Environment ENV = Environment.current();
     private static final String SCAN_PATH = "/scan";
 
     private final HttpClient httpClient;
@@ -53,7 +54,7 @@ public class VirusScanKlient {
     }
 
     public void scan(byte[] bytes, UUID uuid) {
-        if (bytes == null) {
+        if (bytes == null || ENV.isLocal()) {
             return;
         }
         var request = HttpRequest.newBuilder()
