@@ -9,7 +9,7 @@
         <version>4.0.0</version>
     </parent>
 
-    <groupId>no.nav.foreldrepenger.mottak</groupId>
+    <groupId>no.nav.foreldrepenger.soknad</groupId>
     <artifactId>fp-soknad</artifactId>
     <version>1.0-SNAPSHOT</version>
 
@@ -289,6 +289,7 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
                     <execution>

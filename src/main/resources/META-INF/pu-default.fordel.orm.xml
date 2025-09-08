@@ -5,10 +5,10 @@
                  https://jakarta.ee/xml/ns/persistence/orm/orm_3_2.xsd"
                  version="3.2">
 
+    <sequence-generator name="SEQ_DOKUMENT" allocation-size="50" sequence-name="SEQ_DOKUMENT" />
     <sequence-generator name="SEQ_DOKUMENT_METADATA" allocation-size="50" sequence-name="SEQ_DOKUMENT_METADATA" />
-
-    <entity class="no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentMetadata" />
     <entity class="no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Dokument" />
+    <entity class="no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentMetadata" />
     <entity class="no.nav.foreldrepenger.soknad.soknad.SøknadEntitet" />
     <!-- entity class="no.nav.foreldrepenger.soknad.vedlegg.VedleggEntitet" / -->
 
