@@ -1,5 +1,17 @@
 package no.nav.foreldrepenger.soknad.mellomlagring;
 
+import static no.nav.foreldrepenger.common.domain.validation.InputValideringRegex.FRITEKST;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.apache.tika.Tika;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataParam;
+
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -18,17 +30,7 @@ import no.nav.foreldrepenger.soknad.vedlegg.Vedlegg;
 import no.nav.foreldrepenger.soknad.vedlegg.VedleggSjekkerTjeneste;
 import no.nav.foreldrepenger.soknad.vedlegg.image2pdf.Image2PDFConverter;
 
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataParam;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.UUID;
-
-import static no.nav.foreldrepenger.common.domain.validation.InputValideringRegex.FRITEKST;
-
-@Path("/rest/storage")
+@Path("/storage")
 @RequestScoped
 @Produces(MediaType.APPLICATION_JSON)
 public class MellomlagringRest {
@@ -96,8 +98,8 @@ public class MellomlagringRest {
                                  @PathParam("ytelse") @Valid YtelseMellomlagringType ytelse,
                                  @QueryParam("uuid") UUID uuid) {
         var fileName = fileMetaData.getFileName(); // e.g. image.png, document.pdf
-        var contentType = MediaType.valueOf(fileMetaData.getType()); // image/png, application/pdf, etc.
         var innhold = lesBytesFraInputStream(fileInputStream);
+        var contentType = mediaTypeFraInnhold(innhold);
         var orginalVedlegg = new Vedlegg(innhold, contentType, fileName, uuid != null ? uuid : UUID.randomUUID());
         vedleggSjekkerTjeneste.sjekkVedlegg(orginalVedlegg);
         var pdfBytes = converter.convert(orginalVedlegg);
@@ -127,5 +129,12 @@ public class MellomlagringRest {
         } catch (IOException e) {
             throw new RuntimeException(e); // TODO: Bedre feilhåndtering
         }
+    }
+
+    private static MediaType mediaTypeFraInnhold(byte[] bytes) {
+        return Optional.ofNullable(bytes)
+            .filter(b -> b.length > 0)
+            .map(b -> MediaType.valueOf(new Tika().detect(b)))
+            .orElse(null);
     }
 }

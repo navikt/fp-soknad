@@ -1,8 +1,8 @@
 package no.nav.foreldrepenger.soknad.vedlegg;
 
-import jakarta.ws.rs.core.MediaType;
-
 import java.util.UUID;
+
+import jakarta.ws.rs.core.MediaType;
 
 public record Vedlegg(byte[] bytes, MediaType mediaType, String filnavn, UUID uuid) {
 

@@ -9,16 +9,12 @@ import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3Domain
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.tilVedlegg;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.vedleggFra;
 
-import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.xml.bind.JAXBElement;
 import no.nav.foreldrepenger.common.domain.AktørId;
-import no.nav.foreldrepenger.common.domain.felles.Vedlegg;
-import no.nav.foreldrepenger.common.domain.felles.relasjontilbarn.FremtidigFødsel;
-import no.nav.foreldrepenger.common.domain.felles.relasjontilbarn.Fødsel;
 import no.nav.foreldrepenger.common.error.UnexpectedInputException;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.jaxb.ESV3JAXBUtil;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.AdopsjonDto;
@@ -28,7 +24,6 @@ import no.nav.foreldrepenger.soknad.innsending.kontrakt.FødselDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.OmsorgsovertakelseDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.TerminDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggReferanse;
 import no.nav.vedtak.felles.xml.soeknad.engangsstoenad.v3.Engangsstønad;
 import no.nav.vedtak.felles.xml.soeknad.engangsstoenad.v3.ObjectFactory;
 import no.nav.vedtak.felles.xml.soeknad.felles.v3.Adopsjon;
@@ -82,7 +77,7 @@ public class V3EngangsstønadDomainMapper {
         };
     }
 
-    private static SoekersRelasjonTilBarnet create(AdopsjonDto adopsjon, List<VedleggReferanse> vedlegg) {
+    private static SoekersRelasjonTilBarnet create(AdopsjonDto adopsjon, List<UUID> vedlegg) {
         var adopsjonXML = new Adopsjon();
         adopsjonXML.getVedlegg().addAll(relasjonTilBarnVedleggFra(vedlegg));
         adopsjonXML.setAntallBarn(adopsjon.antallBarn());
@@ -93,7 +88,7 @@ public class V3EngangsstønadDomainMapper {
         return adopsjonXML;
     }
 
-    private static SoekersRelasjonTilBarnet create(FødselDto fødsel, List<VedleggReferanse> vedlegg) {
+    private static SoekersRelasjonTilBarnet create(FødselDto fødsel, List<UUID> vedlegg) {
         var foedsel = new Foedsel();
         foedsel.getVedlegg().addAll(relasjonTilBarnVedleggFra(vedlegg));
         foedsel.setFoedselsdato(fødsel.fødselsdato());
@@ -102,7 +97,7 @@ public class V3EngangsstønadDomainMapper {
         return foedsel;
     }
 
-    private static SoekersRelasjonTilBarnet create(TerminDto termin, List<VedleggReferanse> vedlegg) {
+    private static SoekersRelasjonTilBarnet create(TerminDto termin, List<UUID> vedlegg) {
         var terminXML = new Termin();
         terminXML.getVedlegg().addAll(relasjonTilBarnVedleggFra(vedlegg));
         terminXML.setTermindato(termin.termindato());
@@ -111,9 +106,8 @@ public class V3EngangsstønadDomainMapper {
         return terminXML;
     }
 
-    private static List<JAXBElement<Object>> relasjonTilBarnVedleggFra(List<VedleggReferanse> vedlegg) {
+    private static List<JAXBElement<Object>> relasjonTilBarnVedleggFra(List<UUID> vedlegg) {
         return safeStream(vedlegg)
-            .map(VedleggReferanse::verdi)
             .map(referanse -> FELLES_FACTORY_V3.createSoekersRelasjonTilBarnetVedlegg(tilVedlegg(referanse)))
             .toList();
     }

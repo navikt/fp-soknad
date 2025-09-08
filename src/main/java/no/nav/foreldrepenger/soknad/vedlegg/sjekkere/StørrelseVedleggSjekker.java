@@ -1,12 +1,12 @@
 package no.nav.foreldrepenger.soknad.vedlegg.sjekkere;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import no.nav.foreldrepenger.soknad.vedlegg.Vedlegg;
 import no.nav.foreldrepenger.soknad.vedlegg.error.AttachmentTooLargeException;
 import no.nav.foreldrepenger.soknad.vedlegg.error.AttachmentUnreadableException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class StørrelseVedleggSjekker implements VedleggSjekker {

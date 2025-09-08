@@ -1,0 +1,43 @@
+package no.nav.foreldrepenger.soknad.innsending.fordel.utils;
+
+import java.io.IOException;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import no.nav.foreldrepenger.common.mapper.DefaultJsonMapper;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Dokument;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.EndringssøknadForeldrepengerDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.EngangsstønadDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.SvangerskapspengesøknadDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøknadDto;
+
+
+public class SøknadJsonMapper {
+
+    private static final ObjectMapper MAPPER = DefaultJsonMapper.MAPPER;
+
+    private SøknadJsonMapper() {
+        // static
+    }
+
+    public static SøknadDto deseraliserSøknad(Dokument søknad) {
+        try {
+            return switch (søknad.getDokumentTypeId()) {
+                case I000002, I000005 -> {
+                    try {
+                        yield MAPPER.readValue(søknad.getByteArrayDokument(), ForeldrepengesøknadDto.class);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                case I000050 -> MAPPER.readValue(søknad.getByteArrayDokument(), EndringssøknadForeldrepengerDto.class);
+                case I000003, I000004 -> MAPPER.readValue(søknad.getByteArrayDokument(), EngangsstønadDto.class);
+                case I000001 -> MAPPER.readValue(søknad.getByteArrayDokument(), SvangerskapspengesøknadDto.class);
+                default -> throw new IllegalArgumentException("Utviklerfeil: Dokument som er lagret er ikke en søknad: " + søknad.getDokumentTypeId());
+            };
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}

@@ -5,9 +5,6 @@ import static no.nav.foreldrepenger.common.domain.validation.InputValideringRege
 import java.util.List;
 import java.util.UUID;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -15,21 +12,11 @@ import jakarta.validation.constraints.Size;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.ArbeidsforholdDto;
 
-public record VedleggDto(UUID uuid,
+public record VedleggDto(@NotNull UUID uuid,
                          @NotNull DokumentTypeId skjemanummer,
                          VedleggInnsendingType innsendingsType,
                          @Pattern(regexp = FRITEKST) String beskrivelse,
-                         @Valid Dokumenterer dokumenterer,
-                         @JsonIgnore VedleggReferanse referanse) {
-
-    public VedleggDto {
-        referanse = VedleggReferanse.fra(uuid);
-    }
-
-    @JsonCreator
-    public VedleggDto(UUID uuid, DokumentTypeId skjemanummer, VedleggInnsendingType innsendingsType, String beskrivelse, Dokumenterer dokumenterer) {
-        this(uuid, skjemanummer, innsendingsType, beskrivelse, dokumenterer, null);
-    }
+                         @Valid Dokumenterer dokumenterer) {
 
     public boolean erOpplastetVedlegg() {
         return innsendingsType == null || innsendingsType.equals(VedleggInnsendingType.LASTET_OPP);

@@ -15,7 +15,18 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
+import com.neovisionaries.i18n.CountryCode;
+
+import jakarta.xml.bind.JAXBElement;
+import no.nav.foreldrepenger.common.domain.AktørId;
+import no.nav.foreldrepenger.common.domain.BrukerRolle;
+import no.nav.foreldrepenger.common.domain.felles.InnsendingsType;
+import no.nav.foreldrepenger.common.domain.felles.opptjening.AnnenOpptjeningType;
+import no.nav.foreldrepenger.common.domain.felles.opptjening.Virksomhetstype;
+import no.nav.foreldrepenger.common.error.UnexpectedInputException;
+import no.nav.foreldrepenger.common.oppslag.dkif.Målform;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.AdopsjonDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.AnnenInntektDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.BarnDto;
@@ -26,26 +37,8 @@ import no.nav.foreldrepenger.soknad.innsending.kontrakt.OmsorgsovertakelseDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.TerminDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.UtenlandsoppholdsperiodeDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggDto;
-
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggInnsendingType;
-
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggReferanse;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.ÅpenPeriodeDto;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.neovisionaries.i18n.CountryCode;
-
-import jakarta.xml.bind.JAXBElement;
-import no.nav.foreldrepenger.common.domain.AktørId;
-import no.nav.foreldrepenger.common.domain.BrukerRolle;
-import no.nav.foreldrepenger.common.domain.felles.InnsendingsType;
-import no.nav.foreldrepenger.common.domain.felles.opptjening.AnnenOpptjeningType;
-import no.nav.foreldrepenger.common.domain.felles.opptjening.Virksomhetstype;
-import no.nav.foreldrepenger.common.domain.felles.ÅpenPeriode;
-import no.nav.foreldrepenger.common.error.UnexpectedInputException;
-import no.nav.foreldrepenger.common.oppslag.dkif.Målform;
 import no.nav.vedtak.felles.xml.soeknad.felles.v3.Bruker;
 import no.nav.vedtak.felles.xml.soeknad.felles.v3.Medlemskap;
 import no.nav.vedtak.felles.xml.soeknad.felles.v3.OppholdUtlandet;
@@ -92,18 +85,12 @@ final class V3DomainMapperCommon {
         var opptjeningXml = new Opptjening();
         opptjeningXml.getUtenlandskArbeidsforhold().addAll(utenlandskeArbeidsforholdFra(annenOpptjening, vedlegg));
         opptjeningXml.setFrilans(frilansFra(frilans));
-        opptjeningXml.getEgenNaering().addAll(egneNæringerFra(egenNæring, vedlegg));
+        egenNæringFra(egenNæring, vedlegg).ifPresent(n -> opptjeningXml.getEgenNaering().add(n));
         opptjeningXml.getAnnenOpptjening().addAll(andreOpptjeningerFra(annenOpptjening, vedlegg));
         return opptjeningXml;
     }
 
     static Medlemskap medlemsskapFra(List<UtenlandsoppholdsperiodeDto> opphold, LocalDate relasjonsDato) {
-        return Optional.ofNullable(opphold)
-                .map(o -> create(o, relasjonsDato))
-                .orElse(null);
-    }
-
-    private static Medlemskap create(List<UtenlandsoppholdsperiodeDto> opphold, LocalDate relasjonsDato) {
         var medlemskap = new Medlemskap();
         medlemskap.getOppholdUtlandet().addAll(oppholdUtlandetFra(opphold));
         medlemskap.setINorgeVedFoedselstidspunkt(varINorge(opphold, relasjonsDato));
@@ -162,16 +149,8 @@ final class V3DomainMapperCommon {
         return virksomhetstyper;
     }
 
-    private static List<EgenNaering> egneNæringerFra(NæringDto egenNæring, List<VedleggDto> vedlegg) {
-        return safeStream(egenNæring)
-                .map(n -> egenNæringFra(n, vedlegg))
-                .toList();
-    }
-
-    private static EgenNaering egenNæringFra(NæringDto egenNæring, List<VedleggDto> vedlegg) {
-        return Optional.ofNullable(egenNæring)
-                .map(n -> create(n, vedlegg))
-                .orElse(null);
+    private static Optional<EgenNaering> egenNæringFra(NæringDto egenNæring, List<VedleggDto> vedlegg) {
+        return Optional.ofNullable(egenNæring).map(n -> create(n, vedlegg));
     }
 
     private static EgenNaering create(NæringDto egenNæring, List<VedleggDto> vedlegg) {
@@ -185,7 +164,7 @@ final class V3DomainMapperCommon {
         }
     }
 
-    private static UtenlandskOrganisasjon utenlandskOrganisasjon(NæringDto utenlandskOrg, List<VedleggReferanse> vedleggReferanser) {
+    private static UtenlandskOrganisasjon utenlandskOrganisasjon(NæringDto utenlandskOrg, List<UUID> vedleggReferanser) {
         var utenlandskOrganisasjon = new UtenlandskOrganisasjon();
         utenlandskOrganisasjon.getVedlegg().addAll(egenNæringVedleggFraIDs(vedleggReferanser));
         utenlandskOrganisasjon.setBeskrivelseAvEndring(utenlandskOrg.varigEndringBeskrivelse());
@@ -205,7 +184,7 @@ final class V3DomainMapperCommon {
 
 
 
-    private static NorskOrganisasjon norskOrganisasjon(NæringDto norskOrg, List<VedleggReferanse> vedleggReferanser) {
+    private static NorskOrganisasjon norskOrganisasjon(NæringDto norskOrg, List<UUID> vedleggReferanser) {
         var norskOrganisasjon = new NorskOrganisasjon();
         norskOrganisasjon.getVedlegg().addAll(egenNæringVedleggFraIDs(vedleggReferanser));
         norskOrganisasjon.setBeskrivelseAvEndring(norskOrg.varigEndringBeskrivelse());
@@ -223,18 +202,23 @@ final class V3DomainMapperCommon {
         return norskOrganisasjon;
     }
 
-    private static List<JAXBElement<Object>> egenNæringVedleggFraIDs(List<VedleggReferanse> vedlegg) {
+    private static List<JAXBElement<Object>> egenNæringVedleggFraIDs(List<UUID> vedlegg) {
         return safeStream(vedlegg)
                 .filter(Objects::nonNull)
-                .map(VedleggReferanse::verdi)
                 .map(referanse -> FP_FACTORY_V3.createEgenNaeringVedlegg(tilVedlegg(referanse)))
                 .toList();
     }
 
-    static Vedlegg tilVedlegg(String referanse) {
+    static Vedlegg tilVedlegg(UUID referanse) {
         Vedlegg vedlegg = new Vedlegg();
-        vedlegg.setId(referanse);
+        vedlegg.setId(tilGyldigVedleggreferanse(referanse));
         return vedlegg;
+    }
+
+    // The @XmlID annotation requires the value to be a valid XML ID, which must start with a letter or underscore and cannot start with a digit.
+    // UUID may contain a digit at the start, so we prefix with 'V' to ensure it's a valid XML ID.
+    private static String tilGyldigVedleggreferanse(UUID uuid) {
+        return "V" + uuid;
     }
 
     private static List<AnnenOpptjening> andreOpptjeningerFra(List<AnnenInntektDto> annenOpptjening, List<VedleggDto> vedlegg) {
@@ -258,7 +242,7 @@ final class V3DomainMapperCommon {
         return type;
     }
 
-    private static AnnenOpptjening create(AnnenInntektDto annen, List<VedleggReferanse> vedleggreferanser) {
+    private static AnnenOpptjening create(AnnenInntektDto annen, List<UUID> vedleggreferanser) {
         var annenOpptjening = new AnnenOpptjening();
         annenOpptjening.getVedlegg().addAll(annenOpptjeningVedleggFra(vedleggreferanser));
         annenOpptjening.setType(annenOpptjeningTypeFra(annen.type()));
@@ -289,19 +273,18 @@ final class V3DomainMapperCommon {
                 .toList();
     }
 
-    private static UtenlandskArbeidsforhold utenlandskArbeidsforholdFra(AnnenInntektDto anneninntekt, List<VedleggReferanse> vedlegg) {
+    private static UtenlandskArbeidsforhold utenlandskArbeidsforholdFra(AnnenInntektDto anneninntekt, List<UUID> vedleggreferanser) {
         var utenlandskArbeidsforhold = new UtenlandskArbeidsforhold();
-        utenlandskArbeidsforhold.getVedlegg().addAll(utenlandsArbeidsforholdVedleggFra(vedlegg));
+        utenlandskArbeidsforhold.getVedlegg().addAll(utenlandsArbeidsforholdVedleggFra(vedleggreferanser));
         utenlandskArbeidsforhold.setArbeidsgiversnavn(anneninntekt.arbeidsgiverNavn());
         utenlandskArbeidsforhold.setArbeidsland(landFra(anneninntekt.land()));
         utenlandskArbeidsforhold.setPeriode(tilPeriode(anneninntekt.fom(), anneninntekt.tom()));
         return utenlandskArbeidsforhold;
     }
 
-    private static List<JAXBElement<Object>> utenlandsArbeidsforholdVedleggFra(List<VedleggReferanse> vedlegg) {
+    private static List<JAXBElement<Object>> utenlandsArbeidsforholdVedleggFra(List<UUID> vedlegg) {
         return safeStream(vedlegg)
                 .filter(Objects::nonNull)
-                .map(VedleggReferanse::verdi)
                 .map(referanse -> FP_FACTORY_V3.createUtenlandskArbeidsforholdVedlegg(tilVedlegg(referanse)))
                 .toList();
     }
@@ -322,7 +305,7 @@ final class V3DomainMapperCommon {
 
     private static Vedlegg vedleggFra(VedleggDto vedlegg) {
         var vedleggXML = new Vedlegg();
-        vedleggXML.setId(vedlegg.uuid().toString());
+        vedleggXML.setId(tilGyldigVedleggreferanse(vedlegg.uuid()));
         vedleggXML.setTilleggsinformasjon(vedlegg.beskrivelse());
         vedleggXML.setSkjemanummer(vedlegg.skjemanummer().getKode());
         vedleggXML.setInnsendingstype(innsendingstypeFra(vedlegg.innsendingsType()));
@@ -352,10 +335,9 @@ final class V3DomainMapperCommon {
         return frilansXML;
     }
 
-    private static List<JAXBElement<Object>> annenOpptjeningVedleggFra(List<VedleggReferanse> vedlegg) {
+    private static List<JAXBElement<Object>> annenOpptjeningVedleggFra(List<UUID> vedlegg) {
         return safeStream(vedlegg)
                 .filter(Objects::nonNull)
-                .map(VedleggReferanse::verdi)
                 .map(referanse -> FP_FACTORY_V3.createAnnenOpptjeningVedlegg(tilVedlegg(referanse)))
                 .toList();
     }
@@ -387,11 +369,14 @@ final class V3DomainMapperCommon {
         return land;
     }
 
-    public static boolean erNyopprettet(LocalDate fom) {
+    static boolean erNyopprettet(LocalDate fom) {
         return erNyopprettet(LocalDate.now(), fom);
     }
 
     static boolean erNyopprettet(LocalDate nå, LocalDate fom) {
         return fom.isAfter(now().minusYears(nå.isAfter(LocalDate.of(nå.getYear(), OCTOBER, 20)) ? 3 : 4).with(firstDayOfYear()).minusDays(1));
+    }
+    static boolean toBoolean(Boolean bool) {
+        return bool != null && bool;
     }
 }

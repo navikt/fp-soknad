@@ -1,12 +1,18 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.pdf;
 
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Dokument;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Dokument;
+
+@ApplicationScoped
 public class PdfTjeneste {
+
+    public  PdfTjeneste() {
+        // CDI
+    }
 
     public Dokument lagPDFFraSøknad(Dokument søknad) {
         return Dokument.builder()

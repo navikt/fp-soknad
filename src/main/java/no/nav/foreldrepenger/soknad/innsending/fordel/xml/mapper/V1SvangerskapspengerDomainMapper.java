@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.xml.bind.JAXBElement;
@@ -22,7 +23,6 @@ import no.nav.foreldrepenger.common.error.UnexpectedInputException;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.jaxb.SVPV1JAXBUtil;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SvangerskapspengesøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggReferanse;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.ArbeidsforholdDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.AvtaltFerieDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.TilretteleggingbehovDto;
@@ -166,10 +166,9 @@ public class V1SvangerskapspengerDomainMapper {
         return helTilrettelegging;
     }
 
-    private static List<JAXBElement<Object>> tilretteleggingVedleggFraIDs(List<VedleggReferanse> vedlegg) {
+    private static List<JAXBElement<Object>> tilretteleggingVedleggFraIDs(List<UUID> vedlegg) {
         return safeStream(vedlegg)
                 .filter(Objects::nonNull)
-                .map(VedleggReferanse::verdi)
                 .map(referanse -> SVP_FACTORY_V1.createTilretteleggingVedlegg(tilVedlegg(referanse)))
                 .toList();
     }

@@ -7,34 +7,42 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.threeten.bp.Duration;
+
+import com.google.cloud.ServiceOptions;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 
 import jakarta.enterprise.context.ApplicationScoped;
-
-import jakarta.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class GCPMellomlagring implements Mellomlagring {
 
     private static final Logger LOG = LoggerFactory.getLogger(GCPMellomlagring.class);
 
-    private Bøtte mellomlagringBøtte;
-    private Storage storage;
+    private final Bøtte mellomlagringBøtte;
+    private final Storage storage;
 
     public GCPMellomlagring() {
-        // CDI
-    }
+        var retrySettings = ServiceOptions.getDefaultRetrySettings().toBuilder()
+            .setInitialRetryDelay(Duration.ofMillis(400))
+            .setMaxRetryDelay(Duration.ofMillis(900))
+            .setRetryDelayMultiplier(1.5)
+            .setMaxAttempts(5)
+            .setTotalTimeout(Duration.ofMillis(5_000))
+            .build();
 
-    @Inject
-    public GCPMellomlagring(Bøtte mellomlagringBøtte, Storage storage) {
-        this.mellomlagringBøtte = mellomlagringBøtte;
-        this.storage = storage;
+        this.storage = StorageOptions
+            .newBuilder()
+            .setRetrySettings(retrySettings)
+            .build()
+            .getService();
+        this.mellomlagringBøtte = new Bøtte("fp-soknad-mellomlagring"); // Navnet på GCP-bøtten / miljøvariable
     }
 
     @Override

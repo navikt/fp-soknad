@@ -1,9 +1,9 @@
 package no.nav.foreldrepenger.soknad.vedlegg.error;
 
 
-import no.nav.foreldrepenger.soknad.vedlegg.VedleggUtil;
-
 import static java.lang.String.format;
+
+import no.nav.foreldrepenger.soknad.vedlegg.VedleggUtil;
 
 
 public class AttachmentTooLargeException extends AttachmentException {

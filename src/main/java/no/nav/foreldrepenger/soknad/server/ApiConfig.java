@@ -1,5 +1,13 @@
 package no.nav.foreldrepenger.soknad.server;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.server.ServerProperties;
+
 import io.swagger.v3.oas.integration.GenericOpenApiContextBuilder;
 import io.swagger.v3.oas.integration.OpenApiConfigurationException;
 import io.swagger.v3.oas.integration.SwaggerConfiguration;
@@ -13,14 +21,6 @@ import no.nav.foreldrepenger.soknad.innsending.SøknadRest;
 import no.nav.foreldrepenger.soknad.mellomlagring.MellomlagringRest;
 import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.rest.ProsessTaskRestTjeneste;
-
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.server.ServerProperties;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
 @ApplicationPath(ApiConfig.API_URI)
 public class ApiConfig extends Application {
@@ -58,7 +58,8 @@ public class ApiConfig extends Application {
         return Set.of(
             SøknadRest.class,
             MellomlagringRest.class,
-            MultiPartFeature.class
+            MultiPartFeature.class,
+            AuthenticationFilter.class
         );
     }
 

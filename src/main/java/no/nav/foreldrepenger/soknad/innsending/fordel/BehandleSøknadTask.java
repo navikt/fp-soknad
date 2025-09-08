@@ -1,8 +1,17 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel;
 
+import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus.FPSAK;
+import static no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.ArkivUtil.behandlingtemaFraDokumentType;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Stream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import no.nav.foreldrepenger.common.domain.AktørId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Dokument;
@@ -15,23 +24,10 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.ArkivTjenes
 import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.OpprettetJournalpost;
 import no.nav.foreldrepenger.soknad.innsending.fordel.pdf.PdfTjeneste;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.StrukturertDokumentMapperXML;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøknadDto;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
-
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Stream;
-
-import static no.nav.foreldrepenger.common.mapper.DefaultJsonMapper.MAPPER;
-import static no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.ArkivUtil.behandlingtemaFraDokumentType;
-import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus.FPSAK;
 
 @ApplicationScoped
 @ProsessTask(value = "fordeling.behandle.soknad", maxFailedRuns = 4, firstDelay = 10, thenDelay = 30)
@@ -56,37 +52,41 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
     }
 
     @Inject
-    public BehandleSøknadTask(DokumentRepository dokumentRepository, DestinasjonsRuter ruter, ArkivTjeneste arkivTjeneste, ProsessTaskTjeneste taskTjeneste) {
+    public BehandleSøknadTask(DokumentRepository dokumentRepository, DestinasjonsRuter ruter, ArkivTjeneste arkivTjeneste, ProsessTaskTjeneste taskTjeneste,
+                              StrukturertDokumentMapperXML strukturertDokumentMapperXML, PdfTjeneste pdfTjeneste) {
         this.dokumentRepository = dokumentRepository;
         this.ruter = ruter;
         this.arkivTjeneste = arkivTjeneste;
         this.taskTjeneste = taskTjeneste;
+        this.strukturertDokumentMapperXML = strukturertDokumentMapperXML;
+        this.pdfTjeneste = pdfTjeneste;
     }
 
     @Override
     public void doTask(ProsessTaskData prosessTaskData) {
         var forsendelseId = UUID.fromString(prosessTaskData.getPropertyValue(FORSENDELSE_ID_PROPERTY));
-
         var metadata = dokumentRepository.hentEksaktDokumentMetadata(forsendelseId);
         var orginaleDokumenter = dokumentRepository.hentDokumenter(forsendelseId);
         var søknad = orginaleDokumenter.stream().filter(Dokument::erSøknad).findFirst().orElseThrow();
-        var xml = strukturertDokumentMapperXML.lagStrukturertDokumentForArkivering(søknad, metadata);
+        var xml = strukturertDokumentMapperXML.lagStrukturertDokumentForArkivering(metadata, søknad); // TODO: Lagre eller sende i prosesstask paylaod?
         var pdf = pdfTjeneste.lagPDFFraSøknad(søknad);
-
-        // TODO: Aktørid og ikke fødselsnummer!
 
         var dokumentTypeId = søknad.getDokumentTypeId();
         var behandlingTema = behandlingtemaFraDokumentType(dokumentTypeId);
         var destinasjon = utledDestinasjonForForsendelse(metadata, søknad, behandlingTema);
 
         var dokumenterForInnsending = Stream.concat(
-            orginaleDokumenter.stream().filter(d -> (ArkivFilType.JSON.equals(d.getArkivFilType()) && d.erSøknad())),
+            alleVedlegg(orginaleDokumenter),
             Stream.of(xml, pdf))
             .toList();
-        var opprettetJournalpost = journalførForsøkEndelig(metadata, dokumenterForInnsending, forsendelseId, metadata.getBrukerId(), destinasjon);
+        var opprettetJournalpost = journalførForsøkEndelig(metadata, dokumenterForInnsending, forsendelseId, destinasjon);
 
         dokumentRepository.oppdaterForsendelseMetadata(forsendelseId, opprettetJournalpost.journalpostId(), destinasjon);
         utledNesteSteg(opprettetJournalpost, behandlingTema, dokumentTypeId, forsendelseId, destinasjon);
+    }
+
+    private static Stream<Dokument> alleVedlegg(List<Dokument> orginaleDokumenter) {
+        return orginaleDokumenter.stream().filter(d -> !(ArkivFilType.JSON.equals(d.getArkivFilType()) && d.erSøknad()));
     }
 
     private Destinasjon utledDestinasjonForForsendelse(DokumentMetadata metadata, Dokument søknad, BehandlingTema behandlingTema) {
@@ -97,15 +97,14 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
         return ruter.bestemDestinasjon(metadata, søknad, behandlingTema);
     }
 
-    private OpprettetJournalpost journalførForsøkEndelig(DokumentMetadata metadata, List<Dokument> dokumenter, UUID forsendelseId,
-                                                         String aktørId, Destinasjon destinasjon) {
+    private OpprettetJournalpost journalførForsøkEndelig(DokumentMetadata metadata, List<Dokument> dokumenter, UUID forsendelseId, Destinasjon destinasjon) {
         if (destinasjon.erGosys()) {
             // Midlertidig journalføring, håndteres av fp-mottak.
             // var referanseId = w.getRetryingTask().map(s -> UUID.randomUUID()).Else(forsendelseId); TODO: Fjerne?
-            return arkivTjeneste.midlertidigJournalføring(metadata, dokumenter, forsendelseId, aktørId);
+            return arkivTjeneste.midlertidigJournalføring(metadata, dokumenter, forsendelseId);
         }
 
-        var opprettetJournalpost = arkivTjeneste.forsøkEndeligJournalføring(metadata, dokumenter, forsendelseId, aktørId, destinasjon.saksnummer());
+        var opprettetJournalpost = arkivTjeneste.forsøkEndeligJournalføring(metadata, dokumenter, forsendelseId, destinasjon.saksnummer());
         if (!opprettetJournalpost.ferdigstilt()) {
             LOG.info("FP-SOKNAD FORSENDELSE kunne ikke ferdigstille sak {} forsendelse {}", destinasjon.saksnummer(), forsendelseId);
         }

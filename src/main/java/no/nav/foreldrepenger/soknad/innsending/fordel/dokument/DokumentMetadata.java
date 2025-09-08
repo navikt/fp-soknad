@@ -12,21 +12,23 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
-@Entity(name = "DokumentMetadata")
+@SequenceGenerator(name = "GLOBAL_PK_SEQ_GENERATOR", sequenceName = "SEQ_GLOBAL_PK")
+@Entity
 @Table(name = "DOKUMENT_METADATA")
 public class DokumentMetadata {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_DOKUMENT_METADATA")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GLOBAL_PK_SEQ_GENERATOR")
     private Long id;
 
     @Column(name = "FORSENDELSE_ID")
     private UUID forsendelseId;
 
     @Column(name = "BRUKER_ID")
-    private String brukerId;
+    private String brukerId; // fnr
 
     @Column(name = "SAKSNUMMER")
     private String saksnummer;
@@ -56,7 +58,7 @@ public class DokumentMetadata {
         return forsendelseId;
     }
 
-    public String getBrukerId() {
+    public String getBrukersFnr() {
         return brukerId;
     }
 

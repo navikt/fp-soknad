@@ -1,23 +1,23 @@
 package no.nav.foreldrepenger.soknad.vedlegg.image2pdf;
 
 
+import static no.nav.foreldrepenger.soknad.vedlegg.image2pdf.ImageScaler.pdfFraBilde;
+import static no.nav.foreldrepenger.soknad.vedlegg.sjekkere.StøttetFormatSjekker.APPLICATION_PDF;
+import static no.nav.foreldrepenger.soknad.vedlegg.sjekkere.StøttetFormatSjekker.IMAGE_JPEG;
+import static no.nav.foreldrepenger.soknad.vedlegg.sjekkere.StøttetFormatSjekker.IMAGE_PNG;
+
 import java.io.ByteArrayOutputStream;
 import java.util.List;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.MediaType;
 import no.nav.foreldrepenger.soknad.vedlegg.Vedlegg;
 import no.nav.foreldrepenger.soknad.vedlegg.error.AttachmentConversionException;
 import no.nav.foreldrepenger.soknad.vedlegg.error.AttachmentTypeUnsupportedException;
-
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import static no.nav.foreldrepenger.soknad.vedlegg.image2pdf.ImageScaler.pdfFraBilde;
-import static no.nav.foreldrepenger.soknad.vedlegg.sjekkere.StøttetFormatSjekker.APPLICATION_PDF;
-import static no.nav.foreldrepenger.soknad.vedlegg.sjekkere.StøttetFormatSjekker.IMAGE_JPEG;
-import static no.nav.foreldrepenger.soknad.vedlegg.sjekkere.StøttetFormatSjekker.IMAGE_PNG;
 
 @ApplicationScoped
 public class Image2PDFConverter {
@@ -26,7 +26,7 @@ public class Image2PDFConverter {
     private final List<MediaType> supportedMediaTypes;
 
     public Image2PDFConverter() {
-        this(List.of(IMAGE_JPEG, IMAGE_PNG));
+        this(List.of(IMAGE_JPEG, IMAGE_PNG, APPLICATION_PDF));
     }
 
     Image2PDFConverter(List<MediaType> supportedMediaTypes) {
@@ -36,7 +36,7 @@ public class Image2PDFConverter {
 
     public Vedlegg convert(Vedlegg vedlegg) {
         var mediaType = vedlegg.mediaType();
-        if (!APPLICATION_PDF.equals(mediaType)) {
+        if (APPLICATION_PDF.equals(mediaType)) {
             return vedlegg;
         }
 

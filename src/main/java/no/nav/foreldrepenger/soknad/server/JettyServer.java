@@ -1,9 +1,17 @@
 package no.nav.foreldrepenger.soknad.server;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
+import static org.eclipse.jetty.ee11.webapp.MetaInfConfiguration.CONTAINER_JAR_PATTERN;
 
-import no.nav.foreldrepenger.konfig.Environment;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+
+import javax.naming.NamingException;
+import javax.sql.DataSource;
+
 import org.eclipse.jetty.ee11.cdi.CdiDecoratingListener;
 import org.eclipse.jetty.ee11.cdi.CdiServletContainerInitializer;
 import org.eclipse.jetty.ee11.servlet.ErrorPageErrorHandler;
@@ -21,16 +29,10 @@ import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.configuration.FluentConfiguration;
 
-import javax.naming.NamingException;
-import javax.sql.DataSource;
-import java.io.File;
-import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
-import static org.eclipse.jetty.ee11.webapp.MetaInfConfiguration.CONTAINER_JAR_PATTERN;
+import no.nav.foreldrepenger.konfig.Environment;
 
 public class JettyServer {
 

@@ -1,12 +1,5 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.journalføring;
 
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
-
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema.ENGANGSSTØNAD_ADOPSJON;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema.ENGANGSSTØNAD_FØDSEL;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema.FORELDREPENGER;
@@ -14,6 +7,13 @@ import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Behandling
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema.FORELDREPENGER_FØDSEL;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema.SVANGERSKAPSPENGER;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema.UDEFINERT;
+
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
 
 
 public final class ArkivUtil {

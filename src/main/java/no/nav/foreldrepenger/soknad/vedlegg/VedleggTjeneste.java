@@ -1,11 +1,10 @@
 package no.nav.foreldrepenger.soknad.vedlegg;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import jakarta.validation.Valid;
-
 import java.util.Optional;
 import java.util.UUID;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.validation.Valid;
 
 @ApplicationScoped
 public class VedleggTjeneste {

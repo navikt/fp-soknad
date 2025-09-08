@@ -9,7 +9,11 @@ import no.nav.foreldrepenger.soknad.vedlegg.sjekkere.VedleggSjekker;
 @ApplicationScoped
 public class VedleggSjekkerTjeneste {
 
-    private final Instance<VedleggSjekker> vedleggSjekkerInstance;
+    private Instance<VedleggSjekker> vedleggSjekkerInstance;
+
+    public VedleggSjekkerTjeneste() {
+        // CDI
+    }
 
     @Inject
     public VedleggSjekkerTjeneste(@Any Instance<VedleggSjekker> vedleggSjekkerInstance) {

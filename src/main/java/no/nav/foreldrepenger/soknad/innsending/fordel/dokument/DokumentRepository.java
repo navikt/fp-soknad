@@ -19,7 +19,7 @@ import no.nav.vedtak.exception.TekniskException;
 public class DokumentRepository {
 
     private static final String FORSENDELSE_ID = "forsendelseId";
-    private static final String HOVED_DOKUMENT = "hovedDokument";
+    private static final String ER_SØKNAD = "erSøknad";
     private static final String ARKIV_FILTYPE = "arkivFilType";
     private EntityManager em;
 
@@ -36,11 +36,11 @@ public class DokumentRepository {
         em.flush();
     }
 
-    public Optional<Dokument> hentUnikDokument(UUID forsendelseId, boolean hovedDokument, ArkivFilType arkivFilType) {
+    public Optional<Dokument> hentUnikDokument(UUID forsendelseId, boolean erSøknad, ArkivFilType arkivFilType) {
         var resultatListe = em.createQuery(
-                "from Dokument where forsendelseId = :forsendelseId and hovedDokument = :hovedDokument and arkivFilType = :arkivFilType", Dokument.class)
+                "from Dokument where forsendelseId = :forsendelseId and erSøknad = :erSøknad and arkivFilType = :arkivFilType", Dokument.class)
             .setParameter(FORSENDELSE_ID, forsendelseId)
-            .setParameter(HOVED_DOKUMENT, hovedDokument)
+            .setParameter(DokumentRepository.ER_SØKNAD, erSøknad)
             .setParameter(ARKIV_FILTYPE, arkivFilType)
             .getResultList();
         if (resultatListe.size() > 1) {

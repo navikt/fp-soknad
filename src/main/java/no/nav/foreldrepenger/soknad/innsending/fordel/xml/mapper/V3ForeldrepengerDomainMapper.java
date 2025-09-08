@@ -1,7 +1,5 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper;
 
-
-import static no.nav.foreldrepenger.common.util.LangUtil.toBoolean;
 import static no.nav.foreldrepenger.common.util.StreamUtil.safeStream;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.DokumentasjonReferanseMapper.dokumentasjonSomDokumentererBarn;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.DokumentasjonReferanseMapper.dokumentasjonSomDokumentererUttaksperiode;
@@ -12,23 +10,24 @@ import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3Domain
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.relasjonDato;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.søkerFra;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.tilVedlegg;
+import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.toBoolean;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.vedleggFra;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.xml.bind.JAXBElement;
-
 import no.nav.foreldrepenger.common.domain.AktørId;
 import no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.MorsAktivitet;
 import no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.Oppholdsårsak;
 import no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.Overføringsårsak;
 import no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.UtsettelsesÅrsak;
 import no.nav.foreldrepenger.common.error.UnexpectedInputException;
-import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.PersonInformasjon;
+import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.PersonOppslagTjeneste;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.jaxb.FPV3JAXBUtil;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.AdopsjonDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.BarnDto;
@@ -38,7 +37,6 @@ import no.nav.foreldrepenger.soknad.innsending.kontrakt.FødselDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.OmsorgsovertakelseDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.TerminDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggReferanse;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.annenpart.AnnenForelderDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.annenpart.NorskForelderDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.annenpart.UtenlandskForelderDto;
@@ -94,14 +92,14 @@ public class V3ForeldrepengerDomainMapper  {
     private static final no.nav.vedtak.felles.xml.soeknad.uttak.v3.ObjectFactory UTTAK_FACTORY_V3 = new no.nav.vedtak.felles.xml.soeknad.uttak.v3.ObjectFactory();
     private static final no.nav.vedtak.felles.xml.soeknad.endringssoeknad.v3.ObjectFactory ENDRING_FACTORY_V3 = new no.nav.vedtak.felles.xml.soeknad.endringssoeknad.v3.ObjectFactory();
 
-    private PersonInformasjon personOppslagTjeneste;
+    private PersonOppslagTjeneste personOppslagTjeneste;
 
     public V3ForeldrepengerDomainMapper() {
         // CDI
     }
 
     @Inject
-    public V3ForeldrepengerDomainMapper(PersonInformasjon personOppslagTjeneste) {
+    public V3ForeldrepengerDomainMapper(PersonOppslagTjeneste personOppslagTjeneste) {
         this.personOppslagTjeneste = personOppslagTjeneste;
     }
 
@@ -208,10 +206,9 @@ public class V3ForeldrepengerDomainMapper  {
                 .toList();
     }
 
-    private static List<JAXBElement<Object>> lukketPeriodeVedleggFra(List<VedleggReferanse> vedlegg) {
+    private static List<JAXBElement<Object>> lukketPeriodeVedleggFra(List<UUID> vedlegg) {
         return safeStream(vedlegg)
                 .filter(Objects::nonNull)
-                .map(VedleggReferanse::verdi)
                 .map(referanse -> UTTAK_FACTORY_V3.createLukketPeriodeMedVedleggVedlegg(tilVedlegg(referanse)))
                 .toList();
     }
@@ -219,14 +216,14 @@ public class V3ForeldrepengerDomainMapper  {
     private static LukketPeriodeMedVedlegg lukketPeriodeFra(Uttaksplanperiode periode, List<VedleggDto> vedlegg) {
         var vedleggreferanser = dokumentasjonSomDokumentererUttaksperiode(vedlegg, new ÅpenPeriodeDto(periode.fom(), periode.tom()));
         return switch (periode) {
-            case UttaksPeriodeDto uttak -> uttak.gradering() != null ? createUttaksperiode(uttak, vedleggreferanser) : createGradertUttaksperiode(uttak, vedleggreferanser);
+            case UttaksPeriodeDto uttak -> uttak.gradering() != null ? createGradertUttaksperiode(uttak, vedleggreferanser) : createUttaksperiode(uttak, vedleggreferanser);
             case OppholdsPeriodeDto opphold -> createOppholsperiode(opphold, vedleggreferanser);
             case UtsettelsesPeriodeDto utsettelse -> UtsettelsesÅrsak.FRI.equals(utsettelse.årsak()) ? createFriUtsettelsesPeriode(utsettelse, vedleggreferanser) : createUtsettelsesperiode(utsettelse, vedleggreferanser);
             case OverføringsPeriodeDto overføring -> createOverføringsperiode(overføring, vedleggreferanser);
         };
     }
 
-    private static LukketPeriodeMedVedlegg createOverføringsperiode(OverføringsPeriodeDto o, List<VedleggReferanse> vedleggreferanser) {
+    private static LukketPeriodeMedVedlegg createOverføringsperiode(OverføringsPeriodeDto o, List<UUID> vedleggreferanser) {
         var overfoeringsperiode = new Overfoeringsperiode();
         overfoeringsperiode.setFom(o.fom());
         overfoeringsperiode.setTom(o.tom());
@@ -236,7 +233,7 @@ public class V3ForeldrepengerDomainMapper  {
         return overfoeringsperiode;
     }
 
-    private static LukketPeriodeMedVedlegg createOppholsperiode(OppholdsPeriodeDto o, List<VedleggReferanse> vedleggreferanser) {
+    private static LukketPeriodeMedVedlegg createOppholsperiode(OppholdsPeriodeDto o, List<UUID> vedleggreferanser) {
         var oppholdsperiode = new Oppholdsperiode();
         oppholdsperiode.setFom(o.fom());
         oppholdsperiode.setTom(o.tom());
@@ -245,7 +242,7 @@ public class V3ForeldrepengerDomainMapper  {
         return oppholdsperiode;
     }
 
-    private static LukketPeriodeMedVedlegg createUtsettelsesperiode(UtsettelsesPeriodeDto u, List<VedleggReferanse> vedleggreferanser) {
+    private static LukketPeriodeMedVedlegg createUtsettelsesperiode(UtsettelsesPeriodeDto u, List<UUID> vedleggreferanser) {
         var utsettelsesperiode = new Utsettelsesperiode();
         utsettelsesperiode.setFom(u.fom());
         utsettelsesperiode.setTom(u.tom());
@@ -256,7 +253,7 @@ public class V3ForeldrepengerDomainMapper  {
         return utsettelsesperiode;
     }
 
-    private static LukketPeriodeMedVedlegg createFriUtsettelsesPeriode(UtsettelsesPeriodeDto p, List<VedleggReferanse> vedleggreferanser) {
+    private static LukketPeriodeMedVedlegg createFriUtsettelsesPeriode(UtsettelsesPeriodeDto p, List<UUID> vedleggreferanser) {
         var utsettelsesperiode = new Utsettelsesperiode();
         utsettelsesperiode.setFom(p.fom());
         utsettelsesperiode.setTom(p.tom());
@@ -266,7 +263,7 @@ public class V3ForeldrepengerDomainMapper  {
         return utsettelsesperiode;
     }
 
-    private static LukketPeriodeMedVedlegg createGradertUttaksperiode(UttaksPeriodeDto g, List<VedleggReferanse> vedleggreferanser) {
+    private static LukketPeriodeMedVedlegg createGradertUttaksperiode(UttaksPeriodeDto g, List<UUID> vedleggreferanser) {
         var graderingDTO = g.gradering();
         var gradering = new Gradering();
         gradering.setFom(g.fom());
@@ -275,22 +272,22 @@ public class V3ForeldrepengerDomainMapper  {
         gradering.setOenskerSamtidigUttak(g.ønskerSamtidigUttak());
         gradering.setMorsAktivitetIPerioden(morsAktivitetFra(g.morsAktivitetIPerioden()));
         gradering.setOenskerFlerbarnsdager(g.ønskerFlerbarnsdager());
-        gradering.setErArbeidstaker(graderingDTO.erArbeidstaker());
         gradering.setArbeidtidProsent(graderingDTO.stillingsprosent());
         gradering.setArbeidsgiver(arbeidsgiverFra(graderingDTO.orgnumre()));
         gradering.setArbeidsforholdSomSkalGraderes(true);
-        gradering.getVedlegg().addAll(lukketPeriodeVedleggFra(vedleggreferanser));
+        Optional.ofNullable(graderingDTO.erArbeidstaker()).ifPresent(gradering::setErArbeidstaker);
         Optional.ofNullable(graderingDTO.erFrilanser()).ifPresent(gradering::setErFrilanser);
         Optional.ofNullable(graderingDTO.erSelvstendig()).ifPresent(gradering::setErSelvstNæringsdrivende);
+        gradering.getVedlegg().addAll(lukketPeriodeVedleggFra(vedleggreferanser));
 
-        if (g.ønskerSamtidigUttak()) {
+        if (Boolean.TRUE.equals(g.ønskerSamtidigUttak())) {
             gradering.setSamtidigUttakProsent(g.samtidigUttakProsent());
         }
 
         return gradering;
     }
 
-    private static LukketPeriodeMedVedlegg createUttaksperiode(UttaksPeriodeDto u, List<VedleggReferanse> vedleggreferanser) {
+    private static LukketPeriodeMedVedlegg createUttaksperiode(UttaksPeriodeDto u, List<UUID> vedleggreferanser) {
         var uttaksperiode = new Uttaksperiode();
         uttaksperiode.setFom(u.fom());
         uttaksperiode.setTom(u.tom());
@@ -424,10 +421,10 @@ public class V3ForeldrepengerDomainMapper  {
         var rettigheter = new Rettigheter();
         rettigheter.setHarOmsorgForBarnetIPeriodene(true);
         rettigheter.setHarAnnenForelderRett(rettigheterDto.harRettPåForeldrepenger());
-        rettigheter.setHarAleneomsorgForBarnet(rettigheterDto.erAleneOmOmsorg());
-        rettigheter.setHarMorUforetrygd(rettigheterDto.harMorUføretrygd());
+        rettigheter.setHarAleneomsorgForBarnet(toBoolean(rettigheterDto.erAleneOmOmsorg())); // TODO: Må være satt, selv om Boolean..
+        rettigheter.setHarMorUforetrygd(toBoolean(rettigheterDto.harMorUføretrygd())); // TODO: Må være satt, selv om Boolean..
         rettigheter.setHarAnnenForelderOppholdtSegIEOS(rettigheterDto.harAnnenForelderOppholdtSegIEØS());
-        rettigheter.setHarAnnenForelderTilsvarendeRettEOS(rettigheterDto.harAnnenForelderTilsvarendeRettEØS());
+        rettigheter.setHarAnnenForelderTilsvarendeRettEOS(toBoolean(rettigheterDto.harAnnenForelderTilsvarendeRettEØS())); // TODO: Må være satt, selv om Boolean..
         return rettigheter;
     }
 
@@ -448,11 +445,11 @@ public class V3ForeldrepengerDomainMapper  {
 
     private AnnenForelderMedNorskIdent norskForelder(NorskForelderDto norskForelder) {
         var annenForelderMedNorskIdent = new AnnenForelderMedNorskIdent();
-        annenForelderMedNorskIdent.setAktoerId(personOppslagTjeneste.hentAkøridFor(norskForelder.fnr().value()).value()); // Send inne ller oppslag?
+        annenForelderMedNorskIdent.setAktoerId(personOppslagTjeneste.hentAkøridFor(norskForelder.fnr()).value());
         return annenForelderMedNorskIdent;
     }
 
-    private static SoekersRelasjonTilBarnet relasjonFra(BarnDto barnDto, List<VedleggReferanse> vedleggReferanser) {
+    private static SoekersRelasjonTilBarnet relasjonFra(BarnDto barnDto, List<UUID> vedleggReferanser) {
         return switch (barnDto) {
             case AdopsjonDto adopsjonDto -> createAdopsjon(adopsjonDto, vedleggReferanser);
             case FødselDto fødselDto -> createFødsel(fødselDto, vedleggReferanser);
@@ -461,8 +458,7 @@ public class V3ForeldrepengerDomainMapper  {
         };
     }
 
-    private static SoekersRelasjonTilBarnet createOmsorgsovertakelse(OmsorgsovertakelseDto omsorgsovertakelse,
-                                                                     List<VedleggReferanse> vedleggReferanser) {
+    private static SoekersRelasjonTilBarnet createOmsorgsovertakelse(OmsorgsovertakelseDto omsorgsovertakelse, List<UUID> vedleggReferanser) {
         var omsorgsovertakelseXLM = new Omsorgsovertakelse();
         omsorgsovertakelseXLM.getVedlegg().addAll(relasjonTilBarnVedleggFra(vedleggReferanser));
         omsorgsovertakelseXLM.setAntallBarn(omsorgsovertakelse.antallBarn());
@@ -475,7 +471,7 @@ public class V3ForeldrepengerDomainMapper  {
         return omsorgsovertakelseXLM;
     }
 
-    private static SoekersRelasjonTilBarnet createFødsel(FødselDto fødsel, List<VedleggReferanse> vedleggReferanser) {
+    private static SoekersRelasjonTilBarnet createFødsel(FødselDto fødsel, List<UUID> vedleggReferanser) {
         var foedsel = new Foedsel();
         foedsel.getVedlegg().addAll(relasjonTilBarnVedleggFra(vedleggReferanser));
         foedsel.setFoedselsdato(fødsel.fødselsdato());
@@ -484,7 +480,7 @@ public class V3ForeldrepengerDomainMapper  {
         return foedsel;
     }
 
-    private static SoekersRelasjonTilBarnet createTermin(TerminDto termin, List<VedleggReferanse> vedleggReferanser) {
+    private static SoekersRelasjonTilBarnet createTermin(TerminDto termin, List<UUID> vedleggReferanser) {
         var terminXML = new Termin();
         terminXML.getVedlegg().addAll(relasjonTilBarnVedleggFra(vedleggReferanser));
         terminXML.setTermindato(termin.termindato());
@@ -493,7 +489,7 @@ public class V3ForeldrepengerDomainMapper  {
         return terminXML;
     }
 
-    private static SoekersRelasjonTilBarnet createAdopsjon(AdopsjonDto adopsjon, List<VedleggReferanse> vedleggReferanser) {
+    private static SoekersRelasjonTilBarnet createAdopsjon(AdopsjonDto adopsjon, List<UUID> vedleggReferanser) {
         var adopsjonXML = new Adopsjon();
         adopsjonXML.getVedlegg().addAll(relasjonTilBarnVedleggFra(vedleggReferanser));
         adopsjonXML.setAntallBarn(adopsjon.antallBarn());
@@ -504,10 +500,9 @@ public class V3ForeldrepengerDomainMapper  {
         return adopsjonXML;
     }
 
-    private static List<JAXBElement<Object>> relasjonTilBarnVedleggFra(List<VedleggReferanse> vedlegg) {
+    private static List<JAXBElement<Object>> relasjonTilBarnVedleggFra(List<UUID> vedlegg) {
         return safeStream(vedlegg)
                 .filter(Objects::nonNull)
-                .map(VedleggReferanse::verdi)
                 .map(referanse -> FELLES_FACTORY_V3.createSoekersRelasjonTilBarnetVedlegg(tilVedlegg(referanse)))
                 .toList();
     }

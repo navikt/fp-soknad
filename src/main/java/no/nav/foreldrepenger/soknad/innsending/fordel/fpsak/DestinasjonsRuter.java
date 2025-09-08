@@ -1,12 +1,13 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.fpsak;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import no.nav.foreldrepenger.kontrakter.fordel.OpprettSakDto;
 import no.nav.foreldrepenger.kontrakter.fordel.SaksnummerDto;
 import no.nav.foreldrepenger.kontrakter.fordel.VurderFagsystemDto;
@@ -14,6 +15,8 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Dokument;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentMetadata;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus;
+import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.PersonOppslagTjeneste;
+import no.nav.foreldrepenger.soknad.innsending.fordel.utils.SøknadJsonMapper;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.AdopsjonDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.EngangsstønadDto;
@@ -28,29 +31,24 @@ import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.annenpart
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.UttaksplanDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.Uttaksplanperiode;
 import no.nav.vedtak.konfig.Tid;
-import no.nav.vedtak.mapper.json.DefaultJsonMapper;
-
-import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 @ApplicationScoped
 public class DestinasjonsRuter {
 
     private static final LocalDate ENDRING_BEREGNING_DATO = LocalDate.of(2019, 1, 1);
     private static final String DOKUMENT_KATEGORI_SOKNAD = "SOK";
-    private static final ObjectMapper MAPPER = DefaultJsonMapper.getObjectMapper();
 
     private FpsakTjeneste fpsakTjeneste;
+    private PersonOppslagTjeneste personOppslagTjeneste;
 
     public DestinasjonsRuter() {
         // CDI
     }
 
     @Inject
-    public DestinasjonsRuter(FpsakTjeneste fpsakTjeneste) {
+    public DestinasjonsRuter(FpsakTjeneste fpsakTjeneste, PersonOppslagTjeneste personOppslagTjeneste) {
         this.fpsakTjeneste = fpsakTjeneste;
+        this.personOppslagTjeneste = personOppslagTjeneste;
     }
 
     public Destinasjon bestemDestinasjon(DokumentMetadata metadata, Dokument søknad, BehandlingTema behandlingTema) {
@@ -85,21 +83,21 @@ public class DestinasjonsRuter {
     }
 
     public SaksnummerDto opprettSak(DokumentMetadata metadata, BehandlingTema behandlingTema) {
-        return fpsakTjeneste.opprettSak(new OpprettSakDto(metadata.getJournalpostId().orElse(null), behandlingTema.getOffisiellKode(), metadata.getBrukerId()));
+        return fpsakTjeneste.opprettSak(new OpprettSakDto(metadata.getJournalpostId().orElse(null), behandlingTema.getOffisiellKode(), personOppslagTjeneste.hentAkøridFor(metadata.getBrukersFnr()).value()));
     }
 
     private VurderFagsystemDto lagVurderFagsystemDto(DokumentMetadata metadata, Dokument søknad, BehandlingTema behandlingTema) {
         var dto = new VurderFagsystemDto(
             metadata.getJournalpostId().orElse(null),
             true,
-            metadata.getBrukerId(),
+            personOppslagTjeneste.hentAkøridFor(metadata.getBrukersFnr()).value(),
             behandlingTema.getOffisiellKode()
         );
         dto.setForsendelseMottattTidspunkt(metadata.getForsendelseMottatt());
         dto.setDokumentTypeIdOffisiellKode(søknad.getDokumentTypeId().getKode());
         dto.setDokumentKategoriOffisiellKode(DOKUMENT_KATEGORI_SOKNAD);
 
-        var søknadDto = MAPPER.convertValue(søknad, SøknadDto.class);
+        var søknadDto = SøknadJsonMapper.deseraliserSøknad(søknad);
         var barn = søknadDto.barn();
         if (barn instanceof TerminDto termin) {
             dto.setBarnTermindato(termin.termindato());
@@ -118,7 +116,7 @@ public class DestinasjonsRuter {
         }
 
         hentFørsteUttaksdagFP(søknadDto).ifPresent(dto::setStartDatoForeldrepengerInntektsmelding); // Rar navn på feltet... men gjelder søknad også
-        hentAnnenForelderId(søknadDto).ifPresent(dto::setAnnenPart);
+        hentAnnenForelderId(søknadDto).ifPresent(annenPart -> dto.setAnnenPart(personOppslagTjeneste.hentAkøridFor(annenPart).value()));
         return dto;
     }
 
