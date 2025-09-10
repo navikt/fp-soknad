@@ -1,6 +1,7 @@
 package no.nav.foreldrepenger.soknad.innsending;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentMetadata;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
 
@@ -14,6 +15,7 @@ public class StatusInnsendingTjeneste {
 
     public StatusInnsendingTjeneste() { }
 
+    @Inject
     public StatusInnsendingTjeneste(DokumentRepository dokumentRepository) {
         this.dokumentRepository = dokumentRepository;
     }
