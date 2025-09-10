@@ -19,6 +19,7 @@ import no.nav.vedtak.exception.TekniskException;
 public class DokumentRepository {
 
     private static final String FORSENDELSE_ID = "forsendelseId";
+    private static final String BRUKER_ID = "brukerId";
     private static final String ER_SØKNAD = "erSøknad";
     private static final String ARKIV_FILTYPE = "arkivFilType";
     private EntityManager em;
@@ -86,4 +87,8 @@ public class DokumentRepository {
         lagre(metadata);
     }
 
+    public List<DokumentMetadata> hentForsendelse(String fnr) {
+        return em.createQuery("from DokumentMetadata where brukerId = :brukerId", DokumentMetadata.class)
+            .setParameter(BRUKER_ID, fnr).getResultList();
+    }
 }

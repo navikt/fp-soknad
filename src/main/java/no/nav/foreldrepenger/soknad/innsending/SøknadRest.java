@@ -7,6 +7,7 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.MediaType;
@@ -16,6 +17,7 @@ import no.nav.foreldrepenger.soknad.innsending.kontrakt.EngangsstønadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SvangerskapspengesøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse.EttersendelseDto;
+import no.nav.foreldrepenger.soknad.utils.InnloggetBruker;
 
 @Path("/soknad")
 @ApplicationScoped
@@ -23,14 +25,19 @@ import no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse.Ettersende
 public class SøknadRest {
 
     private SøknadInnsendingTjeneste søknadInnsendingTjeneste;
+    private StatusInnsendingTjeneste statusInnsendingTjeneste;
+    private InnloggetBruker innloggetBruker;
 
     public SøknadRest() {
         // CDI
     }
 
     @Inject
-    public SøknadRest(SøknadInnsendingTjeneste søknadInnsendingTjeneste) {
+    public SøknadRest(SøknadInnsendingTjeneste søknadInnsendingTjeneste, StatusInnsendingTjeneste statusInnsendingTjeneste,
+                      InnloggetBruker innloggetBruker) {
         this.søknadInnsendingTjeneste = søknadInnsendingTjeneste;
+        this.statusInnsendingTjeneste = statusInnsendingTjeneste;
+        this.innloggetBruker = innloggetBruker;
     }
 
     @POST
@@ -76,4 +83,18 @@ public class SøknadRest {
         return Response.ok().build();
     }
 
+
+    @GET
+    @Path("/status")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response status() {
+        var fnr = innloggetBruker.brukerFraKontekst();
+
+        var status = statusInnsendingTjeneste.status(fnr);
+        if (status.isEmpty()) {
+            return Response.status(404).build();
+        }
+
+        return Response.ok(status).build();
+    }
 }
