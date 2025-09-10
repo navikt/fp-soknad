@@ -68,6 +68,7 @@ public class SøknadInnsendingTjeneste {
 
         var metadata = DokumentMetadata.builder()
             .setBrukerId(innloggetBruker.brukerFraKontekst())
+            .setSaksnummer(ettersendelse.saksnummer().value())
             .setStatus(ForsendelseStatus.PENDING)
             .setForsendelseId(forsendelseId)
             .setForsendelseMottatt(LocalDateTime.now())

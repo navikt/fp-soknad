@@ -114,7 +114,7 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
     private void utledNesteSteg(OpprettetJournalpost opprettetJournalpost, BehandlingTema behandlingTema, DokumentTypeId dokumentTypeId,
                                 UUID forsendelseId, Destinasjon destinasjon) {
         if (!opprettetJournalpost.ferdigstilt()) {
-            return; // Midlertidig journalført, avventer handling
+            return; // Midlertidig journalført, plukkes opp av fp-mottak og avventer handling
         }
 
         var task = ProsessTaskData.forProsessTask(VLKlargjørerTask.class);

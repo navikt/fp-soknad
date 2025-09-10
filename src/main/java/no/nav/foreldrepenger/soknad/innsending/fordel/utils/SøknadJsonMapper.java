@@ -4,18 +4,18 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import no.nav.foreldrepenger.common.mapper.DefaultJsonMapper;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Dokument;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.EngangsstønadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SvangerskapspengesøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøknadDto;
+import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 
 
 public class SøknadJsonMapper {
 
-    private static final ObjectMapper MAPPER = DefaultJsonMapper.MAPPER;
+    private static final ObjectMapper MAPPER = DefaultJsonMapper.getObjectMapper();
 
     private SøknadJsonMapper() {
         // static

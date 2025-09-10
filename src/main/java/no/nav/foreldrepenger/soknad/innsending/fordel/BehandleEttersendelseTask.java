@@ -20,7 +20,6 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.fpsak.Destinasjon;
 import no.nav.foreldrepenger.soknad.innsending.fordel.fpsak.FpsakTjeneste;
 import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.ArkivTjeneste;
 import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.OpprettetJournalpost;
-import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.PersonOppslagTjeneste;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
@@ -39,7 +38,6 @@ public class BehandleEttersendelseTask implements ProsessTaskHandler {
     private FpsakTjeneste fpsakTjeneste;
     private ArkivTjeneste arkivTjeneste;
     private ProsessTaskTjeneste taskTjeneste;
-    private PersonOppslagTjeneste personOppslagTjeneste;
 
     public BehandleEttersendelseTask() {
         // for CDI
@@ -47,12 +45,11 @@ public class BehandleEttersendelseTask implements ProsessTaskHandler {
 
     @Inject
     public BehandleEttersendelseTask(DokumentRepository dokumentRepository, FpsakTjeneste fpsakTjeneste,
-                                     ArkivTjeneste arkivTjeneste, ProsessTaskTjeneste taskTjeneste, PersonOppslagTjeneste personOppslagTjeneste) {
+                                     ArkivTjeneste arkivTjeneste, ProsessTaskTjeneste taskTjeneste) {
         this.dokumentRepository = dokumentRepository;
         this.fpsakTjeneste = fpsakTjeneste;
         this.arkivTjeneste = arkivTjeneste;
         this.taskTjeneste = taskTjeneste;
-        this.personOppslagTjeneste = personOppslagTjeneste;
     }
 
     @Override

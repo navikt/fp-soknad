@@ -292,7 +292,7 @@ final class V3DomainMapperCommon {
     static Bruker søkerFra(AktørId aktørId, BrukerRolle rolle) {
         var bruker = new Bruker();
         bruker.setAktoerId(aktørId.value());
-        bruker.setSoeknadsrolle(brukerRolleFra(rolle));
+        bruker.setSoeknadsrolle(brukerRolleFra(BrukerRolle.MOR)); // TODO: Hardkodet til mor for alle ES søknader. Har vært slikt alltid
         return bruker;
     }
 

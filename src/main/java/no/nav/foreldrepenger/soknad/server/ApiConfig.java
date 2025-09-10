@@ -56,10 +56,13 @@ public class ApiConfig extends Application {
     public Set<Class<?>> getClasses() {
         // eksponert grensesnitt bak sikkerhet. Nå er vi på max Set.of før varargs-versjonen.
         return Set.of(
+            // Filter/providers
+            JacksonJsonConfig.class,
+            AuthenticationFilter.class,
+            // API
             SøknadRest.class,
             MellomlagringRest.class,
-            MultiPartFeature.class,
-            AuthenticationFilter.class
+            MultiPartFeature.class
         );
     }
 
