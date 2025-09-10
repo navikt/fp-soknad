@@ -26,7 +26,7 @@
         <tika.version>3.2.2</tika.version> <!-- Bedre måter å gjøre det på -->
         <nv.version>1.29</nv.version>
         <pdfbox.version>3.0.5</pdfbox.version>
-        <gcp.storage.version>2.56.0</gcp.storage.version>
+        <gcp.storage.version>2.57.0</gcp.storage.version>
     </properties>
 
     <dependencyManagement>
