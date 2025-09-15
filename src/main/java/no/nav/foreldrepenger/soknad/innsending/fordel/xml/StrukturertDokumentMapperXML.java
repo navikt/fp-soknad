@@ -53,7 +53,7 @@ public class StrukturertDokumentMapperXML {
             .setForsendelseId(søknad.getForsendelseId())
             .setDokumentInnhold(xml.getBytes(StandardCharsets.UTF_8), ArkivFilType.XML)
             .build();
-        dokumentRepository.lagre(xmlDokument); // TODO: Lagre ned dokument? Eller sende i payload?
+        dokumentRepository.lagre(xmlDokument);
         return xmlDokument;
     }
 

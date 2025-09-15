@@ -68,7 +68,7 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
         var metadata = dokumentRepository.hentEksaktDokumentMetadata(forsendelseId);
         var orginaleDokumenter = dokumentRepository.hentDokumenter(forsendelseId);
         var søknad = orginaleDokumenter.stream().filter(Dokument::erSøknad).findFirst().orElseThrow();
-        var xml = strukturertDokumentMapperXML.lagStrukturertDokumentForArkivering(metadata, søknad); // TODO: Lagre eller sende i prosesstask paylaod?
+        var xml = strukturertDokumentMapperXML.lagStrukturertDokumentForArkivering(metadata, søknad);
         var pdf = pdfTjeneste.lagPDFFraSøknad(søknad);
 
         var dokumentTypeId = søknad.getDokumentTypeId();
@@ -99,9 +99,7 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
 
     private OpprettetJournalpost journalførForsøkEndelig(DokumentMetadata metadata, List<Dokument> dokumenter, UUID forsendelseId, Destinasjon destinasjon) {
         if (destinasjon.erGosys()) {
-            // Midlertidig journalføring, håndteres av fp-mottak.
-            // var referanseId = w.getRetryingTask().map(s -> UUID.randomUUID()).Else(forsendelseId); TODO: Fjerne?
-            return arkivTjeneste.midlertidigJournalføring(metadata, dokumenter, forsendelseId);
+            return arkivTjeneste.midlertidigJournalføring(metadata, dokumenter, forsendelseId); // Midlertidig journalføring, håndteres av fp-mottak.
         }
 
         var opprettetJournalpost = arkivTjeneste.forsøkEndeligJournalføring(metadata, dokumenter, forsendelseId, destinasjon.saksnummer());

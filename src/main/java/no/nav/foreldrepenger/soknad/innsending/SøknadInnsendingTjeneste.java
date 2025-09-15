@@ -4,7 +4,10 @@ import static no.nav.foreldrepenger.soknad.innsending.fordel.BehandleSøknadTask
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -64,8 +67,8 @@ public class SøknadInnsendingTjeneste {
     }
 
     public void lagreEttersendelseInnsending(EttersendelseDto ettersendelse) {
-        var forsendelseId = UUID.randomUUID();  // TODO: skal denne komme fra FE?
-
+        // TODO: Sjekk dupliserte forsendelser for ettersendelser også
+        var forsendelseId = UUID.randomUUID();
         var metadata = DokumentMetadata.builder()
             .setBrukerId(innloggetBruker.brukerFraKontekst())
             .setSaksnummer(ettersendelse.saksnummer().value())
@@ -86,15 +89,17 @@ public class SøknadInnsendingTjeneste {
     }
 
     public void lagreSøknadInnsending(SøknadDto søknad) {
-        var forsendelseId = UUID.randomUUID();  // TODO: skal denne komme fra FE?
+        if (erForsendelseAlleredeMottatt(søknad)) {
+            return; // Unngå lagring og behandling av duplikat forsendelse
+        }
 
+        var forsendelseId = UUID.randomUUID();
         var metadata = DokumentMetadata.builder()
             .setBrukerId(innloggetBruker.brukerFraKontekst())
             .setStatus(ForsendelseStatus.PENDING)
             .setForsendelseId(forsendelseId)
             .setForsendelseMottatt(forsendelsesTidspunkt(søknad))
             .build();
-
         var søknadDokument = Dokument.builder()
             .setDokumentInnhold(getInnhold(søknad), ArkivFilType.JSON)
             .setErSøknad(true)
@@ -113,6 +118,19 @@ public class SøknadInnsendingTjeneste {
         var task = ProsessTaskData.forProsessTask(BehandleSøknadTask.class);
         task.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
         prosessTaskTjeneste.lagre(task);
+    }
+
+    private boolean erForsendelseAlleredeMottatt(SøknadDto søknad) {
+        var eksisterendeForsendelse = dokumentRepository.hentForsendelse(innloggetBruker.brukerFraKontekst()).stream()
+            .max(Comparator.comparing(DokumentMetadata::getForsendelseMottatt));
+        if (eksisterendeForsendelse.isEmpty()) {
+            return false;
+        }
+        var eksisterendeSøknad = dokumentRepository.hentUnikDokument(eksisterendeForsendelse.get().getForsendelseId(), true, ArkivFilType.JSON);
+        if (eksisterendeSøknad.isEmpty()) {
+            return false;
+        }
+        return Arrays.equals(eksisterendeSøknad.get().getByteArrayDokument(), getInnhold(søknad));
     }
 
     private static LocalDateTime forsendelsesTidspunkt(SøknadDto søknad) {

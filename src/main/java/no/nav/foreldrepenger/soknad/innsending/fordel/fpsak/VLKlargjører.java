@@ -34,7 +34,7 @@ public class VLKlargjører {
         this.tilbakeJournalpostSender = tilbakeJournalpostSender;
     }
 
-    public void klargjør(String jsonPayload,
+    public void klargjør(String payloadHoveddokument,
                          String saksnummer,
                          String arkivId,
                          DokumentTypeId dokumenttypeId,
@@ -45,30 +45,31 @@ public class VLKlargjører {
             ? BehandlingTema.UDEFINERT.getOffisiellKode()
             : behandlingsTema.getOffisiellKode();
         fagsak.knyttSakOgJournalpost(new JournalpostKnyttningDto(saksnummer, arkivId));
-        sendForsendelseTilFpsak(jsonPayload, saksnummer, arkivId, dokumenttypeId, forsendelseMottatt, forsendelseId, behandlingTemaString);
-        sendForsendelseTilFptilbake(saksnummer, arkivId, dokumenttypeId, forsendelseMottatt, forsendelseId, behandlingTemaString);
+        sendForsendelseTilFpsak(payloadHoveddokument, saksnummer, arkivId, dokumenttypeId, forsendelseMottatt, forsendelseId, behandlingTemaString);
+        sendForsendelseTilFptilbake(payloadHoveddokument, saksnummer, arkivId, dokumenttypeId, forsendelseMottatt, forsendelseId, behandlingTemaString);
     }
 
-    private void sendForsendelseTilFpsak(String jsonPayload,
-                           String saksnummer,
-                           String arkivId,
-                           DokumentTypeId dokumenttypeId,
-                           LocalDateTime forsendelseMottatt,
-                           UUID forsendelseId,
-                           String behandlingTemaString) {
-        var journalpost = new JournalpostMottakDto(saksnummer, arkivId, behandlingTemaString, dokumenttypeId.name(), forsendelseMottatt, jsonPayload);
+    private void sendForsendelseTilFpsak(String payload,
+                                         String saksnummer,
+                                         String arkivId,
+                                         DokumentTypeId dokumenttypeId,
+                                         LocalDateTime forsendelseMottatt,
+                                         UUID forsendelseId,
+                                         String behandlingTemaString) {
+        var journalpost = new JournalpostMottakDto(saksnummer, arkivId, behandlingTemaString, dokumenttypeId.name(), forsendelseMottatt, payload);
         journalpost.setForsendelseId(forsendelseId);
         dokumentJournalpostSender.send(journalpost);
     }
 
-    private void sendForsendelseTilFptilbake(String saksnummer,
-                           String arkivId,
-                           DokumentTypeId dokumenttypeId,
-                           LocalDateTime forsendelseMottatt,
-                           UUID forsendelseId,
-                           String behandlingTemaString) {
+    private void sendForsendelseTilFptilbake(String payload,
+                                             String saksnummer,
+                                             String arkivId,
+                                             DokumentTypeId dokumenttypeId,
+                                             LocalDateTime forsendelseMottatt,
+                                             UUID forsendelseId,
+                                             String behandlingTemaString) {
         try {
-            var tilbakeMottakDto = new JournalpostMottakDto(saksnummer, arkivId, behandlingTemaString, dokumenttypeId.name(), forsendelseMottatt, null);
+            var tilbakeMottakDto = new JournalpostMottakDto(saksnummer, arkivId, behandlingTemaString, dokumenttypeId.name(), forsendelseMottatt, payload);
             tilbakeMottakDto.setForsendelseId(forsendelseId);
             tilbakeJournalpostSender.send(tilbakeMottakDto);
         } catch (Exception e) {

@@ -1,7 +1,5 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.fpsak;
 
-import java.util.Optional;
-
 import no.nav.foreldrepenger.kontrakter.fordel.BehandlendeFagsystemDto;
 
 public record VurderFagsystemResultat(SendTil destinasjon, String saksnummer) {
@@ -13,11 +11,7 @@ public record VurderFagsystemResultat(SendTil destinasjon, String saksnummer) {
         var sendesTil = data.isBehandlesIVedtaksløsningen() || data.isSjekkMotInfotrygd()
             ? SendTil.FPSAK
             : SendTil.GOSYS;
-        return new VurderFagsystemResultat(sendesTil, data.getSaksnummer().orElse(null));
-    }
-
-    public Optional<String> getSaksnummer() {
-        return Optional.ofNullable(saksnummer);
+        return new VurderFagsystemResultat(sendesTil, data.getSaksnummer().orElseThrow());
     }
 
     public enum SendTil {

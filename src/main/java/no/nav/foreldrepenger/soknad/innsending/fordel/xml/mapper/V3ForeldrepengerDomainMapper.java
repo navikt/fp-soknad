@@ -421,10 +421,10 @@ public class V3ForeldrepengerDomainMapper  {
         var rettigheter = new Rettigheter();
         rettigheter.setHarOmsorgForBarnetIPeriodene(true);
         rettigheter.setHarAnnenForelderRett(rettigheterDto.harRettPåForeldrepenger());
-        rettigheter.setHarAleneomsorgForBarnet(toBoolean(rettigheterDto.erAleneOmOmsorg())); // TODO: Må være satt, selv om Boolean..
-        rettigheter.setHarMorUforetrygd(toBoolean(rettigheterDto.harMorUføretrygd())); // TODO: Må være satt, selv om Boolean..
+        rettigheter.setHarAleneomsorgForBarnet(toBoolean(rettigheterDto.erAleneOmOmsorg())); // TODO: Må være satt, selv om Boolean undefined..
+        rettigheter.setHarMorUforetrygd(toBoolean(rettigheterDto.harMorUføretrygd())); // TODO: Må være satt, selv om Boolean undefined..
         rettigheter.setHarAnnenForelderOppholdtSegIEOS(rettigheterDto.harAnnenForelderOppholdtSegIEØS());
-        rettigheter.setHarAnnenForelderTilsvarendeRettEOS(toBoolean(rettigheterDto.harAnnenForelderTilsvarendeRettEØS())); // TODO: Må være satt, selv om Boolean..
+        rettigheter.setHarAnnenForelderTilsvarendeRettEOS(toBoolean(rettigheterDto.harAnnenForelderTilsvarendeRettEØS())); // TODO: Må være satt, selv om Boolean undefined..
         return rettigheter;
     }
 

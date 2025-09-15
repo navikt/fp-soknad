@@ -8,7 +8,6 @@ import jakarta.ws.rs.core.UriBuilder;
 import no.nav.foreldrepenger.kontrakter.fordel.BehandlendeFagsystemDto;
 import no.nav.foreldrepenger.kontrakter.fordel.FagsakInfomasjonDto;
 import no.nav.foreldrepenger.kontrakter.fordel.JournalpostKnyttningDto;
-import no.nav.foreldrepenger.kontrakter.fordel.OpprettSakDto;
 import no.nav.foreldrepenger.kontrakter.fordel.SaksnummerDto;
 import no.nav.foreldrepenger.kontrakter.fordel.VurderFagsystemDto;
 import no.nav.vedtak.felles.integrasjon.rest.FpApplication;
@@ -24,13 +23,11 @@ public class FpsakRestKlient implements FpsakTjeneste {
 
     private static final String JOURNALPOSTTILKNYTNING_PATH = "/api/fordel/fagsak/knyttJournalpost";
     private static final String FAGSAKINFORMASJON_PATH = "/api/fordel/fagsak/informasjon";
-    private static final String FAGSAK_OPPRETT_PATH = "/api/fordel/fagsak/opprett";
     private static final String VURDER_FAGSYSTEM_PATH = "/api/fordel/vurderFagsystem";
 
 
     private final URI knytningEndpoint;
     private final URI fagsakinfoEndpoint;
-    private final URI opprettsakEndpoint;
     private final URI fagsystemEndpoint;
 
     private final RestClient restKlient;
@@ -42,7 +39,6 @@ public class FpsakRestKlient implements FpsakTjeneste {
         var endpoint = restConfig.fpContextPath();
         this.knytningEndpoint = lagURI(endpoint, JOURNALPOSTTILKNYTNING_PATH);
         this.fagsakinfoEndpoint = lagURI(endpoint, FAGSAKINFORMASJON_PATH);
-        this.opprettsakEndpoint = lagURI(endpoint, FAGSAK_OPPRETT_PATH);
         this.fagsystemEndpoint = lagURI(endpoint, VURDER_FAGSYSTEM_PATH);
     }
 
@@ -58,12 +54,6 @@ public class FpsakRestKlient implements FpsakTjeneste {
         var request = RestRequest.newPOSTJson(saksnummerDto, fagsakinfoEndpoint, restConfig);
         var info = restKlient.send(request, FagsakInfomasjonDto.class);
         return Optional.ofNullable(info);
-    }
-
-    @Override
-    public SaksnummerDto opprettSak(OpprettSakDto opprettSakDto) {
-        var request = RestRequest.newPOSTJson(opprettSakDto, opprettsakEndpoint, restConfig);
-        return restKlient.send(request, SaksnummerDto.class);
     }
 
     @Override

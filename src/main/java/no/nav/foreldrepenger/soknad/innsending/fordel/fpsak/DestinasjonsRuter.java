@@ -8,8 +8,6 @@ import java.util.stream.Stream;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import no.nav.foreldrepenger.kontrakter.fordel.OpprettSakDto;
-import no.nav.foreldrepenger.kontrakter.fordel.SaksnummerDto;
 import no.nav.foreldrepenger.kontrakter.fordel.VurderFagsystemDto;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Dokument;
@@ -53,22 +51,15 @@ public class DestinasjonsRuter {
 
     public Destinasjon bestemDestinasjon(DokumentMetadata metadata, Dokument søknad, BehandlingTema behandlingTema) {
         var dto = lagVurderFagsystemDto(metadata, søknad, behandlingTema);
-        var res = fpsakTjeneste.vurderFagsystem(dto);
-        if (VurderFagsystemResultat.SendTil.FPSAK.equals(res.destinasjon()) && res.getSaksnummer().isPresent()) {
-            return new Destinasjon(ForsendelseStatus.FPSAK, res.getSaksnummer().orElseThrow());
-        }
-        // TODO: Kan denne fjernes? er vel ikke mulig at dette skjer?
         if (skalBehandlesEtterTidligereRegler(dto.getOmsorgsovertakelsedato(), dto.getStartDatoForeldrepengerInntektsmelding(), dto.getBarnFodselsdato(), dto.getBarnTermindato())) {
-            return Destinasjon.GOSYS;
+            return Destinasjon.GOSYS; // Beholders for robusthet
         }
-        if (VurderFagsystemResultat.SendTil.FPSAK.equals(res.destinasjon())) {
-            var nyttSaksnummer = opprettSak(metadata, behandlingTema);
-            return new Destinasjon(ForsendelseStatus.FPSAK, nyttSaksnummer.saksnummer());
-        }
-        if (VurderFagsystemResultat.SendTil.GOSYS.equals(res.destinasjon())) {
-            return Destinasjon.GOSYS;
-        }
-        throw new IllegalStateException("Utviklerfeil"); // fix korrekt feilhåndtering
+
+        var res = fpsakTjeneste.vurderFagsystem(dto);
+        return switch (res.destinasjon()) {
+            case FPSAK -> new Destinasjon(ForsendelseStatus.FPSAK, res.saksnummer());
+            case GOSYS -> Destinasjon.GOSYS;
+        };
     }
 
     private boolean skalBehandlesEtterTidligereRegler(Optional<LocalDate> omsorgsovertakelsedato,
@@ -82,10 +73,6 @@ public class DestinasjonsRuter {
             .isBefore(ENDRING_BEREGNING_DATO);
     }
 
-    public SaksnummerDto opprettSak(DokumentMetadata metadata, BehandlingTema behandlingTema) {
-        return fpsakTjeneste.opprettSak(new OpprettSakDto(metadata.getJournalpostId().orElse(null), behandlingTema.getOffisiellKode(), personOppslagTjeneste.hentAkøridFor(metadata.getBrukersFnr()).value()));
-    }
-
     private VurderFagsystemDto lagVurderFagsystemDto(DokumentMetadata metadata, Dokument søknad, BehandlingTema behandlingTema) {
         var dto = new VurderFagsystemDto(
             metadata.getJournalpostId().orElse(null),
@@ -96,6 +83,7 @@ public class DestinasjonsRuter {
         dto.setForsendelseMottattTidspunkt(metadata.getForsendelseMottatt());
         dto.setDokumentTypeIdOffisiellKode(søknad.getDokumentTypeId().getKode());
         dto.setDokumentKategoriOffisiellKode(DOKUMENT_KATEGORI_SOKNAD);
+        //dto.setOpprettSakVedBehov(true); // TODO: Avventer fp-kontrakt bump
 
         var søknadDto = SøknadJsonMapper.deseraliserSøknad(søknad);
         var barn = søknadDto.barn();

@@ -30,7 +30,7 @@ public class StørrelseVedleggSjekker implements VedleggSjekker {
         }
     }
 
-    // TODO: Total bør sjekkes, men ikke hers
+    // TODO: Total bør sjekkes. Skal vi sjekke vedlegg for virus fra GCP og? Når vi henter?
 //    private void sjekkTotalStørrelse(Vedlegg vedlegg) {
 //        LOG.info("Sjekker total størrelse for {} vedlegg", vedlegg.bytes().length);
 //        var total = safeStream(vedlegg)
