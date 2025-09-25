@@ -11,9 +11,10 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Dokument;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentMetadata;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
+import no.nav.foreldrepenger.soknad.innsending.fordel.pdl.Personoppslag;
 import no.nav.vedtak.felles.integrasjon.dokarkiv.DokArkiv;
 import no.nav.vedtak.felles.integrasjon.dokarkiv.dto.AvsenderMottaker;
 import no.nav.vedtak.felles.integrasjon.dokarkiv.dto.Bruker;
@@ -31,25 +32,25 @@ public class ArkivTjeneste {
     private static final String FP_DOK_TYPE = "fp_innholdtype";
 
     private DokArkiv dokArkivTjeneste;
-    private PersonOppslagTjeneste personOppslagTjeneste;
+    private Personoppslag personoppslag;
 
     public ArkivTjeneste() {
         // for CDI
     }
 
     @Inject
-    public ArkivTjeneste(DokArkiv dokArkivTjeneste, PersonOppslagTjeneste personOppslagTjeneste) {
+    public ArkivTjeneste(DokArkiv dokArkivTjeneste, Personoppslag personoppslag) {
         this.dokArkivTjeneste = dokArkivTjeneste;
-        this.personOppslagTjeneste = personOppslagTjeneste;
+        this.personoppslag = personoppslag;
     }
 
-    public OpprettetJournalpost midlertidigJournalføring(DokumentMetadata metadata, List<Dokument> dokumenter, UUID forsendelseId) {
+    public OpprettetJournalpost midlertidigJournalføring(ForsendelseEntitet metadata, List<DokumentEntitet> dokumenter, UUID forsendelseId) {
         var request = lagOpprettRequest(metadata, dokumenter, forsendelseId);
         var response = dokArkivTjeneste.opprettJournalpost(request.build(), false);
         return new OpprettetJournalpost(response.journalpostId(), response.journalpostferdigstilt());
     }
 
-    public OpprettetJournalpost forsøkEndeligJournalføring(DokumentMetadata metadata, List<Dokument> dokumenter, UUID forsendelseId, String saksnummer) {
+    public OpprettetJournalpost forsøkEndeligJournalføring(ForsendelseEntitet metadata, List<DokumentEntitet> dokumenter, UUID forsendelseId, String saksnummer) {
         var request = lagOpprettRequest(metadata, dokumenter, forsendelseId)
             .medSak(new Sak(saksnummer, "FS36", Sak.Sakstype.FAGSAK))
             .medJournalfoerendeEnhet("9999");
@@ -57,13 +58,13 @@ public class ArkivTjeneste {
         return new OpprettetJournalpost(response.journalpostId(), response.journalpostferdigstilt());
     }
 
-    private OpprettJournalpostRequest.OpprettJournalpostRequestBuilder lagOpprettRequest(DokumentMetadata metadata, List<Dokument> dokumenter, UUID forsendelseId) {
+    private OpprettJournalpostRequest.OpprettJournalpostRequestBuilder lagOpprettRequest(ForsendelseEntitet metadata, List<DokumentEntitet> dokumenter, UUID forsendelseId) {
         var søknad = lagDokumenterForSøknad(dokumenter);
         var vedleggg = lagDokumenterForVedlegg(dokumenter);
-        var dokumenttyper = dokumenter.stream().map(Dokument::getDokumentTypeId).collect(Collectors.toSet());
+        var dokumenttyper = dokumenter.stream().map(DokumentEntitet::getDokumentTypeId).collect(Collectors.toSet());
         var hovedtype = ArkivUtil.utledHovedDokumentType(dokumenttyper);
         var behandlingstema = utledBehandlingTema(dokumenttyper);
-        var bruker = new Bruker(personOppslagTjeneste.hentAkøridFor(metadata.getBrukersFnr()).value(), Bruker.BrukerIdType.AKTOERID);
+        var bruker = new Bruker(personoppslag.aktørId(metadata.getBrukersFnr()).value(), Bruker.BrukerIdType.AKTOERID);
         var avsender = new AvsenderMottaker(metadata.getBrukersFnr(), AvsenderMottaker.AvsenderMottakerIdType.FNR, null); // Hvis fnr, så er ikke navn nødvendig
         return OpprettJournalpostRequest.nyInngående()
             .medTittel(hovedtype.getTittel())
@@ -78,19 +79,19 @@ public class ArkivTjeneste {
             .medTilleggsopplysninger(List.of(new Tilleggsopplysning(FP_DOK_TYPE, hovedtype.name())));
     }
 
-    private List<DokumentInfoOpprett> lagDokumenterForVedlegg(List<Dokument> dokumenter) {
+    private List<DokumentInfoOpprett> lagDokumenterForVedlegg(List<DokumentEntitet> dokumenter) {
         return dokumenter.stream()
             .filter(d -> !d.erSøknad())
             .map(ArkivTjeneste::lagDokumentForVedlegg)
             .toList();
     }
 
-    private Optional<DokumentInfoOpprett> lagDokumenterForSøknad(List<Dokument> dokumenter) {
-        if (dokumenter.stream().noneMatch(Dokument::erSøknad)) {
+    private Optional<DokumentInfoOpprett> lagDokumenterForSøknad(List<DokumentEntitet> dokumenter) {
+        if (dokumenter.stream().noneMatch(DokumentEntitet::erSøknad)) {
             return Optional.empty();
         }
 
-        var søknadene = dokumenter.stream().filter(Dokument::erSøknad).toList();
+        var søknadene = dokumenter.stream().filter(DokumentEntitet::erSøknad).toList();
         var søknadXML = søknadene.stream()
             .filter(dok -> ArkivFilType.XML.equals(dok.getArkivFilType()))
             .findFirst()
@@ -106,11 +107,11 @@ public class ArkivTjeneste {
         return ArkivUtil.utledBehandlingTemaFraHovedDokumentType(dokumenttyper);
     }
 
-    private static DokumentInfoOpprett lagDokumentForVedlegg(Dokument arkivdokument) {
+    private static DokumentInfoOpprett lagDokumentForVedlegg(DokumentEntitet arkivdokument) {
         return lagDokumentForOpprett(arkivdokument, Optional.empty());
     }
 
-    private static DokumentInfoOpprett lagDokumentForOpprett(Dokument arkivdokument, Optional<Dokument> struktuert) {
+    private static DokumentInfoOpprett lagDokumentForOpprett(DokumentEntitet arkivdokument, Optional<DokumentEntitet> struktuert) {
         var arkiv = new Dokumentvariant(Dokumentvariant.Variantformat.ARKIV, Dokumentvariant.Filtype.valueOf(arkivdokument.getArkivFilType().name()),
             arkivdokument.getByteArrayDokument());
         var type = arkivdokument.getDokumentTypeId();

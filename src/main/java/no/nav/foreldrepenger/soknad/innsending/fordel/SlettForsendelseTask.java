@@ -4,7 +4,7 @@ import java.util.UUID;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentMetadata;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
@@ -30,7 +30,8 @@ public class SlettForsendelseTask implements ProsessTaskHandler {
     public void doTask(ProsessTaskData prosessTaskData) {
         var forsendelseId = UUID.fromString(prosessTaskData.getPropertyValue(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY));
         var metadata = dokumentRepository.hentUnikDokumentMetadata(forsendelseId);
-        if (metadata.flatMap(DokumentMetadata::getJournalpostId).isPresent() && metadata.filter(m -> !ForsendelseStatus.PENDING.equals(m.getStatus()))
+        if (metadata.flatMap(
+                ForsendelseEntitet::getJournalpostId).isPresent() && metadata.filter(m -> !ForsendelseStatus.PENDING.equals(m.getStatus()))
                 .isPresent()) {
             dokumentRepository.slettForsendelse(forsendelseId);
         }

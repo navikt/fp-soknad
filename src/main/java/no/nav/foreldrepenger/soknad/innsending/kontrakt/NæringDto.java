@@ -24,7 +24,7 @@ public record NæringDto(@Valid @NotNull LocalDate fom,
                         CountryCode registrertILand,
                         boolean harBlittYrkesaktivILøpetAvDeTreSisteFerdigliknedeÅrene,
                         LocalDate oppstartsdato,
-                        boolean hattVarigEndringAvNæringsinntektSiste4Kalenderår,
+                        Boolean hattVarigEndringAvNæringsinntektSiste4Kalenderår,
                         LocalDate varigEndringDato,
                         @Digits(integer = 9, fraction = 0) Integer varigEndringInntektEtterEndring,
                         @Pattern(regexp = FRITEKST) String varigEndringBeskrivelse) {

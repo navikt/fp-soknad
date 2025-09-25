@@ -6,10 +6,10 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import no.nav.foreldrepenger.common.domain.AktørId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Dokument;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentMetadata;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
-import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.PersonOppslagTjeneste;
+import no.nav.foreldrepenger.soknad.innsending.fordel.pdl.Personoppslag;
 import no.nav.foreldrepenger.soknad.innsending.fordel.utils.SøknadJsonMapper;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V1SvangerskapspengerDomainMapper;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3EngangsstønadDomainMapper;
@@ -26,7 +26,7 @@ public class StrukturertDokumentMapperXML {
     private V3ForeldrepengerDomainMapper fpMapper;
     private V1SvangerskapspengerDomainMapper svpMapper;
     private V3EngangsstønadDomainMapper esMapper;
-    private PersonOppslagTjeneste personOppslagTjeneste;
+    private Personoppslag personoppslag;
     private DokumentRepository dokumentRepository;
 
     public StrukturertDokumentMapperXML() {
@@ -35,19 +35,19 @@ public class StrukturertDokumentMapperXML {
 
     @Inject
     public StrukturertDokumentMapperXML(V3ForeldrepengerDomainMapper fpMapper, V1SvangerskapspengerDomainMapper svpMapper, V3EngangsstønadDomainMapper esMapper,
-                                        PersonOppslagTjeneste personOppslagTjeneste, DokumentRepository dokumentRepository) {
+                                        Personoppslag personoppslag, DokumentRepository dokumentRepository) {
         this.fpMapper = fpMapper;
         this.svpMapper = svpMapper;
         this.esMapper = esMapper;
-        this.personOppslagTjeneste = personOppslagTjeneste;
+        this.personoppslag = personoppslag;
         this.dokumentRepository = dokumentRepository;
     }
 
 
-    public Dokument lagStrukturertDokumentForArkivering(DokumentMetadata metadata, Dokument søknad) {
+    public DokumentEntitet lagStrukturertDokumentForArkivering(ForsendelseEntitet metadata, DokumentEntitet søknad) {
         var søknadJson = SøknadJsonMapper.deseraliserSøknad(søknad);
-        var xml = mapSøknadTilXML(søknadJson, personOppslagTjeneste.hentAkøridFor(metadata.getBrukersFnr()));
-        var xmlDokument = Dokument.builder()
+        var xml = mapSøknadTilXML(søknadJson, personoppslag.aktørId(metadata.getBrukersFnr()));
+        var xmlDokument = DokumentEntitet.builder()
             .setDokumentTypeId(søknad.getDokumentTypeId())
             .setErSøknad(true)
             .setForsendelseId(søknad.getForsendelseId())

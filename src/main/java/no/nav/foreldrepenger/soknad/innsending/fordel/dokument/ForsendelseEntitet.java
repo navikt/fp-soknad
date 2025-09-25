@@ -1,6 +1,7 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.dokument;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -12,13 +13,16 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
+import org.hibernate.annotations.NaturalId;
+
 @SequenceGenerator(name = "GLOBAL_PK_SEQ_GENERATOR", sequenceName = "SEQ_GLOBAL_PK")
 @Entity
-@Table(name = "DOKUMENT_METADATA")
-public class DokumentMetadata {
+@Table(name = "FORSENDELSE")
+public class ForsendelseEntitet {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GLOBAL_PK_SEQ_GENERATOR")
@@ -43,7 +47,7 @@ public class DokumentMetadata {
     @Column(name = "FORSENDELSE_MOTTATT")
     private LocalDateTime forsendelseMottatt;
 
-    protected DokumentMetadata() {
+    protected ForsendelseEntitet() {
     }
 
     public static Builder builder() {
@@ -128,15 +132,15 @@ public class DokumentMetadata {
             return this;
         }
 
-        public DokumentMetadata build() {
-            DokumentMetadata dokumentMetadata = new DokumentMetadata();
-            dokumentMetadata.brukerId = brukerId;
-            dokumentMetadata.journalpostId = journalpostId;
-            dokumentMetadata.saksnummer = saksnummer;
-            dokumentMetadata.forsendelseId = forsendelseId;
-            dokumentMetadata.forsendelseMottatt = forsendelseMottatt;
-            dokumentMetadata.status = status;
-            return dokumentMetadata;
+        public ForsendelseEntitet build() {
+            ForsendelseEntitet forsendelseEntitet = new ForsendelseEntitet();
+            forsendelseEntitet.brukerId = brukerId;
+            forsendelseEntitet.journalpostId = journalpostId;
+            forsendelseEntitet.saksnummer = saksnummer;
+            forsendelseEntitet.forsendelseId = forsendelseId;
+            forsendelseEntitet.forsendelseMottatt = forsendelseMottatt;
+            forsendelseEntitet.status = status;
+            return forsendelseEntitet;
         }
     }
 }

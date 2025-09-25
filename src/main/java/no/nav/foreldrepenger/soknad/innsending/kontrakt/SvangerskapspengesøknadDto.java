@@ -17,9 +17,10 @@ import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.Tilre
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.validering.VedlegglistestørrelseConstraint;
 
 public record SvangerskapspengesøknadDto(LocalDate mottattdato,
-                                         @NotNull @Valid @JsonProperty("barn") BarnSvpDto barnSvp, // Litt hack eller?
+                                         @Valid @NotNull SøkerDto søker,
                                          @Valid BrukerRolle rolle,
                                          @NotNull @Valid Målform språkkode,
+                                         @NotNull @Valid @JsonProperty("barn") BarnSvpDto barnSvp, // Litt hack eller?
                                          @Valid FrilansDto frilans,
                                          @Valid NæringDto egenNæring,
                                          @Valid @Size(max = 20) List<@Valid @NotNull AnnenInntektDto> andreInntekterSiste10Mnd,

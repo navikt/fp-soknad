@@ -27,7 +27,7 @@ import no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.Oppholdsårs
 import no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.Overføringsårsak;
 import no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.UtsettelsesÅrsak;
 import no.nav.foreldrepenger.common.error.UnexpectedInputException;
-import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.PersonOppslagTjeneste;
+import no.nav.foreldrepenger.soknad.innsending.fordel.pdl.Personoppslag;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.jaxb.FPV3JAXBUtil;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.AdopsjonDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.BarnDto;
@@ -92,15 +92,15 @@ public class V3ForeldrepengerDomainMapper  {
     private static final no.nav.vedtak.felles.xml.soeknad.uttak.v3.ObjectFactory UTTAK_FACTORY_V3 = new no.nav.vedtak.felles.xml.soeknad.uttak.v3.ObjectFactory();
     private static final no.nav.vedtak.felles.xml.soeknad.endringssoeknad.v3.ObjectFactory ENDRING_FACTORY_V3 = new no.nav.vedtak.felles.xml.soeknad.endringssoeknad.v3.ObjectFactory();
 
-    private PersonOppslagTjeneste personOppslagTjeneste;
+    private Personoppslag personoppslag;
 
     public V3ForeldrepengerDomainMapper() {
         // CDI
     }
 
     @Inject
-    public V3ForeldrepengerDomainMapper(PersonOppslagTjeneste personOppslagTjeneste) {
-        this.personOppslagTjeneste = personOppslagTjeneste;
+    public V3ForeldrepengerDomainMapper(Personoppslag personoppslag) {
+        this.personoppslag = personoppslag;
     }
 
     public String tilXML(ForeldrepengesøknadDto søknad, AktørId søker) {
@@ -445,7 +445,7 @@ public class V3ForeldrepengerDomainMapper  {
 
     private AnnenForelderMedNorskIdent norskForelder(NorskForelderDto norskForelder) {
         var annenForelderMedNorskIdent = new AnnenForelderMedNorskIdent();
-        annenForelderMedNorskIdent.setAktoerId(personOppslagTjeneste.hentAkøridFor(norskForelder.fnr()).value());
+        annenForelderMedNorskIdent.setAktoerId(personoppslag.aktørId(norskForelder.fnr()).value());
         return annenForelderMedNorskIdent;
     }
 

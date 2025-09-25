@@ -13,13 +13,11 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
-@SequenceGenerator(name = "GLOBAL_PK_SEQ_GENERATOR", sequenceName = "SEQ_GLOBAL_PK")
 @Entity
 @Table(name = "DOKUMENT")
-public class Dokument {
+public class DokumentEntitet {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GLOBAL_PK_SEQ_GENERATOR")
@@ -32,20 +30,20 @@ public class Dokument {
     @Column(name = "dokument_type_id", nullable = false)
     private DokumentTypeId dokumentTypeId;
 
-    @Column(name = "BLOB", nullable = false)
-    private byte[] blob;
-
-    @Column(name = "ER_SØKNAD") // TODO: Ø i database?
+    @Column(name = "ER_SØKNAD") // TODO: fjern
     private boolean erSøknad;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "arkiv_filtype")
     private ArkivFilType arkivFilType;
 
+    @Column(name = "BLOB", nullable = false)
+    private byte[] blob;
+
     @Column(name = "BESKRIVELSE")
     private String beskrivelse;
 
-    protected Dokument() {
+    protected DokumentEntitet() {
     }
 
     public static Builder builder() {
@@ -134,9 +132,9 @@ public class Dokument {
             return this;
         }
 
-        public Dokument build() {
+        public DokumentEntitet build() {
             verifyStateForBuild();
-            Dokument dokument = new Dokument();
+            DokumentEntitet dokument = new DokumentEntitet();
             dokument.dokumentTypeId = dokumentTypeId;
             dokument.forsendelseId = forsendelseId;
             dokument.blob = blob;

@@ -7,7 +7,6 @@ import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -19,8 +18,8 @@ import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.foreldrepenger.soknad.innsending.fordel.BehandleEttersendelseTask;
 import no.nav.foreldrepenger.soknad.innsending.fordel.BehandleSøknadTask;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Dokument;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentMetadata;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus;
@@ -69,7 +68,7 @@ public class SøknadInnsendingTjeneste {
     public void lagreEttersendelseInnsending(EttersendelseDto ettersendelse) {
         // TODO: Sjekk dupliserte forsendelser for ettersendelser også
         var forsendelseId = UUID.randomUUID();
-        var metadata = DokumentMetadata.builder()
+        var metadata = ForsendelseEntitet.builder()
             .setBrukerId(innloggetBruker.brukerFraKontekst())
             .setSaksnummer(ettersendelse.saksnummer().value())
             .setStatus(ForsendelseStatus.PENDING)
@@ -94,13 +93,13 @@ public class SøknadInnsendingTjeneste {
         }
 
         var forsendelseId = UUID.randomUUID();
-        var metadata = DokumentMetadata.builder()
+        var metadata = ForsendelseEntitet.builder()
             .setBrukerId(innloggetBruker.brukerFraKontekst())
             .setStatus(ForsendelseStatus.PENDING)
             .setForsendelseId(forsendelseId)
             .setForsendelseMottatt(forsendelsesTidspunkt(søknad))
             .build();
-        var søknadDokument = Dokument.builder()
+        var søknadDokument = DokumentEntitet.builder()
             .setDokumentInnhold(getInnhold(søknad), ArkivFilType.JSON)
             .setErSøknad(true)
             .setForsendelseId(forsendelseId)
@@ -122,7 +121,7 @@ public class SøknadInnsendingTjeneste {
 
     private boolean erForsendelseAlleredeMottatt(SøknadDto søknad) {
         var eksisterendeForsendelse = dokumentRepository.hentForsendelse(innloggetBruker.brukerFraKontekst()).stream()
-            .max(Comparator.comparing(DokumentMetadata::getForsendelseMottatt));
+            .max(Comparator.comparing(ForsendelseEntitet::getForsendelseMottatt));
         if (eksisterendeForsendelse.isEmpty()) {
             return false;
         }
@@ -140,8 +139,8 @@ public class SøknadInnsendingTjeneste {
         return LocalDateTime.of(søknad.mottattdato(), LocalTime.now()); // Brukes av autotest for å spesifisere mottatttidspunkt annet enn dagens dato
     }
 
-    private static Dokument lagDokumentFraVedlegg(byte[] v, UUID forsendelseId, DokumentTypeId skjemanummer) {
-        return Dokument.builder()
+    private static DokumentEntitet lagDokumentFraVedlegg(byte[] v, UUID forsendelseId, DokumentTypeId skjemanummer) {
+        return DokumentEntitet.builder()
             .setDokumentInnhold(v, ArkivFilType.PDFA)
             .setErSøknad(false)
             .setForsendelseId(forsendelseId)
@@ -160,9 +159,9 @@ public class SøknadInnsendingTjeneste {
     private static DokumentTypeId utledDokumentType(SøknadDto dto) {
         return switch (dto) {
             case ForeldrepengesøknadDto fp-> erAdopsjonEllerOmsorgsovertakelse(fp.barn()) ? DokumentTypeId.I000002 : DokumentTypeId.I000005;
+            case EndringssøknadForeldrepengerDto ignored -> DokumentTypeId.I000050;
             case EngangsstønadDto es ->  erAdopsjonEllerOmsorgsovertakelse(es.barn()) ? DokumentTypeId.I000004 : DokumentTypeId.I000003;
             case SvangerskapspengesøknadDto ignored ->  DokumentTypeId.I000001;
-            case EndringssøknadForeldrepengerDto fpEndring -> erAdopsjonEllerOmsorgsovertakelse(fpEndring.barn()) ? DokumentTypeId.I000002 : DokumentTypeId.I000005;
         };
     }
 

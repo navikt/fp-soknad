@@ -10,10 +10,10 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import no.nav.foreldrepenger.kontrakter.fordel.VurderFagsystemDto;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Dokument;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentMetadata;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus;
-import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.PersonOppslagTjeneste;
+import no.nav.foreldrepenger.soknad.innsending.fordel.pdl.Personoppslag;
 import no.nav.foreldrepenger.soknad.innsending.fordel.utils.SøknadJsonMapper;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.AdopsjonDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.EndringssøknadForeldrepengerDto;
@@ -37,19 +37,19 @@ public class DestinasjonsRuter {
     private static final String DOKUMENT_KATEGORI_SOKNAD = "SOK";
 
     private FpsakTjeneste fpsakTjeneste;
-    private PersonOppslagTjeneste personOppslagTjeneste;
+    private Personoppslag personoppslag;
 
     public DestinasjonsRuter() {
         // CDI
     }
 
     @Inject
-    public DestinasjonsRuter(FpsakTjeneste fpsakTjeneste, PersonOppslagTjeneste personOppslagTjeneste) {
+    public DestinasjonsRuter(FpsakTjeneste fpsakTjeneste, Personoppslag personoppslag) {
         this.fpsakTjeneste = fpsakTjeneste;
-        this.personOppslagTjeneste = personOppslagTjeneste;
+        this.personoppslag = personoppslag;
     }
 
-    public Destinasjon bestemDestinasjon(DokumentMetadata metadata, Dokument søknad, BehandlingTema behandlingTema) {
+    public Destinasjon bestemDestinasjon(ForsendelseEntitet metadata, DokumentEntitet søknad, BehandlingTema behandlingTema) {
         var dto = lagVurderFagsystemDto(metadata, søknad, behandlingTema);
         if (skalBehandlesEtterTidligereRegler(dto.getOmsorgsovertakelsedato(), dto.getStartDatoForeldrepengerInntektsmelding(), dto.getBarnFodselsdato(), dto.getBarnTermindato())) {
             return Destinasjon.GOSYS; // Beholders for robusthet
@@ -73,17 +73,17 @@ public class DestinasjonsRuter {
             .isBefore(ENDRING_BEREGNING_DATO);
     }
 
-    private VurderFagsystemDto lagVurderFagsystemDto(DokumentMetadata metadata, Dokument søknad, BehandlingTema behandlingTema) {
+    private VurderFagsystemDto lagVurderFagsystemDto(ForsendelseEntitet metadata, DokumentEntitet søknad, BehandlingTema behandlingTema) {
         var dto = new VurderFagsystemDto(
             metadata.getJournalpostId().orElse(null),
             true,
-            personOppslagTjeneste.hentAkøridFor(metadata.getBrukersFnr()).value(),
+            personoppslag.aktørId(metadata.getBrukersFnr()).value(),
             behandlingTema.getOffisiellKode()
         );
         dto.setForsendelseMottattTidspunkt(metadata.getForsendelseMottatt());
         dto.setDokumentTypeIdOffisiellKode(søknad.getDokumentTypeId().getKode());
         dto.setDokumentKategoriOffisiellKode(DOKUMENT_KATEGORI_SOKNAD);
-        //dto.setOpprettSakVedBehov(true); // TODO: Avventer fp-kontrakt bump
+        dto.setOpprettSakVedBehov(true);
 
         var søknadDto = SøknadJsonMapper.deseraliserSøknad(søknad);
         var barn = søknadDto.barn();
@@ -104,7 +104,7 @@ public class DestinasjonsRuter {
         }
 
         hentFørsteUttaksdagFP(søknadDto).ifPresent(dto::setStartDatoForeldrepengerInntektsmelding); // Rar navn på feltet... men gjelder søknad også
-        hentAnnenForelderId(søknadDto).ifPresent(annenPart -> dto.setAnnenPart(personOppslagTjeneste.hentAkøridFor(annenPart).value()));
+        hentAnnenForelderId(søknadDto).ifPresent(annenPart -> dto.setAnnenPart(personoppslag.aktørId(annenPart).value()));
         return dto;
     }
 

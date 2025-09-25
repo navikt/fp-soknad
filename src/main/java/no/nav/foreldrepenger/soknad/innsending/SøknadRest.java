@@ -44,6 +44,7 @@ public class SøknadRest {
     @Path("/foreldrepenger")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response send(@Valid @NotNull ForeldrepengesøknadDto foreldrepengesøknadDto) {
+        // TODO: Sjekk at søker i objekt er samme som søker i subjekt i tokenet.
         søknadInnsendingTjeneste.lagreSøknadInnsending(foreldrepengesøknadDto);
         return Response.ok().build();
     }

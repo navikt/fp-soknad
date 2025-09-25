@@ -6,7 +6,7 @@
                  version="3.2">
 
     <sequence-generator name="SEQ_GLOBAL_PK" allocation-size="50" sequence-name="SEQ_GLOBAL_PK" />
-    <entity class="no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Dokument" />
-    <entity class="no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentMetadata" />
+    <entity class="no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet" />
+    <entity class="no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet" />
 
 </entity-mappings>

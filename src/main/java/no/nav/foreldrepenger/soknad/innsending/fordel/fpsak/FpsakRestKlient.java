@@ -7,7 +7,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.UriBuilder;
 import no.nav.foreldrepenger.kontrakter.fordel.BehandlendeFagsystemDto;
 import no.nav.foreldrepenger.kontrakter.fordel.FagsakInfomasjonDto;
-import no.nav.foreldrepenger.kontrakter.fordel.JournalpostKnyttningDto;
+import no.nav.foreldrepenger.kontrakter.fordel.JournalpostMottakDto;
 import no.nav.foreldrepenger.kontrakter.fordel.SaksnummerDto;
 import no.nav.foreldrepenger.kontrakter.fordel.VurderFagsystemDto;
 import no.nav.vedtak.felles.integrasjon.rest.FpApplication;
@@ -21,14 +21,13 @@ import no.nav.vedtak.felles.integrasjon.rest.TokenFlow;
 @RestClientConfig(tokenConfig = TokenFlow.AZUREAD_CC, application = FpApplication.FPSAK)
 public class FpsakRestKlient implements FpsakTjeneste {
 
-    private static final String JOURNALPOSTTILKNYTNING_PATH = "/api/fordel/fagsak/knyttJournalpost";
     private static final String FAGSAKINFORMASJON_PATH = "/api/fordel/fagsak/informasjon";
     private static final String VURDER_FAGSYSTEM_PATH = "/api/fordel/vurderFagsystem";
+    private static final String MOTTAK_JOURNALPOST_PATH = "/api/fordel/journalpost";
 
-
-    private final URI knytningEndpoint;
     private final URI fagsakinfoEndpoint;
     private final URI fagsystemEndpoint;
+    private final URI journalpostEndpoint;
 
     private final RestClient restKlient;
     private final RestConfig restConfig;
@@ -37,9 +36,9 @@ public class FpsakRestKlient implements FpsakTjeneste {
         this.restKlient = RestClient.client();
         this.restConfig = RestConfig.forClient(this.getClass());
         var endpoint = restConfig.fpContextPath();
-        this.knytningEndpoint = lagURI(endpoint, JOURNALPOSTTILKNYTNING_PATH);
         this.fagsakinfoEndpoint = lagURI(endpoint, FAGSAKINFORMASJON_PATH);
         this.fagsystemEndpoint = lagURI(endpoint, VURDER_FAGSYSTEM_PATH);
+        this.journalpostEndpoint = lagURI(endpoint, MOTTAK_JOURNALPOST_PATH);
     }
 
     @Override
@@ -57,8 +56,8 @@ public class FpsakRestKlient implements FpsakTjeneste {
     }
 
     @Override
-    public void knyttSakOgJournalpost(JournalpostKnyttningDto dto) {
-        var request = RestRequest.newPOSTJson(dto, knytningEndpoint, restConfig);
+    public void sendOgKnyttJournalpost(JournalpostMottakDto journalpost) {
+        var request = RestRequest.newPOSTJson(journalpost, journalpostEndpoint, restConfig);
         restKlient.sendReturnOptional(request, String.class);
     }
 

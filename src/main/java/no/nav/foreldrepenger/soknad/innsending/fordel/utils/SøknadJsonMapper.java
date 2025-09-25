@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Dokument;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.EngangsstønadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
@@ -21,7 +21,7 @@ public class SøknadJsonMapper {
         // static
     }
 
-    public static SøknadDto deseraliserSøknad(Dokument søknad) {
+    public static SøknadDto deseraliserSøknad(DokumentEntitet søknad) {
         try {
             return switch (søknad.getDokumentTypeId()) {
                 case I000002, I000005 -> {

@@ -12,8 +12,8 @@ import jakarta.inject.Inject;
 import no.nav.foreldrepenger.kontrakter.fordel.FagsakInfomasjonDto;
 import no.nav.foreldrepenger.kontrakter.fordel.SaksnummerDto;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Dokument;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentMetadata;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.fpsak.Destinasjon;
@@ -69,15 +69,15 @@ public class BehandleEttersendelseTask implements ProsessTaskHandler {
         utledNesteSteg(opprettetJournalpost, behandlingTema, dokumentTypeId, forsendelseId, destinasjon);
     }
 
-    private DokumentTypeId utledDokumentTypeId(List<Dokument> dokumenter) {
-        return utledHovedDokumentType(dokumenter.stream().map(Dokument::getDokumentTypeId).collect(Collectors.toSet()));
+    private DokumentTypeId utledDokumentTypeId(List<DokumentEntitet> dokumenter) {
+        return utledHovedDokumentType(dokumenter.stream().map(DokumentEntitet::getDokumentTypeId).collect(Collectors.toSet()));
     }
 
     private static BehandlingTema utledBehandlingstema(FagsakInfomasjonDto fagsakInfo) {
         return BehandlingTema.fraOffisiellKode(fagsakInfo.behandlingstemaOffisiellKode());
     }
 
-    private FagsakInfomasjonDto fagsakInformasjon(DokumentMetadata metadata) {
+    private FagsakInfomasjonDto fagsakInformasjon(ForsendelseEntitet metadata) {
         return fpsakTjeneste.finnFagsakInfomasjon(new SaksnummerDto(metadata.getSaksnummer().orElseThrow())).orElseThrow();
     }
 

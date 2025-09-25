@@ -14,8 +14,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Dokument;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentMetadata;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.fpsak.Destinasjon;
@@ -67,8 +67,8 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
         var forsendelseId = UUID.fromString(prosessTaskData.getPropertyValue(FORSENDELSE_ID_PROPERTY));
         var metadata = dokumentRepository.hentEksaktDokumentMetadata(forsendelseId);
         var orginaleDokumenter = dokumentRepository.hentDokumenter(forsendelseId);
-        var søknad = orginaleDokumenter.stream().filter(Dokument::erSøknad).findFirst().orElseThrow();
-        var xml = strukturertDokumentMapperXML.lagStrukturertDokumentForArkivering(metadata, søknad);
+        var søknad = orginaleDokumenter.stream().filter(DokumentEntitet::erSøknad).findFirst().orElseThrow();
+        var xml = strukturertDokumentMapperXML.lagStrukturertDokumentForArkivering(metadata, søknad); // ODODash;
         var pdf = pdfTjeneste.lagPDFFraSøknad(søknad);
 
         var dokumentTypeId = søknad.getDokumentTypeId();
@@ -85,11 +85,11 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
         utledNesteSteg(opprettetJournalpost, behandlingTema, dokumentTypeId, forsendelseId, destinasjon);
     }
 
-    private static Stream<Dokument> alleVedlegg(List<Dokument> orginaleDokumenter) {
+    private static Stream<DokumentEntitet> alleVedlegg(List<DokumentEntitet> orginaleDokumenter) {
         return orginaleDokumenter.stream().filter(d -> !(ArkivFilType.JSON.equals(d.getArkivFilType()) && d.erSøknad()));
     }
 
-    private Destinasjon utledDestinasjonForForsendelse(DokumentMetadata metadata, Dokument søknad, BehandlingTema behandlingTema) {
+    private Destinasjon utledDestinasjonForForsendelse(ForsendelseEntitet metadata, DokumentEntitet søknad, BehandlingTema behandlingTema) {
         if (metadata.getSaksnummer().isPresent()) {
             return new Destinasjon(FPSAK, metadata.getSaksnummer().orElseThrow());
         }
@@ -97,7 +97,7 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
         return ruter.bestemDestinasjon(metadata, søknad, behandlingTema);
     }
 
-    private OpprettetJournalpost journalførForsøkEndelig(DokumentMetadata metadata, List<Dokument> dokumenter, UUID forsendelseId, Destinasjon destinasjon) {
+    private OpprettetJournalpost journalførForsøkEndelig(ForsendelseEntitet metadata, List<DokumentEntitet> dokumenter, UUID forsendelseId, Destinasjon destinasjon) {
         if (destinasjon.erGosys()) {
             return arkivTjeneste.midlertidigJournalføring(metadata, dokumenter, forsendelseId); // Midlertidig journalføring, håndteres av fp-mottak.
         }

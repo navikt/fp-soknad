@@ -7,7 +7,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Dokument;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.fpsak.VLKlargjører;
@@ -49,7 +49,7 @@ public class VLKlargjørerTask implements ProsessTaskHandler {
         var metadata = dokumentRepository.hentEksaktDokumentMetadata(forsendelseId); // Eller hente fra prosesstask prop?
         var hoverdDokument = dokumentRepository.hentUnikDokument(forsendelseId, true, ArkivFilType.XML); // TODO
         var arkivId = metadata.getJournalpostId().orElseThrow();
-        var xml = hoverdDokument.map(Dokument::getKlartekstDokument).orElse(null);
+        var xml = hoverdDokument.map(DokumentEntitet::getKlartekstDokument).orElse(null);
 
         String journalEnhet; // Settes av JournalføringHendelseHåndterer i fpfordel. Alltid null? TODO
         String eksternReferanseId; // Settes av JournalføringHendelseHåndterer i fpfordel. Alltid null? TODO

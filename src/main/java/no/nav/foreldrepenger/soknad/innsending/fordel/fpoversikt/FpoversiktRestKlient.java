@@ -18,15 +18,18 @@ import no.nav.vedtak.felles.integrasjon.rest.TokenFlow;
 public class FpoversiktRestKlient {
 
     private static final String ANNENPART_AKTØRID_PATH = "/api/annenPart/aktorid";
+    private static final String OPPSLAG_SØKER_PATH = "/api/person/info-med-arbeidsforhold";
 
     private final RestClient restKlient;
     private final RestConfig restConfig;
     private final URI annenpartAktøridEndpoint;
+    private final URI oppslagSøkerEndpoint;
 
     public FpoversiktRestKlient() {
         this.restKlient = RestClient.client();
         this.restConfig = RestConfig.forClient(this.getClass());
         this.annenpartAktøridEndpoint = UriBuilder.fromUri(restConfig.fpContextPath()).path(ANNENPART_AKTØRID_PATH).build();
+        this.oppslagSøkerEndpoint = UriBuilder.fromUri(restConfig.fpContextPath()).path(OPPSLAG_SØKER_PATH).build();
     }
 
     public AktørId aktørIdFraFnr(Fødselsnummer annenpartsFnr) {
@@ -34,6 +37,13 @@ public class FpoversiktRestKlient {
         var request = RestRequest.newPOSTJson(dto, annenpartAktøridEndpoint, restConfig);
         return restKlient.send(request, AktørId.class);
     }
+
+    public PersonMedArbeidsforholdDto hentSøkerinfo(Fødselsnummer søkerFnr) {
+        var request = RestRequest.newGET(oppslagSøkerEndpoint, restConfig);
+        return restKlient.send(request, PersonMedArbeidsforholdDto.class);
+    }
+
+
 
     private record AnnenPartRequest(Fødselsnummer fnr) {}
 }

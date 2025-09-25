@@ -37,9 +37,9 @@ public class DokumentRepository {
         em.flush();
     }
 
-    public Optional<Dokument> hentUnikDokument(UUID forsendelseId, boolean erSøknad, ArkivFilType arkivFilType) {
+    public Optional<DokumentEntitet> hentUnikDokument(UUID forsendelseId, boolean erSøknad, ArkivFilType arkivFilType) {
         var resultatListe = em.createQuery(
-                "from Dokument where forsendelseId = :forsendelseId and erSøknad = :erSøknad and arkivFilType = :arkivFilType", Dokument.class)
+                "from DokumentEntitet where forsendelseId = :forsendelseId and erSøknad = :erSøknad and arkivFilType = :arkivFilType", DokumentEntitet.class)
             .setParameter(FORSENDELSE_ID, forsendelseId)
             .setParameter(DokumentRepository.ER_SØKNAD, erSøknad)
             .setParameter(ARKIV_FILTYPE, arkivFilType)
@@ -54,28 +54,28 @@ public class DokumentRepository {
         return Optional.of(resultatListe.getFirst());
     }
 
-    public List<Dokument> hentDokumenter(UUID forsendelseId) {
-        return em.createQuery("from Dokument where forsendelseId = :forsendelseId", Dokument.class)
+    public List<DokumentEntitet> hentDokumenter(UUID forsendelseId) {
+        return em.createQuery("from DokumentEntitet where forsendelseId = :forsendelseId", DokumentEntitet.class)
             .setParameter(FORSENDELSE_ID, forsendelseId)
             .getResultList();
     }
 
-    public DokumentMetadata hentEksaktDokumentMetadata(UUID forsendelseId) {
+    public ForsendelseEntitet hentEksaktDokumentMetadata(UUID forsendelseId) {
         return hentEksaktResultat(getMetadataQuery(forsendelseId));
     }
 
-    public Optional<DokumentMetadata> hentUnikDokumentMetadata(UUID forsendelseId) {
+    public Optional<ForsendelseEntitet> hentUnikDokumentMetadata(UUID forsendelseId) {
         return hentUniktResultat(getMetadataQuery(forsendelseId));
     }
 
-    private TypedQuery<DokumentMetadata> getMetadataQuery(UUID forsendelseId) {
-        return em.createQuery("from DokumentMetadata where forsendelseId = :forsendelseId", DokumentMetadata.class)
+    private TypedQuery<ForsendelseEntitet> getMetadataQuery(UUID forsendelseId) {
+        return em.createQuery("from ForsendelseEntitet where forsendelseId = :forsendelseId", ForsendelseEntitet.class)
             .setParameter(FORSENDELSE_ID, forsendelseId);
     }
 
     public void slettForsendelse(UUID forsendelseId) {
-        em.createQuery("delete from Dokument where forsendelseId = :forsendelseId").setParameter(FORSENDELSE_ID, forsendelseId).executeUpdate();
-        em.createQuery("delete from DokumentMetadata where forsendelseId = :forsendelseId").setParameter(FORSENDELSE_ID, forsendelseId).executeUpdate();
+        em.createQuery("delete from DokumentEntitet where forsendelseId = :forsendelseId").setParameter(FORSENDELSE_ID, forsendelseId).executeUpdate();
+        em.createQuery("delete from ForsendelseEntitet where forsendelseId = :forsendelseId").setParameter(FORSENDELSE_ID, forsendelseId).executeUpdate();
         em.flush();
     }
 
@@ -87,8 +87,8 @@ public class DokumentRepository {
         lagre(metadata);
     }
 
-    public List<DokumentMetadata> hentForsendelse(String fnr) {
-        return em.createQuery("from DokumentMetadata where brukerId = :brukerId", DokumentMetadata.class)
+    public List<ForsendelseEntitet> hentForsendelse(String fnr) {
+        return em.createQuery("from ForsendelseEntitet where brukerId = :brukerId", ForsendelseEntitet.class)
             .setParameter(BRUKER_ID, fnr).getResultList();
     }
 }

@@ -15,12 +15,13 @@ import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttakspla
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.validering.VedlegglistestørrelseConstraint;
 
 public record ForeldrepengesøknadDto(LocalDate mottattdato,
+                                     @Valid @NotNull SøkerDto søkerinfo,
                                      @Valid BrukerRolle rolle,
                                      @Valid Målform språkkode,
+                                     @Valid @NotNull BarnDto barn,
                                      @Valid FrilansDto frilans,
                                      @Valid NæringDto egenNæring,
                                      @Valid @Size(max = 40) List<@Valid @NotNull AnnenInntektDto> andreInntekterSiste10Mnd,
-                                     @Valid @NotNull BarnDto barn,
                                      @Valid AnnenForelderDto annenForelder,
                                      @Valid @NotNull Dekningsgrad dekningsgrad,
                                      @Valid @NotNull UttaksplanDto uttaksplan,

@@ -2,7 +2,7 @@ package no.nav.foreldrepenger.soknad.innsending;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentMetadata;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
 
 import java.util.Comparator;
@@ -27,12 +27,12 @@ public class StatusInnsendingTjeneste {
         }
 
         var forsendelse = forsendelseListe.stream()
-                .max(Comparator.comparing(DokumentMetadata::getForsendelseMottatt))
+                .max(Comparator.comparing(ForsendelseEntitet::getForsendelseMottatt))
                 .orElseThrow();
         return Optional.of(mapForsendelse(forsendelse));
     }
 
-    private static ForsendelseStatus mapForsendelse(DokumentMetadata forsendelse) {
+    private static ForsendelseStatus mapForsendelse(ForsendelseEntitet forsendelse) {
         return new ForsendelseStatus(mapStatus(forsendelse.getStatus(), forsendelse.getSaksnummer()),
             forsendelse.getSaksnummer().orElse(null));
     }

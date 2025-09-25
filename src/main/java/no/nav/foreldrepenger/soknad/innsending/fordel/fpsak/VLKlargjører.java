@@ -20,7 +20,6 @@ public class VLKlargjører {
     private static final Logger LOG = LoggerFactory.getLogger(VLKlargjører.class);
 
     private FpsakTjeneste fagsak;
-    private DokumentmottakKlient dokumentJournalpostSender;
     private TilbakekrevingKlient tilbakeJournalpostSender;
 
     public VLKlargjører() {
@@ -28,8 +27,7 @@ public class VLKlargjører {
     }
 
     @Inject
-    public VLKlargjører(DokumentmottakKlient dokumentJournalpostSender, FpsakTjeneste fagsak, TilbakekrevingKlient tilbakeJournalpostSender) {
-        this.dokumentJournalpostSender = dokumentJournalpostSender;
+    public VLKlargjører(FpsakTjeneste fagsak, TilbakekrevingKlient tilbakeJournalpostSender) {
         this.fagsak = fagsak;
         this.tilbakeJournalpostSender = tilbakeJournalpostSender;
     }
@@ -44,7 +42,6 @@ public class VLKlargjører {
         var behandlingTemaString = (behandlingsTema == null) || BehandlingTema.UDEFINERT.equals(behandlingsTema)
             ? BehandlingTema.UDEFINERT.getOffisiellKode()
             : behandlingsTema.getOffisiellKode();
-        fagsak.knyttSakOgJournalpost(new JournalpostKnyttningDto(saksnummer, arkivId));
         sendForsendelseTilFpsak(payloadHoveddokument, saksnummer, arkivId, dokumenttypeId, forsendelseMottatt, forsendelseId, behandlingTemaString);
         sendForsendelseTilFptilbake(payloadHoveddokument, saksnummer, arkivId, dokumenttypeId, forsendelseMottatt, forsendelseId, behandlingTemaString);
     }
@@ -58,7 +55,8 @@ public class VLKlargjører {
                                          String behandlingTemaString) {
         var journalpost = new JournalpostMottakDto(saksnummer, arkivId, behandlingTemaString, dokumenttypeId.name(), forsendelseMottatt, payload);
         journalpost.setForsendelseId(forsendelseId);
-        dokumentJournalpostSender.send(journalpost);
+        journalpost.setKnyttSakOgJournalpost(true);
+        fagsak.sendOgKnyttJournalpost(journalpost);
     }
 
     private void sendForsendelseTilFptilbake(String payload,
