@@ -13,14 +13,12 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import no.nav.foreldrepenger.soknad.innsending.fordel.fpsak.Destinasjon;
-import no.nav.vedtak.exception.TekniskException;
 
 @ApplicationScoped
 public class DokumentRepository {
 
     private static final String FORSENDELSE_ID = "forsendelseId";
-    private static final String BRUKER_ID = "brukerId";
-    private static final String ER_SØKNAD = "erSøknad";
+    private static final String FODSELSNUMMER = "fodselsnummer";
     private static final String ARKIV_FILTYPE = "arkivFilType";
     private EntityManager em;
 
@@ -37,21 +35,11 @@ public class DokumentRepository {
         em.flush();
     }
 
-    public Optional<DokumentEntitet> hentUnikDokument(UUID forsendelseId, boolean erSøknad, ArkivFilType arkivFilType) {
-        var resultatListe = em.createQuery(
-                "from DokumentEntitet where forsendelseId = :forsendelseId and erSøknad = :erSøknad and arkivFilType = :arkivFilType", DokumentEntitet.class)
+    public List<DokumentEntitet> hentDokumenter(UUID forsendelseId, ArkivFilType arkivFilType) {
+        return em.createQuery("from DokumentEntitet where forsendelseId = :forsendelseId and arkivFilType = :arkivFilType", DokumentEntitet.class)
             .setParameter(FORSENDELSE_ID, forsendelseId)
-            .setParameter(DokumentRepository.ER_SØKNAD, erSøknad)
             .setParameter(ARKIV_FILTYPE, arkivFilType)
             .getResultList();
-        if (resultatListe.size() > 1) {
-            throw new TekniskException("FP-302156", "Spørringen returnerte mer enn eksakt ett resultat");
-        }
-
-        if (resultatListe.isEmpty()) {
-            return Optional.empty();
-        }
-        return Optional.of(resultatListe.getFirst());
     }
 
     public List<DokumentEntitet> hentDokumenter(UUID forsendelseId) {
@@ -88,7 +76,7 @@ public class DokumentRepository {
     }
 
     public List<ForsendelseEntitet> hentForsendelse(String fnr) {
-        return em.createQuery("from ForsendelseEntitet where brukerId = :brukerId", ForsendelseEntitet.class)
-            .setParameter(BRUKER_ID, fnr).getResultList();
+        return em.createQuery("from ForsendelseEntitet where fodselsnummer = :fødselsnummer", ForsendelseEntitet.class)
+            .setParameter(FODSELSNUMMER, fnr).getResultList();
     }
 }

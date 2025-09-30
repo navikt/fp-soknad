@@ -7,8 +7,8 @@ import jakarta.inject.Inject;
 import no.nav.foreldrepenger.common.domain.AktørId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.pdl.Personoppslag;
 import no.nav.foreldrepenger.soknad.innsending.fordel.utils.SøknadJsonMapper;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V1SvangerskapspengerDomainMapper;
@@ -49,7 +49,6 @@ public class StrukturertDokumentMapperXML {
         var xml = mapSøknadTilXML(søknadJson, personoppslag.aktørId(metadata.getBrukersFnr()));
         var xmlDokument = DokumentEntitet.builder()
             .setDokumentTypeId(søknad.getDokumentTypeId())
-            .setErSøknad(true)
             .setForsendelseId(søknad.getForsendelseId())
             .setDokumentInnhold(xml.getBytes(StandardCharsets.UTF_8), ArkivFilType.XML)
             .build();

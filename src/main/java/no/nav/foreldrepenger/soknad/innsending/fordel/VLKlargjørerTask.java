@@ -47,12 +47,11 @@ public class VLKlargjørerTask implements ProsessTaskHandler {
 
 
         var metadata = dokumentRepository.hentEksaktDokumentMetadata(forsendelseId); // Eller hente fra prosesstask prop?
-        var hoverdDokument = dokumentRepository.hentUnikDokument(forsendelseId, true, ArkivFilType.XML); // TODO
+        var hoverdDokument = dokumentRepository.hentDokumenter(forsendelseId, ArkivFilType.XML).stream()
+            .filter(DokumentEntitet::erSøknad)
+            .findFirst();
         var arkivId = metadata.getJournalpostId().orElseThrow();
         var xml = hoverdDokument.map(DokumentEntitet::getKlartekstDokument).orElse(null);
-
-        String journalEnhet; // Settes av JournalføringHendelseHåndterer i fpfordel. Alltid null? TODO
-        String eksternReferanseId; // Settes av JournalføringHendelseHåndterer i fpfordel. Alltid null? TODO
 
         klargjører.klargjør(xml, saksnummer, arkivId, dokumenttypeId, metadata.getForsendelseMottatt(), behandlingsTema, forsendelseId);
 

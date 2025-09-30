@@ -50,7 +50,7 @@ public class V3EngangsstønadDomainMapper {
         soeknad.setSprakvalg(målformFra(søknad.språkkode()));
         soeknad.getPaakrevdeVedlegg().addAll(vedleggFra(søknad.vedlegg()));
         soeknad.setSoeker(søkerFra(søker, søknad.rolle()));
-        soeknad.setMottattDato(søknad.mottattdato());
+        soeknad.setMottattDato(søknad.mottattdato().toLocalDate());
         soeknad.setOmYtelse(ytelseFra(søknad));
         return soeknad;
     }

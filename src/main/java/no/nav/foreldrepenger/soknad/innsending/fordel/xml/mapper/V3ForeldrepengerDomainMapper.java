@@ -117,7 +117,7 @@ public class V3ForeldrepengerDomainMapper  {
         soeknad.getPaakrevdeVedlegg().addAll(vedleggFra(søknad.vedlegg()));
         soeknad.setSoeker(søkerFra(søker, søknad.rolle()));
         soeknad.setOmYtelse(ytelseFraSøknad(søknad));
-        soeknad.setMottattDato(søknad.mottattdato());
+        soeknad.setMottattDato(søknad.mottattdato().toLocalDate());
         return soeknad;
     }
 
@@ -127,7 +127,7 @@ public class V3ForeldrepengerDomainMapper  {
         soeknad.getPaakrevdeVedlegg().addAll(vedleggFra(endringsøknad.vedlegg()));
         soeknad.setSoeker(søkerFra(søker, endringsøknad.rolle()));
         soeknad.setOmYtelse(ytelseFraEndringssøknad(endringsøknad));
-        soeknad.setMottattDato(endringsøknad.mottattdato());
+        soeknad.setMottattDato(endringsøknad.mottattdato().toLocalDate());
         return soeknad;
     }
 

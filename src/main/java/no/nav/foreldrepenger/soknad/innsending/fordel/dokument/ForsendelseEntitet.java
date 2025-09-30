@@ -1,7 +1,6 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.dokument;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -13,11 +12,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-
-import org.hibernate.annotations.NaturalId;
 
 @SequenceGenerator(name = "GLOBAL_PK_SEQ_GENERATOR", sequenceName = "SEQ_GLOBAL_PK")
 @Entity
@@ -31,8 +27,8 @@ public class ForsendelseEntitet {
     @Column(name = "FORSENDELSE_ID")
     private UUID forsendelseId;
 
-    @Column(name = "BRUKER_ID")
-    private String brukerId; // fnr
+    @Column(name = "FODSELSNUMMER")
+    private String fodselsnummer;
 
     @Column(name = "SAKSNUMMER")
     private String saksnummer;
@@ -63,7 +59,7 @@ public class ForsendelseEntitet {
     }
 
     public String getBrukersFnr() {
-        return brukerId;
+        return fodselsnummer;
     }
 
     public Optional<String> getSaksnummer() {
@@ -96,7 +92,7 @@ public class ForsendelseEntitet {
 
     public static class Builder {
         private UUID forsendelseId;
-        private String brukerId;
+        private String fodselsnummer;
         private String saksnummer;
         private String journalpostId;
         private ForsendelseStatus status = ForsendelseStatus.PENDING;
@@ -107,8 +103,8 @@ public class ForsendelseEntitet {
             return this;
         }
 
-        public Builder setBrukerId(String brukerId) {
-            this.brukerId = Objects.requireNonNull(brukerId);
+        public Builder setFødselsnummer(String fødselsnummer) {
+            this.fodselsnummer = Objects.requireNonNull(fødselsnummer);
             return this;
         }
 
@@ -134,7 +130,7 @@ public class ForsendelseEntitet {
 
         public ForsendelseEntitet build() {
             ForsendelseEntitet forsendelseEntitet = new ForsendelseEntitet();
-            forsendelseEntitet.brukerId = brukerId;
+            forsendelseEntitet.fodselsnummer = fodselsnummer;
             forsendelseEntitet.journalpostId = journalpostId;
             forsendelseEntitet.saksnummer = saksnummer;
             forsendelseEntitet.forsendelseId = forsendelseId;

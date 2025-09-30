@@ -3,10 +3,10 @@ package no.nav.foreldrepenger.soknad.innsending;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.BehandleSøknadTask.FORSENDELSE_ID_PROPERTY;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -19,9 +19,9 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.BehandleEttersendelseTask;
 import no.nav.foreldrepenger.soknad.innsending.fordel.BehandleSøknadTask;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.AdopsjonDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.BarnDto;
@@ -69,7 +69,7 @@ public class SøknadInnsendingTjeneste {
         // TODO: Sjekk dupliserte forsendelser for ettersendelser også
         var forsendelseId = UUID.randomUUID();
         var metadata = ForsendelseEntitet.builder()
-            .setBrukerId(innloggetBruker.brukerFraKontekst())
+            .setFødselsnummer(innloggetBruker.brukerFraKontekst())
             .setSaksnummer(ettersendelse.saksnummer().value())
             .setStatus(ForsendelseStatus.PENDING)
             .setForsendelseId(forsendelseId)
@@ -78,7 +78,7 @@ public class SøknadInnsendingTjeneste {
         dokumentRepository.lagre(metadata);
 
         var vedleggDokumenter = hentAlleVedlegg(ettersendelse.vedlegg(), tilYtelseTypeMellomlagring(ettersendelse.type())).stream()
-            .map(v -> lagDokumentFraVedlegg(v.innhold(), forsendelseId, v.skjemanummer()))
+            .map(v -> lagDokumentFraVedlegg(v.innhold(), forsendelseId, v.skjemanummer(), v.begrunnelse()))
             .toList();
         vedleggDokumenter.forEach(dokumentRepository::lagre);
 
@@ -94,14 +94,13 @@ public class SøknadInnsendingTjeneste {
 
         var forsendelseId = UUID.randomUUID();
         var metadata = ForsendelseEntitet.builder()
-            .setBrukerId(innloggetBruker.brukerFraKontekst())
+            .setFødselsnummer(innloggetBruker.brukerFraKontekst())
             .setStatus(ForsendelseStatus.PENDING)
             .setForsendelseId(forsendelseId)
             .setForsendelseMottatt(forsendelsesTidspunkt(søknad))
             .build();
         var søknadDokument = DokumentEntitet.builder()
             .setDokumentInnhold(getInnhold(søknad), ArkivFilType.JSON)
-            .setErSøknad(true)
             .setForsendelseId(forsendelseId)
             .setDokumentTypeId(utledDokumentType(søknad))
             .build();
@@ -110,7 +109,7 @@ public class SøknadInnsendingTjeneste {
         dokumentRepository.lagre(søknadDokument);
 
         var vedleggDokumenter = hentAlleVedlegg(søknad.vedlegg(), finnYtelseType(søknad)).stream()
-            .map(v -> lagDokumentFraVedlegg(v.innhold(), forsendelseId, v.skjemanummer()))
+            .map(v -> lagDokumentFraVedlegg(v.innhold(), forsendelseId, v.skjemanummer(), v.begrunnelse()))
             .toList();
         vedleggDokumenter.forEach(dokumentRepository::lagre);
 
@@ -125,7 +124,10 @@ public class SøknadInnsendingTjeneste {
         if (eksisterendeForsendelse.isEmpty()) {
             return false;
         }
-        var eksisterendeSøknad = dokumentRepository.hentUnikDokument(eksisterendeForsendelse.get().getForsendelseId(), true, ArkivFilType.JSON);
+
+        var eksisterendeSøknad = dokumentRepository.hentDokumenter(eksisterendeForsendelse.get().getForsendelseId(), ArkivFilType.JSON).stream()
+            .filter(DokumentEntitet::erSøknad)
+            .findFirst();
         if (eksisterendeSøknad.isEmpty()) {
             return false;
         }
@@ -139,12 +141,12 @@ public class SøknadInnsendingTjeneste {
         return søknad.mottattdato(); // Brukes av autotest for å spesifisere mottatttidspunkt annet enn dagens dato
     }
 
-    private static DokumentEntitet lagDokumentFraVedlegg(byte[] v, UUID forsendelseId, DokumentTypeId skjemanummer) {
+    private static DokumentEntitet lagDokumentFraVedlegg(byte[] v, UUID forsendelseId, DokumentTypeId skjemanummer, Optional<String> begrunnelse) {
         return DokumentEntitet.builder()
             .setDokumentInnhold(v, ArkivFilType.PDFA)
-            .setErSøknad(false)
             .setForsendelseId(forsendelseId)
             .setDokumentTypeId(skjemanummer)
+            .setBeskrivelse(begrunnelse.orElse(null))
             .build();
     }
 
@@ -195,8 +197,8 @@ public class SøknadInnsendingTjeneste {
 
     private VedleggSkjemanummerWrapper getVedleggSkjemanummerWrapper(YtelseMellomlagringType ytelseType, VedleggDto vedleggDto) {
         var innhold = mellomlagringTjeneste.lesKryptertVedlegg(vedleggDto.uuid().toString(), ytelseType).orElseThrow(() -> new IllegalStateException("Fant ikke mellomlagret vedlegg med uuid " + vedleggDto.uuid()));
-        return new VedleggSkjemanummerWrapper(innhold, vedleggDto.skjemanummer());
+        return new VedleggSkjemanummerWrapper(innhold, vedleggDto.skjemanummer(), DokumentTypeId.I000060.equals(vedleggDto.skjemanummer()) ? Optional.of(vedleggDto.beskrivelse()) : Optional.empty());
     }
 
-    private record VedleggSkjemanummerWrapper(byte[] innhold, DokumentTypeId skjemanummer) {}
+    private record VedleggSkjemanummerWrapper(byte[] innhold, DokumentTypeId skjemanummer, Optional<String> begrunnelse) {}
 }

@@ -28,7 +28,6 @@ public class PdfTjeneste {
         var søknadDto = SøknadJsonMapper.deseraliserSøknad(søknad);
         var pdfDokument = DokumentEntitet.builder()
             .setDokumentTypeId(søknad.getDokumentTypeId())
-            .setErSøknad(true)
             .setForsendelseId(søknad.getForsendelseId())
             .setDokumentInnhold(hentDummyPDF(søknadDto), ArkivFilType.PDFA)
             .build();

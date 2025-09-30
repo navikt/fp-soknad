@@ -30,15 +30,12 @@ public class DokumentEntitet {
     @Column(name = "dokument_type_id", nullable = false)
     private DokumentTypeId dokumentTypeId;
 
-    @Column(name = "ER_SØKNAD") // TODO: fjern
-    private boolean erSøknad;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "arkiv_filtype")
     private ArkivFilType arkivFilType;
 
-    @Column(name = "BLOB", nullable = false)
-    private byte[] blob;
+    @Column(name = "CONTENT", nullable = false)
+    private byte[] content;
 
     @Column(name = "BESKRIVELSE")
     private String beskrivelse;
@@ -62,27 +59,23 @@ public class DokumentEntitet {
         return dokumentTypeId;
     }
 
-    public void setDokumentTypeId(DokumentTypeId dokumentTypeId) {
-        this.dokumentTypeId = dokumentTypeId;
-    }
-
     public String getKlartekstDokument() {
         if (!ArkivFilType.erKlartekstType(this.arkivFilType)) {
             throw new IllegalStateException("Utviklerfeil: prøver å hente klartekst av binærdokument");
         }
-        return new String(blob, StandardCharsets.UTF_8);
+        return new String(content, StandardCharsets.UTF_8);
     }
 
     public String getBase64EncodetDokument() {
-        return Base64.getEncoder().encodeToString(blob);
+        return Base64.getEncoder().encodeToString(content);
     }
 
     public byte[] getByteArrayDokument() {
-        return blob;
+        return content;
     }
 
     public boolean erSøknad() {
-        return erSøknad;
+        return dokumentTypeId.erSøknad();
     }
 
     public ArkivFilType getArkivFilType() {
@@ -97,7 +90,6 @@ public class DokumentEntitet {
 
         private DokumentTypeId dokumentTypeId;
         private byte[] blob;
-        private boolean erSøknad;
         private UUID forsendelseId;
         private ArkivFilType arkivFilType;
         private String beskrivelse;
@@ -127,18 +119,12 @@ public class DokumentEntitet {
             return this;
         }
 
-        public Builder setErSøknad(boolean erSøknad) {
-            this.erSøknad = erSøknad;
-            return this;
-        }
-
         public DokumentEntitet build() {
             verifyStateForBuild();
             DokumentEntitet dokument = new DokumentEntitet();
             dokument.dokumentTypeId = dokumentTypeId;
             dokument.forsendelseId = forsendelseId;
-            dokument.blob = blob;
-            dokument.erSøknad = erSøknad;
+            dokument.content = blob;
             dokument.arkivFilType = arkivFilType;
             dokument.beskrivelse = beskrivelse;
             return dokument;

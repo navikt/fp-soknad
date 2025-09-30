@@ -1,6 +1,5 @@
 package no.nav.foreldrepenger.soknad.innsending.kontrakt;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -18,7 +17,7 @@ import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.Tilre
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.validering.VedlegglistestørrelseConstraint;
 
 public record SvangerskapspengesøknadDto(LocalDateTime mottattdato,
-                                         @Valid @NotNull SøkerDto søker,
+                                         @Valid @NotNull SøkerDto søkerinfo,
                                          @Valid BrukerRolle rolle,
                                          @NotNull @Valid Målform språkkode,
                                          @NotNull @Valid @JsonProperty("barn") BarnSvpDto barnSvp, // Litt hack eller?

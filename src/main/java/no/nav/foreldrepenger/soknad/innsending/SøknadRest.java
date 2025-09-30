@@ -12,10 +12,9 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import no.nav.foreldrepenger.common.domain.Fødselsnummer;
-import no.nav.foreldrepenger.common.domain.Saksnummer;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.EngangsstønadDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.EttersendelseTilbakekrevingDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SvangerskapspengesøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse.EttersendelseDto;
@@ -92,6 +91,16 @@ public class SøknadRest {
         søknadInnsendingTjeneste.lagreEttersendelseInnsending(ettersendelseDto);
         return Response.ok().build();
     }
+
+    @POST
+    @Path("/oppgave")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response send(@Valid @NotNull EttersendelseTilbakekrevingDto ettersendelseDto) {
+        // TODO:
+        return Response.ok().build();
+    }
+
+
 
 
     @GET
