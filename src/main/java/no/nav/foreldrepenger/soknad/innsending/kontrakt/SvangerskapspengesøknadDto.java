@@ -1,6 +1,7 @@
 package no.nav.foreldrepenger.soknad.innsending.kontrakt;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,7 +17,7 @@ import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.BarnS
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.TilretteleggingbehovDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.validering.VedlegglistestørrelseConstraint;
 
-public record SvangerskapspengesøknadDto(LocalDate mottattdato,
+public record SvangerskapspengesøknadDto(LocalDateTime mottattdato,
                                          @Valid @NotNull SøkerDto søker,
                                          @Valid BrukerRolle rolle,
                                          @NotNull @Valid Målform språkkode,

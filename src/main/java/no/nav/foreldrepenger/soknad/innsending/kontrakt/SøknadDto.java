@@ -1,10 +1,11 @@
 package no.nav.foreldrepenger.soknad.innsending.kontrakt;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public sealed interface SøknadDto permits EndringssøknadForeldrepengerDto, ForeldrepengesøknadDto, EngangsstønadDto, SvangerskapspengesøknadDto {
-    LocalDate mottattdato();
+    LocalDateTime mottattdato();
+    SøkerDto søkerinfo();
     BarnDto barn();
     List<VedleggDto> vedlegg();
 }

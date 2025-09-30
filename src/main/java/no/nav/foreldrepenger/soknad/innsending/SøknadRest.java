@@ -12,6 +12,8 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import no.nav.foreldrepenger.common.domain.Fødselsnummer;
+import no.nav.foreldrepenger.common.domain.Saksnummer;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.EngangsstønadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
@@ -26,6 +28,7 @@ public class SøknadRest {
 
     private SøknadInnsendingTjeneste søknadInnsendingTjeneste;
     private StatusInnsendingTjeneste statusInnsendingTjeneste;
+    private TilgangskontrollTjeneste tilgangskontrollTjeneste;
     private InnloggetBruker innloggetBruker;
 
     public SøknadRest() {
@@ -33,10 +36,13 @@ public class SøknadRest {
     }
 
     @Inject
-    public SøknadRest(SøknadInnsendingTjeneste søknadInnsendingTjeneste, StatusInnsendingTjeneste statusInnsendingTjeneste,
+    public SøknadRest(SøknadInnsendingTjeneste søknadInnsendingTjeneste,
+                      StatusInnsendingTjeneste statusInnsendingTjeneste,
+                      TilgangskontrollTjeneste tilgangskontrollTjeneste,
                       InnloggetBruker innloggetBruker) {
         this.søknadInnsendingTjeneste = søknadInnsendingTjeneste;
         this.statusInnsendingTjeneste = statusInnsendingTjeneste;
+        this.tilgangskontrollTjeneste = tilgangskontrollTjeneste;
         this.innloggetBruker = innloggetBruker;
     }
 
@@ -44,7 +50,7 @@ public class SøknadRest {
     @Path("/foreldrepenger")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response send(@Valid @NotNull ForeldrepengesøknadDto foreldrepengesøknadDto) {
-        // TODO: Sjekk at søker i objekt er samme som søker i subjekt i tokenet.
+        tilgangskontrollTjeneste.validerSøkerFraKontekstErSammeSomSøknad(foreldrepengesøknadDto.søkerinfo().fnr());
         søknadInnsendingTjeneste.lagreSøknadInnsending(foreldrepengesøknadDto);
         return Response.ok().build();
     }
@@ -53,6 +59,7 @@ public class SøknadRest {
     @Path("/engangsstonad")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response send(@Valid @NotNull EngangsstønadDto engangsstønadDto) {
+        tilgangskontrollTjeneste.validerSøkerFraKontekstErSammeSomSøknad(engangsstønadDto.søkerinfo().fnr());
         søknadInnsendingTjeneste.lagreSøknadInnsending(engangsstønadDto);
         return Response.ok().build();
     }
@@ -61,6 +68,7 @@ public class SøknadRest {
     @Path("/svangerskapspenger")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response send(@Valid @NotNull SvangerskapspengesøknadDto svangerskapspengesøknadDto) {
+        tilgangskontrollTjeneste.validerSøkerFraKontekstErSammeSomSøknad(svangerskapspengesøknadDto.søkerinfo().fnr());
         søknadInnsendingTjeneste.lagreSøknadInnsending(svangerskapspengesøknadDto);
         return Response.ok().build();
     }
@@ -69,7 +77,8 @@ public class SøknadRest {
     @Path("/foreldrepenger/endre")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response send(@Valid @NotNull EndringssøknadForeldrepengerDto endringssøknadForeldrepengerDto) {
-        // TODO: Valider at søker er søker i oppgitt fagsak. Slå opp fagsakinfo fra fpsak og valider aktørid er like aktørid til søker. Feil hardt hvis ikke!
+        tilgangskontrollTjeneste.validerSøkerFraKontekstErSammeSomSøknad(endringssøknadForeldrepengerDto.søkerinfo().fnr());
+        tilgangskontrollTjeneste.validerSaksnummerKnyttetTilSøker(endringssøknadForeldrepengerDto.saksnummer());
         søknadInnsendingTjeneste.lagreSøknadInnsending(endringssøknadForeldrepengerDto);
         return Response.ok().build();
     }
@@ -79,7 +88,7 @@ public class SøknadRest {
     @Path("/ettersend")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response send(@Valid @NotNull EttersendelseDto ettersendelseDto) {
-        // TODO: Valider at søker er søker i oppgitt fagsak. Slå opp fagsakinfo fra fpsak og valider aktørid er like aktørid til søker. Feil hardt hvis ikke!
+        tilgangskontrollTjeneste.validerSaksnummerKnyttetTilSøker(ettersendelseDto.saksnummer());
         søknadInnsendingTjeneste.lagreEttersendelseInnsending(ettersendelseDto);
         return Response.ok().build();
     }

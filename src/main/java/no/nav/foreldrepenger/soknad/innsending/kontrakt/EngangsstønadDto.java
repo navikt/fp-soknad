@@ -1,6 +1,7 @@
 package no.nav.foreldrepenger.soknad.innsending.kontrakt;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,7 +12,8 @@ import no.nav.foreldrepenger.common.domain.BrukerRolle;
 import no.nav.foreldrepenger.common.oppslag.dkif.Målform;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.validering.VedlegglistestørrelseConstraint;
 
-public record EngangsstønadDto(LocalDate mottattdato,
+public record EngangsstønadDto(LocalDateTime mottattdato,
+                               @Valid @NotNull SøkerDto søkerinfo,
                                @NotNull Målform språkkode,
                                @Valid BrukerRolle rolle,
                                @Valid @NotNull BarnDto barn,

@@ -136,7 +136,7 @@ public class SøknadInnsendingTjeneste {
         if (ENV.isProd() || søknad.mottattdato() == null) {
             return LocalDateTime.now();
         }
-        return LocalDateTime.of(søknad.mottattdato(), LocalTime.now()); // Brukes av autotest for å spesifisere mottatttidspunkt annet enn dagens dato
+        return søknad.mottattdato(); // Brukes av autotest for å spesifisere mottatttidspunkt annet enn dagens dato
     }
 
     private static DokumentEntitet lagDokumentFraVedlegg(byte[] v, UUID forsendelseId, DokumentTypeId skjemanummer) {
