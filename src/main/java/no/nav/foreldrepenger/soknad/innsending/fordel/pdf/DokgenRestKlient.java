@@ -8,6 +8,7 @@ import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SvangerskapspengesøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøknadDto;
 import no.nav.vedtak.exception.TekniskException;
+import no.nav.vedtak.felles.integrasjon.rest.FpApplication;
 import no.nav.vedtak.felles.integrasjon.rest.RestClient;
 import no.nav.vedtak.felles.integrasjon.rest.RestClientConfig;
 import no.nav.vedtak.felles.integrasjon.rest.RestConfig;
@@ -15,7 +16,7 @@ import no.nav.vedtak.felles.integrasjon.rest.RestRequest;
 import no.nav.vedtak.felles.integrasjon.rest.TokenFlow;
 
 @ApplicationScoped
-@RestClientConfig(tokenConfig = TokenFlow.NO_AUTH_NEEDED, endpointProperty = "dokgen.rest.base.url", endpointDefault = "http://fpdokgen.teamforeldrepenger")
+@RestClientConfig(tokenConfig = TokenFlow.NO_AUTH_NEEDED, application = FpApplication.FPDOKGEN)
 public class DokgenRestKlient {
 
     private final RestClient restClient;

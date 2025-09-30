@@ -7,6 +7,7 @@
     "dbHighAvailability": "true",
     "dbPointInTimeRecovery": "true",
     "tmpbucket": "fp-soknad-mellomlagring-prod",
+    "dokarkivUrl": "dokarkiv.prod-fss-pub.nais.io",
     "minReplicas": "2",
     "maxReplicas": "4",
     "ingresses": [
