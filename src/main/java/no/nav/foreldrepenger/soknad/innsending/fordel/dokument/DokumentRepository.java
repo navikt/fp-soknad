@@ -76,7 +76,7 @@ public class DokumentRepository {
     }
 
     public List<ForsendelseEntitet> hentForsendelse(String fnr) {
-        return em.createQuery("from ForsendelseEntitet where fodselsnummer = :fødselsnummer", ForsendelseEntitet.class)
+        return em.createQuery("from ForsendelseEntitet where fodselsnummer = :fodselsnummer", ForsendelseEntitet.class)
             .setParameter(FODSELSNUMMER, fnr).getResultList();
     }
 }

@@ -1,6 +1,9 @@
 package no.nav.foreldrepenger.soknad.innsending;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -24,6 +27,7 @@ import no.nav.foreldrepenger.soknad.utils.InnloggetBruker;
 @ApplicationScoped
 @Transactional
 public class SøknadRest {
+    private static final Logger LOG = LoggerFactory.getLogger(SøknadRest.class);
 
     private SøknadInnsendingTjeneste søknadInnsendingTjeneste;
     private StatusInnsendingTjeneste statusInnsendingTjeneste;
@@ -49,6 +53,7 @@ public class SøknadRest {
     @Path("/foreldrepenger")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response send(@Valid @NotNull ForeldrepengesøknadDto foreldrepengesøknadDto) {
+        LOG.info("Mottatt søknad om foreldrepenger for innsending, søker: {}", foreldrepengesøknadDto.søkerinfo().fnr());
         tilgangskontrollTjeneste.validerSøkerFraKontekstErSammeSomSøknad(foreldrepengesøknadDto.søkerinfo().fnr());
         søknadInnsendingTjeneste.lagreSøknadInnsending(foreldrepengesøknadDto);
         return Response.ok().build();
