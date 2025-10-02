@@ -18,8 +18,8 @@
         <sonar.projectName>fp-soknad</sonar.projectName>
         <sonar.projectKey>navikt_fp-soknad</sonar.projectKey>
 
-        <felles.version>7.6.0</felles.version>
-        <fpsoknad-felles.version>3.3.2</fpsoknad-felles.version> <!-- fjern på sikt ...-->
+        <felles.version>7.6.5</felles.version>
+        <fpsoknad-felles.version>3.3.5</fpsoknad-felles.version> <!-- fjern på sikt ...-->
         <prosesstask.version>5.2.0</prosesstask.version>
         <fp-kontrakter.version>9.4.3</fp-kontrakter.version>
 
