@@ -22,8 +22,8 @@ jobs:
     uses: navikt/fp-gha-workflows/.github/workflows/build-app-no-db.yml@main
     with:
       sonar-scan: true
-      build-image: ${{ github.ref_name == 'master' }} # default: true
-      push-image: ${{ github.ref_name == 'master' }} # default: false
+      build-image: ${{ github.ref_name == 'main' }} # default: true
+      push-image: ${{ github.ref_name == 'main' }} # default: false
     secrets: inherit
 
 
@@ -54,8 +54,8 @@ jobs:
     name: Deploy dev
     permissions:
       id-token: write
-    if: github.ref_name == 'master'
-    needs: [build-app]
+    if: github.ref_name == 'main'
+    needs: build-app
     uses: navikt/fp-gha-workflows/.github/workflows/deploy.yml@main
     with:
       gar: true
