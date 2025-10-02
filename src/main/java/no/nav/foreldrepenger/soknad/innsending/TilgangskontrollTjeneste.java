@@ -38,7 +38,7 @@ public class TilgangskontrollTjeneste {
     protected void validerSaksnummerKnyttetTilSøker(Saksnummer saksnummer) {
         var fagsakinformasjon = fpsakTjeneste.finnFagsakInfomasjon(new SaksnummerDto(saksnummer.value()));
         var aktøridSøker = pdlKlientSystem.aktørId(innloggetBruker.brukerFraKontekst());
-        if (fagsakinformasjon.isEmpty() || !fagsakinformasjon.get().aktørId().equals(aktøridSøker)) {
+        if (fagsakinformasjon.isEmpty() || !fagsakinformasjon.get().aktørId().equals(aktøridSøker.value())) {
             throw new IllegalStateException("Saksnummer er ikke knyttet til søker");
         }
 

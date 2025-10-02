@@ -16,13 +16,13 @@ import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttakspla
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.validering.VedlegglistestørrelseConstraint;
 
 public record EndringssøknadForeldrepengerDto(LocalDateTime mottattdato,
+                                              @Valid @NotNull Saksnummer saksnummer,
                                               @Valid @NotNull SøkerDto søkerinfo,
                                               @Valid BrukerRolle rolle,
                                               @Valid Målform språkkode,
                                               @Valid @NotNull BarnDto barn,
                                               @Valid AnnenForelderDto annenForelder,
                                               @Valid @NotNull UttaksplanDto uttaksplan,
-                                              @Valid @NotNull Saksnummer saksnummer,
                                               @Valid @VedlegglistestørrelseConstraint @Size(max = 100) List<@Valid VedleggDto> vedlegg) implements SøknadDto {
 
     public EndringssøknadForeldrepengerDto {

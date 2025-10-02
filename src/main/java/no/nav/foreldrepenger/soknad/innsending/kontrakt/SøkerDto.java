@@ -16,6 +16,6 @@ import no.nav.foreldrepenger.common.domain.Orgnummer;
  */
 public record SøkerDto(@Valid @NotNull Fødselsnummer fnr, @Valid @NotNull String navn, @Size(max = 50) List<@NotNull Arbeidsforhold> arbeidsforhold) {
 
-    record Arbeidsforhold(String navn, Orgnummer orgnummer, Double stillingsprosent, LocalDate fom, LocalDate tom) {
+    public record Arbeidsforhold(String navn, Orgnummer orgnummer, Double stillingsprosent, LocalDate fom, LocalDate tom) {
     }
 }

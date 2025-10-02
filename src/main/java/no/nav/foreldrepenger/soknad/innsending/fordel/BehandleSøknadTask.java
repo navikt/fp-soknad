@@ -15,9 +15,9 @@ import jakarta.inject.Inject;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.fpsak.Destinasjon;
 import no.nav.foreldrepenger.soknad.innsending.fordel.fpsak.DestinasjonsRuter;
 import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.ArkivTjeneste;
@@ -68,7 +68,7 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
         var metadata = dokumentRepository.hentEksaktDokumentMetadata(forsendelseId);
         var orginaleDokumenter = dokumentRepository.hentDokumenter(forsendelseId);
         var søknad = orginaleDokumenter.stream().filter(DokumentEntitet::erSøknad).findFirst().orElseThrow();
-        var xml = strukturertDokumentMapperXML.lagStrukturertDokumentForArkivering(metadata, søknad); // ODODash;
+        var xml = strukturertDokumentMapperXML.lagStrukturertDokumentForArkivering(metadata, søknad);
         var pdf = pdfTjeneste.lagPDFFraSøknad(søknad);
 
         var dokumentTypeId = søknad.getDokumentTypeId();
