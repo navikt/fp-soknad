@@ -6,7 +6,7 @@
     <parent>
         <groupId>no.nav.foreldrepenger.felles</groupId>
         <artifactId>fp-bom</artifactId>
-        <version>4.0.0</version>
+        <version>4.0.1</version>
     </parent>
 
     <groupId>no.nav.foreldrepenger.soknad</groupId>
@@ -18,9 +18,9 @@
         <sonar.projectName>fp-soknad</sonar.projectName>
         <sonar.projectKey>navikt_fp-soknad</sonar.projectKey>
 
-        <felles.version>7.6.5</felles.version>
+        <felles.version>7.6.6</felles.version>
         <fpsoknad-felles.version>3.3.5</fpsoknad-felles.version> <!-- fjern på sikt ...-->
-        <prosesstask.version>5.2.0</prosesstask.version>
+        <prosesstask.version>5.2.1</prosesstask.version>
         <fp-kontrakter.version>9.4.3</fp-kontrakter.version>
 
         <tika.version>3.2.3</tika.version> <!-- Bedre måter å gjøre det på -->
@@ -34,7 +34,7 @@
             <dependency>
                 <groupId>no.nav.foreldrepenger.felles</groupId>
                 <artifactId>fp-bom</artifactId>
-                <version>4.0.0</version>
+                <version>4.0.1</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
