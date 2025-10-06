@@ -21,8 +21,8 @@ public class MellomlagringTjeneste {
     }
 
     @Inject
-    public MellomlagringTjeneste(Mellomlagring mellomlagring, MellomlagringKrypto krypto) {
-        this.mellomlagring = ENV.isLocal() ? new InMemoryMellomlagring() : mellomlagring;
+    public MellomlagringTjeneste(GCPMellomlagring gcpMellomlagring, MellomlagringKrypto krypto) {
+        this.mellomlagring = ENV.isLocal() ? new InMemoryMellomlagring() : gcpMellomlagring;
         this.krypto = krypto;
     }
 

@@ -131,8 +131,8 @@ public class JettyServer {
     public static DataSource dataSource() {
         var config = new HikariConfig();
         config.setJdbcUrl(dbUrl());
-        config.setUsername(ENV.getProperty("NAIS_DATABASE_FPSOKNAD_USERNAME", "fpsoknad"));
-        config.setPassword(ENV.getProperty("NAIS_DATABASE_FPSOKNAD_PASSWORD", "fpsoknad"));
+        config.setUsername(ENV.getProperty("NAIS_DATABASE_FPSOKNAD_FPSOKNAD_USERNAME", "fpsoknad"));
+        config.setPassword(ENV.getProperty("NAIS_DATABASE_FPSOKNAD_FPSOKNAD_PASSWORD", "fpsoknad"));
         config.setConnectionTimeout(TimeUnit.SECONDS.toMillis(1));
         config.setMinimumIdle(1);
         config.setMaximumPoolSize(6);
@@ -150,9 +150,9 @@ public class JettyServer {
     }
 
     private static String dbUrl() {
-        var host = ENV.getProperty("NAIS_DATABASE_FPSOKNAD_HOST", "fpsoknad");
-        var port = ENV.getProperty("NAIS_DATABASE_FPSOKNAD_PORT", "5432");
-        var databaseName = ENV.getProperty("NAIS_DATABASE_FPSOKNAD_DATABASE", "fpsoknad");
+        var host = ENV.getProperty("NAIS_DATABASE_FPSOKNAD_FPSOKNAD_HOST", "fpsoknad");
+        var port = ENV.getProperty("NAIS_DATABASE_FPSOKNAD_FPSOKNAD_PORT", "5432");
+        var databaseName = ENV.getProperty("NAIS_DATABASE_FPSOKNAD_FPSOKNAD_DATABASE", "fpsoknad");
         return "jdbc:postgresql://" + host + ":" + port + "/" + databaseName;
     }
 
