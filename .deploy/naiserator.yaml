@@ -56,7 +56,7 @@ spec:
           numNewerVersions: 2
           withState: ANY
     sqlInstances:
-      - type: POSTGRES_17
+      - type: POSTGRES_18
         databases:
           - name: fpsoknad
         tier: {{dbTier}}
