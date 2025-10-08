@@ -73,7 +73,7 @@ public class SøknadInnsendingTjeneste {
             .setSaksnummer(ettersendelse.saksnummer().value())
             .setStatus(ForsendelseStatus.PENDING)
             .setForsendelseId(forsendelseId)
-            .setForsendelseMottatt(LocalDateTime.now())
+            .setForsendelseMottatt(forsendelsesTidspunkt(ettersendelse.mottattdato()))
             .build();
         dokumentRepository.lagre(metadata);
 
@@ -97,7 +97,7 @@ public class SøknadInnsendingTjeneste {
             .setFødselsnummer(innloggetBruker.brukerFraKontekst())
             .setStatus(ForsendelseStatus.PENDING)
             .setForsendelseId(forsendelseId)
-            .setForsendelseMottatt(forsendelsesTidspunkt(søknad))
+            .setForsendelseMottatt(forsendelsesTidspunkt(søknad.mottattdato()))
             .build();
         var søknadDokument = DokumentEntitet.builder()
             .setDokumentInnhold(getInnhold(søknad), ArkivFilType.JSON)
@@ -134,11 +134,11 @@ public class SøknadInnsendingTjeneste {
         return Arrays.equals(eksisterendeSøknad.get().getByteArrayDokument(), getInnhold(søknad));
     }
 
-    private static LocalDateTime forsendelsesTidspunkt(SøknadDto søknad) {
-        if (ENV.isProd() || søknad.mottattdato() == null) {
+    private static LocalDateTime forsendelsesTidspunkt(LocalDateTime forsendelsesTidspunkt) {
+        if (ENV.isProd() || forsendelsesTidspunkt == null) {
             return LocalDateTime.now();
         }
-        return søknad.mottattdato(); // Brukes av autotest for å spesifisere mottatttidspunkt annet enn dagens dato
+        return forsendelsesTidspunkt; // Brukes av autotest for å spesifisere mottatttidspunkt annet enn dagens dato
     }
 
     private static DokumentEntitet lagDokumentFraVedlegg(byte[] v, UUID forsendelseId, DokumentTypeId skjemanummer, Optional<String> begrunnelse) {

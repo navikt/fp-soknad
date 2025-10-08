@@ -13,6 +13,7 @@ import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3Domain
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.toBoolean;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.vedleggFra;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -103,31 +104,31 @@ public class V3ForeldrepengerDomainMapper  {
         this.personoppslag = personoppslag;
     }
 
-    public String tilXML(ForeldrepengesøknadDto søknad, AktørId søker) {
-        return JAXB.marshal(SØKNAD_FACTORY_V3.createSoeknad(tilModell(søknad, søker)));
+    public String tilXML(ForeldrepengesøknadDto søknad, LocalDateTime forsendelseMottatt, AktørId søker) {
+        return JAXB.marshal(SØKNAD_FACTORY_V3.createSoeknad(tilModell(søknad, forsendelseMottatt, søker)));
     }
 
-    public String tilXML(EndringssøknadForeldrepengerDto endringssøknad, AktørId søker) {
-        return JAXB.marshal(SØKNAD_FACTORY_V3.createSoeknad(tilModell(endringssøknad, søker)));
+    public String tilXML(EndringssøknadForeldrepengerDto endringssøknad, LocalDateTime forsendelseMottatt, AktørId søker) {
+        return JAXB.marshal(SØKNAD_FACTORY_V3.createSoeknad(tilModell(endringssøknad, forsendelseMottatt, søker)));
     }
 
-    protected Soeknad tilModell(ForeldrepengesøknadDto søknad, AktørId søker) {
+    protected Soeknad tilModell(ForeldrepengesøknadDto søknad, LocalDateTime forsendelseMottatt, AktørId søker) {
         var soeknad = new Soeknad();
         soeknad.setSprakvalg(målformFra(søknad.språkkode()));
         soeknad.getPaakrevdeVedlegg().addAll(vedleggFra(søknad.vedlegg()));
         soeknad.setSoeker(søkerFra(søker, søknad.rolle()));
         soeknad.setOmYtelse(ytelseFraSøknad(søknad));
-        soeknad.setMottattDato(søknad.mottattdato().toLocalDate());
+        soeknad.setMottattDato(forsendelseMottatt.toLocalDate());
         return soeknad;
     }
 
-    private static Soeknad tilModell(EndringssøknadForeldrepengerDto endringsøknad, AktørId søker) {
+    private static Soeknad tilModell(EndringssøknadForeldrepengerDto endringsøknad, LocalDateTime forsendelseMottatt, AktørId søker) {
         var soeknad = new Soeknad();
         soeknad.setSprakvalg(målformFra(endringsøknad.språkkode()));
         soeknad.getPaakrevdeVedlegg().addAll(vedleggFra(endringsøknad.vedlegg()));
         soeknad.setSoeker(søkerFra(søker, endringsøknad.rolle()));
         soeknad.setOmYtelse(ytelseFraEndringssøknad(endringsøknad));
-        soeknad.setMottattDato(endringsøknad.mottattdato().toLocalDate());
+        soeknad.setMottattDato(forsendelseMottatt.toLocalDate());
         return soeknad;
     }
 

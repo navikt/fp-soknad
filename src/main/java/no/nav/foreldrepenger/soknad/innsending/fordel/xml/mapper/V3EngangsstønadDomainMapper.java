@@ -9,6 +9,7 @@ import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3Domain
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.tilVedlegg;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.vedleggFra;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,16 +42,16 @@ public class V3EngangsstønadDomainMapper {
     private static final no.nav.vedtak.felles.xml.soeknad.felles.v3.ObjectFactory FELLES_FACTORY_V3 = new no.nav.vedtak.felles.xml.soeknad.felles.v3.ObjectFactory();
 
 
-    public String tilXML(EngangsstønadDto søknad, AktørId søker) {
-        return JAXB.marshal(SØKNAD_FACTORY_V3.createSoeknad(tilModell(søknad, søker)));
+    public String tilXML(EngangsstønadDto søknad, LocalDateTime forsendelseMottatt, AktørId søker) {
+        return JAXB.marshal(SØKNAD_FACTORY_V3.createSoeknad(tilModell(søknad, forsendelseMottatt, søker)));
     }
 
-    private Soeknad tilModell(EngangsstønadDto søknad, AktørId søker) {
+    private Soeknad tilModell(EngangsstønadDto søknad, LocalDateTime forsendelseMottatt, AktørId søker) {
         var soeknad = new Soeknad();
         soeknad.setSprakvalg(målformFra(søknad.språkkode()));
         soeknad.getPaakrevdeVedlegg().addAll(vedleggFra(søknad.vedlegg()));
         soeknad.setSoeker(søkerFra(søker, søknad.rolle()));
-        soeknad.setMottattDato(søknad.mottattdato().toLocalDate());
+        soeknad.setMottattDato(forsendelseMottatt.toLocalDate());
         soeknad.setOmYtelse(ytelseFra(søknad));
         return soeknad;
     }

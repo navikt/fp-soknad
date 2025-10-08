@@ -1,6 +1,7 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.xml;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -46,7 +47,7 @@ public class StrukturertDokumentMapperXML {
 
     public DokumentEntitet lagStrukturertDokumentForArkivering(ForsendelseEntitet metadata, DokumentEntitet søknad) {
         var søknadJson = SøknadJsonMapper.deseraliserSøknad(søknad);
-        var xml = mapSøknadTilXML(søknadJson, personoppslag.aktørId(metadata.getBrukersFnr()));
+        var xml = mapSøknadTilXML(søknadJson, metadata.getForsendelseMottatt(), personoppslag.aktørId(metadata.getBrukersFnr()));
         var xmlDokument = DokumentEntitet.builder()
             .setDokumentTypeId(søknad.getDokumentTypeId())
             .setForsendelseId(søknad.getForsendelseId())
@@ -57,12 +58,12 @@ public class StrukturertDokumentMapperXML {
     }
 
 
-    private String mapSøknadTilXML(SøknadDto søknad, AktørId søker) {
+    private String mapSøknadTilXML(SøknadDto søknad, LocalDateTime forsendelseMottatt, AktørId søker) {
         return switch (søknad) {
-            case ForeldrepengesøknadDto fp -> fpMapper.tilXML(fp, søker);
-            case EndringssøknadForeldrepengerDto endringFp -> fpMapper.tilXML(endringFp, søker);
-            case EngangsstønadDto es -> esMapper.tilXML(es, søker);
-            case SvangerskapspengesøknadDto svp -> svpMapper.tilXML(svp, søker);
+            case ForeldrepengesøknadDto fp -> fpMapper.tilXML(fp, forsendelseMottatt, søker);
+            case EndringssøknadForeldrepengerDto endringFp -> fpMapper.tilXML(endringFp, forsendelseMottatt, søker);
+            case EngangsstønadDto es -> esMapper.tilXML(es, forsendelseMottatt, søker);
+            case SvangerskapspengesøknadDto svp -> svpMapper.tilXML(svp, forsendelseMottatt, søker);
         };
     }
 

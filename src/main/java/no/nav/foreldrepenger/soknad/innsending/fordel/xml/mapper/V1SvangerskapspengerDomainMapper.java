@@ -11,6 +11,7 @@ import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3Domain
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -50,17 +51,17 @@ public class V1SvangerskapspengerDomainMapper {
     private static final ObjectFactory SVP_FACTORY_V1 = new ObjectFactory();
     private static final no.nav.vedtak.felles.xml.soeknad.v3.ObjectFactory SØKNAD_FACTORY_V3 = new no.nav.vedtak.felles.xml.soeknad.v3.ObjectFactory();
 
-    public String tilXML(SvangerskapspengesøknadDto svp, AktørId søker) {
-        return jaxb.marshal(SØKNAD_FACTORY_V3.createSoeknad(tilModell(svp, søker)));
+    public String tilXML(SvangerskapspengesøknadDto svp, LocalDateTime forsendelseMottatt, AktørId søker) {
+        return jaxb.marshal(SØKNAD_FACTORY_V3.createSoeknad(tilModell(svp, forsendelseMottatt, søker)));
     }
 
-    public Soeknad tilModell(SvangerskapspengesøknadDto svp, AktørId søker) {
+    public Soeknad tilModell(SvangerskapspengesøknadDto svp, LocalDateTime forsendelseMottatt, AktørId søker) {
         var soeknad = new Soeknad();
         soeknad.setSprakvalg(målformFra(svp.språkkode()));
         soeknad.getPaakrevdeVedlegg().addAll(vedleggFra(svp.vedlegg()));
         soeknad.setSoeker(søkerFra(søker, svp.rolle()));
         soeknad.setOmYtelse(ytelseFra(svp));
-        soeknad.setMottattDato(svp.mottattdato().toLocalDate());
+        soeknad.setMottattDato(forsendelseMottatt.toLocalDate());
         return soeknad;
     }
 
