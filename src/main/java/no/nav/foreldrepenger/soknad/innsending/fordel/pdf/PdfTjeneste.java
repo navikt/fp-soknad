@@ -28,12 +28,12 @@ public class PdfTjeneste {
         this.dokumentRepository = dokumentRepository;
     }
 
-    public DokumentEntitet lagPDFFraSøknad(DokumentEntitet søknad) {
+    public DokumentEntitet lagPDFFraSøknad(ForsendelseEntitet metadata, DokumentEntitet søknad) {
         var søknadDto = SøknadJsonMapper.deseraliserSøknad(søknad);
         var pdfDokument = DokumentEntitet.builder()
             .setDokumentTypeId(søknad.getDokumentTypeId())
             .setForsendelseId(søknad.getForsendelseId())
-            .setDokumentInnhold(dokgenRestKlient.genererPdf(søknadDto), ArkivFilType.PDFA)
+            .setDokumentInnhold(dokgenRestKlient.genererPdf(metadata, søknadDto), ArkivFilType.PDFA)
             .build();
         dokumentRepository.lagre(pdfDokument);
         return pdfDokument;

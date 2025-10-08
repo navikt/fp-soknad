@@ -2,6 +2,8 @@ package no.nav.foreldrepenger.soknad.innsending.fordel.pdf;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.UriBuilder;
 import no.nav.foreldrepenger.common.domain.Fødselsnummer;
@@ -37,10 +39,11 @@ public class DokgenRestKlient {
         this.restConfig = RestConfig.forClient(DokgenRestKlient.class);
     }
 
-    public byte[] genererPdf(SøknadDto søknad) throws TekniskException {
+    public byte[] genererPdf(ForsendelseEntitet metadata, SøknadDto søknad) throws TekniskException {
         var templatePath = utledTemplatePath(søknad);
+        var dokgenDto = new DokgenSøknadDto(metadata.getForsendelseMottatt(), søknad);
         var endpoint = UriBuilder.fromUri(restConfig.endpoint()).path(templatePath).path("/create-pdf-variation").build();
-        var request = RestRequest.newPOSTJson(søknad, endpoint, restConfig);
+        var request = RestRequest.newPOSTJson(dokgenDto, endpoint, restConfig);
         return restClient.sendReturnByteArray(request);
     }
 
@@ -64,4 +67,8 @@ public class DokgenRestKlient {
 
     record UttalelseDtoDokgen(LocalDateTime innsendtDato, Saksnummer saksnummer, Fødselsnummer fnr, String ytelse, String tilsvar) {
     }
+
+    record DokgenSøknadDto(LocalDateTime mottattdato,  @JsonUnwrapped SøknadDto søknad) {
+    }
+
 }

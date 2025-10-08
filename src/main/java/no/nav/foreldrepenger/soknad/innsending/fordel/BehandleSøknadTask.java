@@ -69,7 +69,7 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
         var orginaleDokumenter = dokumentRepository.hentDokumenter(forsendelseId);
         var søknad = orginaleDokumenter.stream().filter(DokumentEntitet::erSøknad).findFirst().orElseThrow();
         var xml = strukturertDokumentMapperXML.lagStrukturertDokumentForArkivering(metadata, søknad);
-        var pdf = pdfTjeneste.lagPDFFraSøknad(søknad);
+        var pdf = pdfTjeneste.lagPDFFraSøknad(metadata, søknad);
 
         var dokumentTypeId = søknad.getDokumentTypeId();
         var behandlingTema = behandlingtemaFraDokumentType(dokumentTypeId);
