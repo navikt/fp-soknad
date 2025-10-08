@@ -72,4 +72,8 @@ public enum DokumentTypeId implements Kodeverdi {
     public boolean erSøknad() {
         return Set.of(I000001, I000002, I000003, I000004, I000005, I000050).contains(this);
     }
+
+    public boolean erUttalelseOmTilbakebetaling() {
+        return Set.of(I000114, I000119).contains(this);
+    }
 }

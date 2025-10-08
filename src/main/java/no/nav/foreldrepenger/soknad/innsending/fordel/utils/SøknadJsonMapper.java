@@ -10,6 +10,7 @@ import no.nav.foreldrepenger.soknad.innsending.kontrakt.EngangsstønadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SvangerskapspengesøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøknadDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse.EttersendelseDto;
 import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 
 
@@ -19,6 +20,14 @@ public class SøknadJsonMapper {
 
     private SøknadJsonMapper() {
         // static
+    }
+
+    public static EttersendelseDto deseraliserEttersendelse(DokumentEntitet ettersendelse) {
+        try {
+            return MAPPER.readValue(ettersendelse.getByteArrayDokument(), EttersendelseDto.class);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static SøknadDto deseraliserSøknad(DokumentEntitet søknad) {

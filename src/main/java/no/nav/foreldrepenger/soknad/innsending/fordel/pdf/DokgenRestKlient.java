@@ -1,12 +1,17 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.pdf;
 
+import java.time.LocalDateTime;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.UriBuilder;
+import no.nav.foreldrepenger.common.domain.Fødselsnummer;
+import no.nav.foreldrepenger.common.domain.Saksnummer;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.EngangsstønadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SvangerskapspengesøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøknadDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse.EttersendelseDto;
 import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.integrasjon.rest.RestClient;
 import no.nav.vedtak.felles.integrasjon.rest.RestClientConfig;
@@ -47,5 +52,15 @@ public class DokgenRestKlient {
         };
         var språk = "nb"; // Hardkodet, men kan bruke søknadDto.getSpråk().toLowerCase() for å støtte flere språk
         return String.format("/template/%s/template_%s", templateNavn, språk);
+    }
+
+    public byte[] genererUttalelseOmTilbakekrevingPDF(EttersendelseDto svar) {
+        var body = new UttalelseDtoDokgen(svar.mottattdato(), svar.saksnummer(), svar.fnr(), svar.type().name().toLowerCase(), svar.brukerTekst().tekst());
+        var endpoint = UriBuilder.fromUri(restConfig.endpoint()).path("/template/selvbetjening-tilsvar-tilbakebetalingvarsel/template_nb/create-pdf-variation").build();
+        var request = RestRequest.newPOSTJson(body, endpoint, restConfig);
+        return restClient.sendReturnByteArray(request);
+    }
+
+    record UttalelseDtoDokgen(LocalDateTime innsendtDato, Saksnummer saksnummer, Fødselsnummer fnr, String ytelse, String tilsvar) {
     }
 }
