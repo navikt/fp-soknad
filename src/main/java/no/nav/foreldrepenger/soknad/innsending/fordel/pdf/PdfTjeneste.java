@@ -8,6 +8,7 @@ import jakarta.inject.Inject;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.utils.SøknadJsonMapper;
 
 @ApplicationScoped
@@ -38,13 +39,13 @@ public class PdfTjeneste {
         return pdfDokument;
     }
 
-    public DokumentEntitet lagUttalelseOmTilbakebetalingPDF(DokumentEntitet dokument) {
+    public DokumentEntitet lagUttalelseOmTilbakebetalingPDF(ForsendelseEntitet metadata, DokumentEntitet dokument) {
         var ettesendelse = SøknadJsonMapper.deseraliserEttersendelse(dokument);
         LOG.info("Genererer PDF for uttalelse om tilbakekreving for sak: {}", ettesendelse.saksnummer().value());
         var pdfDokument = DokumentEntitet.builder()
             .setDokumentTypeId(dokument.getDokumentTypeId())
             .setForsendelseId(dokument.getForsendelseId())
-            .setDokumentInnhold(dokgenRestKlient.genererUttalelseOmTilbakekrevingPDF(ettesendelse), ArkivFilType.PDFA)
+            .setDokumentInnhold(dokgenRestKlient.genererUttalelseOmTilbakekrevingPDF(metadata, ettesendelse), ArkivFilType.PDFA)
             .build();
         dokumentRepository.lagre(pdfDokument);
         return pdfDokument;

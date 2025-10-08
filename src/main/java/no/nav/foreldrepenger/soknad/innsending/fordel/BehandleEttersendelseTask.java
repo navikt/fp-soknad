@@ -67,7 +67,7 @@ public class BehandleEttersendelseTask implements ProsessTaskHandler {
         var destinasjon = new Destinasjon(FPSAK, metadata.getSaksnummer().orElseThrow());
 
         var dokumenterForJournalføring = dokumentTypeId.erUttalelseOmTilbakebetaling()
-            ? List.of(pdfTjeneste.lagUttalelseOmTilbakebetalingPDF(dokumenter.getFirst()))
+            ? List.of(pdfTjeneste.lagUttalelseOmTilbakebetalingPDF(metadata, dokumenter.getFirst()))
             : dokumenter;
         var opprettetJournalpost = arkivTjeneste.forsøkEndeligJournalføring(metadata, dokumenterForJournalføring, forsendelseId, destinasjon.saksnummer());
         dokumentRepository.oppdaterForsendelseMetadata(forsendelseId, opprettetJournalpost.journalpostId(), destinasjon);

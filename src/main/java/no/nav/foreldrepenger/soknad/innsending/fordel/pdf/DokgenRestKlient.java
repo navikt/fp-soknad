@@ -6,6 +6,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.UriBuilder;
 import no.nav.foreldrepenger.common.domain.Fødselsnummer;
 import no.nav.foreldrepenger.common.domain.Saksnummer;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.EngangsstønadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
@@ -54,8 +55,8 @@ public class DokgenRestKlient {
         return String.format("/template/%s/template_%s", templateNavn, språk);
     }
 
-    public byte[] genererUttalelseOmTilbakekrevingPDF(EttersendelseDto svar) {
-        var body = new UttalelseDtoDokgen(svar.mottattdato(), svar.saksnummer(), svar.fnr(), svar.type().name().toLowerCase(), svar.brukerTekst().tekst());
+    public byte[] genererUttalelseOmTilbakekrevingPDF(ForsendelseEntitet metadata, EttersendelseDto svar) {
+        var body = new UttalelseDtoDokgen(metadata.getForsendelseMottatt(), svar.saksnummer(), svar.fnr(), svar.type().name().toLowerCase(), svar.brukerTekst().tekst());
         var endpoint = UriBuilder.fromUri(restConfig.endpoint()).path("/template/selvbetjening-tilsvar-tilbakebetalingvarsel/template_nb/create-pdf-variation").build();
         var request = RestRequest.newPOSTJson(body, endpoint, restConfig);
         return restClient.sendReturnByteArray(request);
