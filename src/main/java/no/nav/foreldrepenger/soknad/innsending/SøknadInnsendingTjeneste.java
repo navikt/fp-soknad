@@ -32,6 +32,7 @@ import no.nav.foreldrepenger.soknad.innsending.kontrakt.OmsorgsovertakelseDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SvangerskapspengesøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggInnsendingType;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse.EttersendelseDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse.YtelseType;
 import no.nav.foreldrepenger.soknad.mellomlagring.MellomlagringTjeneste;
@@ -190,7 +191,7 @@ public class SøknadInnsendingTjeneste {
 
     private List<VedleggSkjemanummerWrapper> hentAlleVedlegg(List<VedleggDto> vedleggene, YtelseMellomlagringType ytelseMellomlagringType) {
         return vedleggene.stream()
-            .filter(VedleggDto::erOpplastetVedlegg)
+            .filter(v -> VedleggInnsendingType.LASTET_OPP.equals(v.innsendingsType()))
             .map(v -> getVedleggSkjemanummerWrapper(ytelseMellomlagringType, v))
             .toList();
     }

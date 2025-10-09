@@ -14,13 +14,9 @@ import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.Arbei
 
 public record VedleggDto(@NotNull UUID uuid,
                          @NotNull DokumentTypeId skjemanummer,
-                         VedleggInnsendingType innsendingsType,
+                         @NotNull VedleggInnsendingType innsendingsType,
                          @Pattern(regexp = FRITEKST) String beskrivelse,
                          @Valid Dokumenterer dokumenterer) {
-
-    public boolean erOpplastetVedlegg() {
-        return innsendingsType == null || innsendingsType.equals(VedleggInnsendingType.LASTET_OPP);
-    }
 
     public record Dokumenterer(@NotNull VedleggDto.Dokumenterer.DokumentererType type,
                                @Valid ArbeidsforholdDto arbeidsforhold,
