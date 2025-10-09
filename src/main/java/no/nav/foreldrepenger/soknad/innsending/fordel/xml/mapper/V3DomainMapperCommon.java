@@ -313,6 +313,9 @@ final class V3DomainMapperCommon {
     }
 
     private static Innsendingstype innsendingstypeFra(VedleggInnsendingType innsendingsType) {
+        if (innsendingsType == null) {
+            return innsendingsTypeMedKodeverk(LASTET_OPP); // Default til LASTET_OPP
+        }
         return switch (innsendingsType) {
             case SEND_SENERE -> innsendingsTypeMedKodeverk(SEND_SENERE);
             case LASTET_OPP -> innsendingsTypeMedKodeverk(LASTET_OPP);
