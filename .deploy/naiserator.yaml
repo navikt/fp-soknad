@@ -48,13 +48,8 @@ spec:
   gcp:
     buckets:
       - name: {{tmpbucket}}
-        retentionPeriodDays: 30
         lifecycleCondition:
-          age: 7
-          # daysSinceCustomTime: 7 // TODO: Skal slettes 7 dager etter custom time, side dette er en verdi som dynamsik oppdaters ved endringer
-          createdBefore: 2020-01-01
-          numNewerVersions: 2
-          withState: ANY
+          daysSinceCustomTime: 7
     sqlInstances:
       - type: POSTGRES_18
         databases:
