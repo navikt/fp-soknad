@@ -61,6 +61,12 @@ spec:
         collation: nb_NO.UTF8
   tokenx:
     enabled: true
+  azure:
+    application:
+      enabled: true
+  env:
+    - name: GCP_BUCKET_NAME
+      value: {{tmpbucket}}
   envFrom:
     - secret: mellomlagring-kryptering # krypteringsnøkkel for mellomlagring
   observability:

@@ -19,11 +19,13 @@ import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import no.nav.foreldrepenger.konfig.Environment;
 
 @ApplicationScoped
 public class GCPMellomlagring implements Mellomlagring {
 
     private static final Logger LOG = LoggerFactory.getLogger(GCPMellomlagring.class);
+    private static final Environment ENV = Environment.current();
 
     private final Bøtte mellomlagringBøtte;
     private final Storage storage;
@@ -42,7 +44,7 @@ public class GCPMellomlagring implements Mellomlagring {
             .setRetrySettings(retrySettings)
             .build()
             .getService();
-        this.mellomlagringBøtte = new Bøtte("fp-soknad-mellomlagring"); // Navnet på GCP-bøtten / miljøvariable
+        this.mellomlagringBøtte = new Bøtte(ENV.getProperty("GCP_BUCKET_NAME"));
     }
 
     @Override
