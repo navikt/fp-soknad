@@ -81,16 +81,11 @@ spec:
     inbound:
       rules:
         - application: engangsstonad
-          namespace: teamforeldrepenger
-          cluster: {{environment}}-gcp
         - application: foreldrepengesoknad
-          namespace: teamforeldrepenger
-          cluster: {{environment}}-gcp
         - application: svangerskapspengesoknad
-          namespace: teamforeldrepenger
-          cluster: {{environment}}-gcp
     outbound:
       rules:
+        - application: fpdokgen
         - application: clamav
           namespace: nais-system
       external:
