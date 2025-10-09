@@ -9,7 +9,7 @@
     "tmpbucket": "fp-soknad-mellomlagring-dev",
     "dokarkivUrl": "dokarkiv-q2.dev-fss-pub.nais.io",
     "minReplicas": "1",
-    "maxReplicas": "2",
+    "maxReplicas": "1",
     "ingresses": [
         "https://fpsoknad.intern.dev.nav.no"
     ],
