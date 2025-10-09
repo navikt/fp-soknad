@@ -49,6 +49,7 @@ public class JettyServer {
     }
 
     public static void main(String[] args) throws Exception {
+        System.setProperty("task.manager.polling.delay", "40");
         jettyServer().bootStrap();
     }
 

@@ -48,7 +48,6 @@ spec:
   gcp:
     buckets:
       - name: {{tmpbucket}}
-        retentionPeriodDays: 0
         lifecycleCondition:
           daysSinceCustomTime: 7
     sqlInstances:
