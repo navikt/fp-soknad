@@ -2,6 +2,9 @@ package no.nav.foreldrepenger.soknad.innsending.fordel.pdf;
 
 import java.time.LocalDateTime;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -27,6 +30,7 @@ import no.nav.vedtak.felles.integrasjon.rest.TokenFlow;
 @RestClientConfig(tokenConfig = TokenFlow.NO_AUTH_NEEDED, endpointProperty = "dokgen.rest.base.url", endpointDefault = "http://fpdokgen")
 public class DokgenRestKlient {
 
+    private static final Logger LOG = LoggerFactory.getLogger(DokgenRestKlient.class);
     private final RestClient restClient;
     private final RestConfig restConfig;
 
@@ -45,6 +49,7 @@ public class DokgenRestKlient {
         var dokgenDto = new DokgenSøknadDto(metadata.getForsendelseMottatt(), søknad);
         var endpoint = UriBuilder.fromUri(restConfig.endpoint()).path(templatePath).path("/create-pdf-variation").build();
         var request = RestRequest.newPOSTJson(dokgenDto, endpoint, restConfig);
+        LOG.info("Path {}", endpoint);
         return restClient.sendReturnByteArray(request);
     }
 
