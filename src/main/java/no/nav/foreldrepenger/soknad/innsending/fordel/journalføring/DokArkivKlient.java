@@ -9,7 +9,7 @@ import no.nav.vedtak.felles.integrasjon.rest.TokenFlow;
 @RestClientConfig(
     tokenConfig = TokenFlow.ADAPTIVE,
     endpointProperty = "dokarkiv.base.url",
-    endpointDefault = "http://dokarkiv.teamdokumenthandtering/rest/journalpostapi/v1/journalpost",
+    endpointDefault = "https://dokarkiv.prod-fss-pub.nais.io/rest/journalpostapi/v1/journalpost",
     scopesProperty = "dokarkiv.scopes",
     scopesDefault = "api://prod-fss.teamdokumenthandtering.dokarkiv/.default"
 )
