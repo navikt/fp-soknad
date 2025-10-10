@@ -78,6 +78,10 @@ public class DokumentEntitet {
         return dokumentTypeId.erSøknad();
     }
 
+    public boolean erUttalelseOmTilbakebetaling() {
+        return dokumentTypeId.erUttalelseOmTilbakebetaling();
+    }
+
     public ArkivFilType getArkivFilType() {
         return arkivFilType;
     }

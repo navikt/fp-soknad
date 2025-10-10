@@ -4,7 +4,6 @@ import static no.nav.foreldrepenger.common.domain.validation.InputValideringRege
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -104,8 +103,7 @@ public class MellomlagringRest {
         vedleggSjekkerTjeneste.sjekkVedlegg(orginalVedlegg);
         var pdfBytes = converter.convert(orginalVedlegg);
         mellomlagring.lagreKryptertVedlegg(pdfBytes, ytelse);
-        var uri = URI.create("TEST"); // TODO: lage URI for vedlegg. Hva brukes denne til?
-        return Response.created(uri).entity(pdfBytes.uuid()).build();
+        return Response.status(Response.Status.CREATED).entity(pdfBytes.uuid()).build();
     }
 
     @DELETE

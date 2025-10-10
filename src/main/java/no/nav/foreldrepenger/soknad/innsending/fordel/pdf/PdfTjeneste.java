@@ -40,12 +40,12 @@ public class PdfTjeneste {
     }
 
     public DokumentEntitet lagUttalelseOmTilbakebetalingPDF(ForsendelseEntitet metadata, DokumentEntitet dokument) {
-        var ettesendelse = SøknadJsonMapper.deseraliserEttersendelse(dokument);
-        LOG.info("Genererer PDF for uttalelse om tilbakekreving for sak: {}", ettesendelse.saksnummer().value());
+        var utalelseOmTilbakebetaling = SøknadJsonMapper.deseraliserUttalelsePåTilbakebetaling(dokument);
+        LOG.info("Genererer PDF for uttalelse om tilbakekreving for sak: {}", metadata.getSaksnummer().orElseThrow());
         var pdfDokument = DokumentEntitet.builder()
             .setDokumentTypeId(dokument.getDokumentTypeId())
             .setForsendelseId(dokument.getForsendelseId())
-            .setDokumentInnhold(dokgenRestKlient.genererUttalelseOmTilbakekrevingPDF(metadata, ettesendelse), ArkivFilType.PDFA)
+            .setDokumentInnhold(dokgenRestKlient.genererUttalelseOmTilbakekrevingPDF(metadata, utalelseOmTilbakebetaling), ArkivFilType.PDFA)
             .build();
         dokumentRepository.lagre(pdfDokument);
         return pdfDokument;

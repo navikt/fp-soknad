@@ -4,13 +4,13 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import no.nav.foreldrepenger.soknad.innsending.UtalelseOmTilbakebetaling;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.EngangsstønadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SvangerskapspengesøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøknadDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse.EttersendelseDto;
 import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 
 
@@ -22,9 +22,9 @@ public class SøknadJsonMapper {
         // static
     }
 
-    public static EttersendelseDto deseraliserEttersendelse(DokumentEntitet ettersendelse) {
+    public static UtalelseOmTilbakebetaling deseraliserUttalelsePåTilbakebetaling(DokumentEntitet ettersendelse) {
         try {
-            return MAPPER.readValue(ettersendelse.getByteArrayDokument(), EttersendelseDto.class);
+            return MAPPER.readValue(ettersendelse.getByteArrayDokument(), UtalelseOmTilbakebetaling.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

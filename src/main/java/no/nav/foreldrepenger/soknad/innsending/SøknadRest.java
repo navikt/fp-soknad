@@ -1,6 +1,5 @@
 package no.nav.foreldrepenger.soknad.innsending;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,6 +92,11 @@ public class SøknadRest {
     public Response send(@Valid @NotNull EttersendelseDto ettersendelseDto) {
         tilgangskontrollTjeneste.validerSøkerFraKontekstErSammeSomSøknad(ettersendelseDto.fnr());
         tilgangskontrollTjeneste.validerSaksnummerKnyttetTilSøker(ettersendelseDto.saksnummer());
+        if (ettersendelseDto.erInnsendingAvUttalelseOmTilbakekreving()) {
+            søknadInnsendingTjeneste.lagreUttalelseOmTilbakekreving(ettersendelseDto);
+        } else {
+            søknadInnsendingTjeneste.lagreEttersendelseInnsending(ettersendelseDto);
+        }
         søknadInnsendingTjeneste.lagreEttersendelseInnsending(ettersendelseDto);
         return Response.ok().build();
     }

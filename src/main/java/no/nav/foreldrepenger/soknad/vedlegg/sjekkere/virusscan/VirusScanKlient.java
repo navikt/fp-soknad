@@ -28,7 +28,6 @@ import no.nav.vedtak.felles.integrasjon.rest.TokenFlow;
 import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 
 
-// TODO: Denne må nokk fikses/endres på! Er ikke støtte for Mulitpart eller Put i felles.
 //  https://docs.nais.io/services/antivirus/?h=clamav#getting-started
 
 @ApplicationScoped

@@ -19,6 +19,10 @@ public record EttersendelseDto(LocalDateTime mottattdato,
                                @Valid BrukerTekstDto brukerTekst,
                                @Valid @NotNull @Size(max = 40) List<@Valid VedleggDto> vedlegg) {
 
+    public boolean erInnsendingAvUttalelseOmTilbakekreving() {
+        return vedlegg().isEmpty() && brukerTekst() != null;
+    }
+
     public EttersendelseDto {
         vedlegg = Optional.ofNullable(vedlegg).map(ArrayList::new).orElse(new ArrayList<>());
     }

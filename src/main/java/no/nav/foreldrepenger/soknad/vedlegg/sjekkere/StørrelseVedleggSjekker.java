@@ -13,7 +13,6 @@ public class StørrelseVedleggSjekker implements VedleggSjekker {
     private static final Logger LOG = LoggerFactory.getLogger(StørrelseVedleggSjekker.class);
 
     private final static int MAKS_STØRRELSE_ENKELT_VEDLEGG = 16 * 1024 * 1024; // 16 MB
-    private final static int MAKS_STØRRELSE_TOTALT_ALLE_VEDLEGG = 64 * 1024 * 1024; // 64 MB
 
     public StørrelseVedleggSjekker() {
     }
@@ -29,17 +28,5 @@ public class StørrelseVedleggSjekker implements VedleggSjekker {
             throw new AttachmentTooLargeException(størrelseVedlegg, MAKS_STØRRELSE_ENKELT_VEDLEGG);
         }
     }
-
-    // TODO: Total bør sjekkes. Skal vi sjekke vedlegg for virus fra GCP og? Når vi henter?
-//    private void sjekkTotalStørrelse(Vedlegg vedlegg) {
-//        LOG.info("Sjekker total størrelse for {} vedlegg", vedlegg.bytes().length);
-//        var total = safeStream(vedlegg)
-//            .map(Vedlegg::bytes)
-//            .mapToLong(v -> v.length)
-//            .sum();
-//        if (total > MAKS_STØRRELSE_TOTALT_ALLE_VEDLEGG) {
-//            throw new AttachmentsTooLargeException(total, MAKS_STØRRELSE_TOTALT_ALLE_VEDLEGG);
-//        }
-//    }
 
 }

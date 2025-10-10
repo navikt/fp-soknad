@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -23,6 +26,7 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepositor
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus;
+import no.nav.foreldrepenger.soknad.innsending.fordel.utils.SøknadJsonMapper;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.AdopsjonDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.BarnDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.EndringssøknadForeldrepengerDto;
@@ -43,7 +47,8 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 
 @ApplicationScoped
-public class SøknadInnsendingTjeneste {
+public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
+    private static final Logger LOG = LoggerFactory.getLogger(SøknadInnsendingTjeneste.class);
     private static final ObjectMapper MAPPER = DefaultJsonMapper.getObjectMapper();
     private static final Environment ENV = Environment.current();
 
@@ -66,30 +71,10 @@ public class SøknadInnsendingTjeneste {
         this.prosessTaskTjeneste = prosessTaskTjeneste;
     }
 
-    public void lagreEttersendelseInnsending(EttersendelseDto ettersendelse) {
-        // TODO: Sjekk dupliserte forsendelser for ettersendelser også
-        var forsendelseId = UUID.randomUUID();
-        var metadata = ForsendelseEntitet.builder()
-            .setFødselsnummer(innloggetBruker.brukerFraKontekst())
-            .setSaksnummer(ettersendelse.saksnummer().value())
-            .setStatus(ForsendelseStatus.PENDING)
-            .setForsendelseId(forsendelseId)
-            .setForsendelseMottatt(forsendelsesTidspunkt(ettersendelse.mottattdato()))
-            .build();
-        dokumentRepository.lagre(metadata);
-
-        var vedleggDokumenter = hentAlleVedlegg(ettersendelse.vedlegg(), tilYtelseTypeMellomlagring(ettersendelse.type())).stream()
-            .map(v -> lagDokumentFraVedlegg(v.innhold(), forsendelseId, v.skjemanummer(), v.begrunnelse()))
-            .toList();
-        vedleggDokumenter.forEach(dokumentRepository::lagre);
-
-        var task = ProsessTaskData.forProsessTask(BehandleEttersendelseTask.class);
-        task.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
-        prosessTaskTjeneste.lagre(task);
-    }
-
+    @Override
     public void lagreSøknadInnsending(SøknadDto søknad) {
         if (erForsendelseAlleredeMottatt(søknad)) {
+            LOG.info("Duplikat forsendelse av søknad mottatt for bruker, avbryter lagring og behandling");
             return; // Unngå lagring og behandling av duplikat forsendelse
         }
 
@@ -100,13 +85,13 @@ public class SøknadInnsendingTjeneste {
             .setForsendelseId(forsendelseId)
             .setForsendelseMottatt(forsendelsesTidspunkt(søknad.mottattdato()))
             .build();
+        dokumentRepository.lagre(metadata);
+
         var søknadDokument = DokumentEntitet.builder()
             .setDokumentInnhold(getInnhold(søknad), ArkivFilType.JSON)
             .setForsendelseId(forsendelseId)
             .setDokumentTypeId(utledDokumentType(søknad))
             .build();
-
-        dokumentRepository.lagre(metadata);
         dokumentRepository.lagre(søknadDokument);
 
         var vedleggDokumenter = hentAlleVedlegg(søknad.vedlegg(), finnYtelseType(søknad)).stream()
@@ -119,6 +104,105 @@ public class SøknadInnsendingTjeneste {
         prosessTaskTjeneste.lagre(task);
     }
 
+    @Override
+    public void lagreEttersendelseInnsending(EttersendelseDto ettersendelse) {
+        var vedleggMedInnhold = hentAlleVedlegg(ettersendelse.vedlegg(), tilYtelseTypeMellomlagring(ettersendelse.type()));
+        if (erEttersendelseAlleredeMottatt(vedleggMedInnhold)) {
+            LOG.info("Duplikat forsendelse av ettersendelse mottatt for bruker, avbryter lagring og behandling");
+            return; // Unngå lagring og behandling av duplikat forsendelse
+        }
+
+        var forsendelseId = UUID.randomUUID();
+        var metadata = ForsendelseEntitet.builder()
+            .setFødselsnummer(innloggetBruker.brukerFraKontekst())
+            .setSaksnummer(ettersendelse.saksnummer().value())
+            .setStatus(ForsendelseStatus.PENDING)
+            .setForsendelseId(forsendelseId)
+            .setForsendelseMottatt(forsendelsesTidspunkt(ettersendelse.mottattdato()))
+            .build();
+        dokumentRepository.lagre(metadata);
+
+        var vedleggDokumenter = vedleggMedInnhold.stream()
+            .map(v -> lagDokumentFraVedlegg(v.innhold(), forsendelseId, v.skjemanummer(), v.begrunnelse()))
+            .toList();
+        vedleggDokumenter.forEach(dokumentRepository::lagre);
+
+        var task = ProsessTaskData.forProsessTask(BehandleEttersendelseTask.class);
+        task.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
+        prosessTaskTjeneste.lagre(task);
+    }
+
+    @Override
+    public void lagreUttalelseOmTilbakekreving(EttersendelseDto ettersendelse) {
+        var uttalelseOmTilbakebetaling = new UtalelseOmTilbakebetaling(ettersendelse.type(), ettersendelse.brukerTekst());
+        if (erForsendelseAlleredeMottatt(uttalelseOmTilbakebetaling)) {
+            LOG.warn("Duplikat forsendelse av svar på uttalelse om tilbakebetaling oppdaget for bruker, avbryter lagring og behandling");
+            return; // Unngå lagring og behandling av duplikat forsendelse
+        }
+
+        var forsendelseId = UUID.randomUUID();
+        var metadata = ForsendelseEntitet.builder()
+            .setFødselsnummer(innloggetBruker.brukerFraKontekst())
+            .setSaksnummer(ettersendelse.saksnummer().value())
+            .setStatus(ForsendelseStatus.PENDING)
+            .setForsendelseId(forsendelseId)
+            .setForsendelseMottatt(forsendelsesTidspunkt(ettersendelse.mottattdato()))
+            .build();
+        dokumentRepository.lagre(metadata);
+
+        var uttalelseDokument = DokumentEntitet.builder()
+            .setDokumentInnhold(getInnhold(uttalelseOmTilbakebetaling), ArkivFilType.JSON)
+            .setForsendelseId(forsendelseId)
+            .setDokumentTypeId(DokumentTypeId.I000119)
+            .build();
+        dokumentRepository.lagre(uttalelseDokument);
+
+        var task = ProsessTaskData.forProsessTask(BehandleEttersendelseTask.class);
+        task.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
+        prosessTaskTjeneste.lagre(task);
+    }
+
+    private boolean erForsendelseAlleredeMottatt(UtalelseOmTilbakebetaling utalelseOmTilbakebetaling) {
+        var eksisterendeForsendelse = dokumentRepository.hentForsendelse(innloggetBruker.brukerFraKontekst()).stream()
+            .max(Comparator.comparing(ForsendelseEntitet::getForsendelseMottatt));
+        if (eksisterendeForsendelse.isEmpty()) {
+            return false;
+        }
+
+        var eksisterendeUttalelseOmTilbakebetaling = dokumentRepository.hentDokumenter(eksisterendeForsendelse.get().getForsendelseId()).stream()
+            .filter(DokumentEntitet::erUttalelseOmTilbakebetaling)
+            .findFirst();
+
+        if (eksisterendeUttalelseOmTilbakebetaling.isEmpty()) {
+            return false;
+        }
+
+        var eksisterendeUttalelsePåTilbakebetaling = SøknadJsonMapper.deseraliserUttalelsePåTilbakebetaling(eksisterendeUttalelseOmTilbakebetaling.get());
+        return utalelseOmTilbakebetaling.equals(eksisterendeUttalelsePåTilbakebetaling);
+    }
+
+    private boolean erEttersendelseAlleredeMottatt(List<VedleggSkjemanummerWrapper> ettersendteVedlegg) {
+        var eksisterendeForsendelse = dokumentRepository.hentForsendelse(innloggetBruker.brukerFraKontekst()).stream()
+            .max(Comparator.comparing(ForsendelseEntitet::getForsendelseMottatt));
+        if (eksisterendeForsendelse.isEmpty()) {
+            return false;
+        }
+
+        var eksisterendeEttersendelser = dokumentRepository.hentDokumenter(eksisterendeForsendelse.get().getForsendelseId()).stream()
+            .filter(dokumentEntitet -> !dokumentEntitet.erSøknad())
+            .toList();
+
+        if (eksisterendeEttersendelser.isEmpty() || eksisterendeEttersendelser.size() != ettersendteVedlegg.size()) {
+            return false;
+        }
+
+        return ettersendteVedlegg.stream().allMatch(vedlegg ->
+            eksisterendeEttersendelser.stream().anyMatch(eksistrende ->
+                    eksistrende.getDokumentTypeId().equals(vedlegg.skjemanummer()) && Arrays.equals(eksistrende.getByteArrayDokument(), vedlegg.innhold())
+                )
+        );
+    }
+
     private boolean erForsendelseAlleredeMottatt(SøknadDto søknad) {
         var eksisterendeForsendelse = dokumentRepository.hentForsendelse(innloggetBruker.brukerFraKontekst()).stream()
             .max(Comparator.comparing(ForsendelseEntitet::getForsendelseMottatt));
@@ -129,10 +213,7 @@ public class SøknadInnsendingTjeneste {
         var eksisterendeSøknad = dokumentRepository.hentDokumenter(eksisterendeForsendelse.get().getForsendelseId(), ArkivFilType.JSON).stream()
             .filter(DokumentEntitet::erSøknad)
             .findFirst();
-        if (eksisterendeSøknad.isEmpty()) {
-            return false;
-        }
-        return Arrays.equals(eksisterendeSøknad.get().getByteArrayDokument(), getInnhold(søknad));
+        return eksisterendeSøknad.filter(dokumentEntitet -> Arrays.equals(dokumentEntitet.getByteArrayDokument(), getInnhold(søknad))).isPresent();
     }
 
     private static LocalDateTime forsendelsesTidspunkt(LocalDateTime forsendelsesTidspunkt) {
@@ -172,9 +253,9 @@ public class SøknadInnsendingTjeneste {
         return barnDto instanceof AdopsjonDto || barnDto instanceof OmsorgsovertakelseDto;
     }
 
-    private static byte[] getInnhold(SøknadDto søknad) {
+    private static byte[] getInnhold(Object object) {
         try {
-            return MAPPER.writeValueAsBytes(søknad);
+            return MAPPER.writeValueAsBytes(object);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e); // TODO: Exceaption handling
         }

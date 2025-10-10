@@ -26,7 +26,7 @@ public record ForeldrepengesøknadDto(LocalDateTime mottattdato,
                                      @Valid @NotNull Dekningsgrad dekningsgrad,
                                      @Valid @NotNull UttaksplanDto uttaksplan,
                                      @Valid @Size(max = 40) List<@Valid @NotNull UtenlandsoppholdsperiodeDto> utenlandsopphold,
-                                     @Valid @VedlegglistestørrelseConstraint @Size(max = 100) List<@Valid VedleggDto> vedlegg) implements SøknadDto {
+                                     @Valid @VedlegglistestørrelseConstraint List<@Valid VedleggDto> vedlegg) implements SøknadDto {
     public ForeldrepengesøknadDto {
         andreInntekterSiste10Mnd = Optional.ofNullable(andreInntekterSiste10Mnd).orElse(List.of());
         vedlegg = Optional.ofNullable(vedlegg).orElse(List.of());
