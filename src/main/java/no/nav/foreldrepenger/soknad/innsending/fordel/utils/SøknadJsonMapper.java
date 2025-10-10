@@ -33,13 +33,7 @@ public class SøknadJsonMapper {
     public static SøknadDto deseraliserSøknad(DokumentEntitet søknad) {
         try {
             return switch (søknad.getDokumentTypeId()) {
-                case I000002, I000005 -> {
-                    try {
-                        yield MAPPER.readValue(søknad.getByteArrayDokument(), ForeldrepengesøknadDto.class);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
+                case I000002, I000005 -> MAPPER.readValue(søknad.getByteArrayDokument(), ForeldrepengesøknadDto.class);
                 case I000050 -> MAPPER.readValue(søknad.getByteArrayDokument(), EndringssøknadForeldrepengerDto.class);
                 case I000003, I000004 -> MAPPER.readValue(søknad.getByteArrayDokument(), EngangsstønadDto.class);
                 case I000001 -> MAPPER.readValue(søknad.getByteArrayDokument(), SvangerskapspengesøknadDto.class);
