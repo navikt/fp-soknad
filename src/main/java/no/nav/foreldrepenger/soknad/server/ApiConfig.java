@@ -19,6 +19,7 @@ import jakarta.ws.rs.core.Application;
 import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.foreldrepenger.soknad.innsending.SøknadRest;
 import no.nav.foreldrepenger.soknad.mellomlagring.MellomlagringRest;
+import no.nav.foreldrepenger.soknad.server.error.GeneralRestExceptionMapper;
 import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.rest.ProsessTaskRestTjeneste;
 
@@ -59,10 +60,11 @@ public class ApiConfig extends Application {
             // Filter/providers
             JacksonJsonConfig.class,
             AuthenticationFilter.class,
+            MultiPartFeature.class,
+            GeneralRestExceptionMapper.class,
             // API
             SøknadRest.class,
-            MellomlagringRest.class,
-            MultiPartFeature.class
+            MellomlagringRest.class
         );
     }
 

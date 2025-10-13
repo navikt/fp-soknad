@@ -19,7 +19,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.UriBuilder;
 import no.nav.foreldrepenger.konfig.Environment;
-import no.nav.foreldrepenger.soknad.vedlegg.error.AttachmentVirusException;
+import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningVirusException;
 import no.nav.vedtak.exception.IntegrasjonException;
 import no.nav.vedtak.exception.ManglerTilgangException;
 import no.nav.vedtak.felles.integrasjon.rest.RestClientConfig;
@@ -65,7 +65,7 @@ public class VirusScanKlient {
         var scanResults = sendAndHandle(request);
         if (scanResults == null || scanResults.size() != 1) {
             LOG.warn("Uventet respons med lengde {}, forventet lengde er 1", scanResults.size());
-            throw new AttachmentVirusException(uuid.toString());
+            throw new VedleggOpplastningVirusException(uuid.toString());
         }
         var scanResult = scanResults.getFirst();
         LOG.trace("Fikk scan result {}", scanResult);
@@ -74,7 +74,7 @@ public class VirusScanKlient {
             return;
         }
         LOG.warn("Fant virus!, status {}", scanResult.getResult());
-        throw new AttachmentVirusException("Virus påvist i dokument med id " + uuid);
+        throw new VedleggOpplastningVirusException(uuid.toString());
     }
 
     private List<ScanResult> sendAndHandle(HttpRequest request) {

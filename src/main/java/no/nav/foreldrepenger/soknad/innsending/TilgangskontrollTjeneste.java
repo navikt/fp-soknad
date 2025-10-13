@@ -8,6 +8,7 @@ import no.nav.foreldrepenger.kontrakter.fordel.SaksnummerDto;
 import no.nav.foreldrepenger.soknad.innsending.fordel.fpsak.FpsakTjeneste;
 import no.nav.foreldrepenger.soknad.innsending.fordel.pdl.PdlKlientSystem;
 import no.nav.foreldrepenger.soknad.utils.InnloggetBruker;
+import no.nav.vedtak.exception.ManglerTilgangException;
 
 @ApplicationScoped
 public class TilgangskontrollTjeneste {
@@ -30,8 +31,7 @@ public class TilgangskontrollTjeneste {
 
     protected void validerSøkerFraKontekstErSammeSomSøknad(Fødselsnummer fnrFraSøknad) {
         if (!innloggetBruker.brukerFraKontekst().equals(fnrFraSøknad.value())) {
-            // TODO: Funksjonell feilmelding til bruker!
-            throw new IllegalStateException("Fødselsnummer i søknad matcher ikke innlogget bruker. Forekommer typisk når søker og annenpart søker på samme maskin.");
+            throw new ManglerTilgangException("SOKNAD-1001", "Søker som er angitt i innsendt søknad er ulik fra innlogget bruker. Vennligst logg inn på nytt og prøv igjen.");
         }
     }
 
@@ -39,7 +39,7 @@ public class TilgangskontrollTjeneste {
         var fagsakinformasjon = fpsakTjeneste.finnFagsakInfomasjon(new SaksnummerDto(saksnummer.value()));
         var aktøridSøker = pdlKlientSystem.aktørId(innloggetBruker.brukerFraKontekst());
         if (fagsakinformasjon.isEmpty() || !fagsakinformasjon.get().aktørId().equals(aktøridSøker.value())) {
-            throw new IllegalStateException("Saksnummer er ikke knyttet til søker");
+            throw new ManglerTilgangException("SOKNAD-1002", "Saksnummer spesifisert i innsending er ikke knyttet til søker.");
         }
 
     }

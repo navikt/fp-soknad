@@ -5,7 +5,7 @@ import java.util.List;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.MediaType;
 import no.nav.foreldrepenger.soknad.vedlegg.Vedlegg;
-import no.nav.foreldrepenger.soknad.vedlegg.error.AttachmentTypeUnsupportedException;
+import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningTypeUnsupportedException;
 
 @ApplicationScoped
 public class StøttetFormatSjekker implements VedleggSjekker {
@@ -18,7 +18,7 @@ public class StøttetFormatSjekker implements VedleggSjekker {
     public void sjekk(Vedlegg vedlegg) {
         var contentType = vedlegg.mediaType();
         if (contentType != null && !supportedTypes.contains(contentType)) {
-            throw new AttachmentTypeUnsupportedException(contentType);
+            throw new VedleggOpplastningTypeUnsupportedException(contentType);
         }
     }
 }

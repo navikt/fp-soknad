@@ -3,10 +3,10 @@ package no.nav.foreldrepenger.soknad.server.error;
 public enum FeilKode {
 
     IKKE_TILGANG("Ikke tilgang"),
-    IKKE_TILGANG_TIL_DOKUMENT("Dokumentet tilhører ikke bruker i token og/eller ingen fullmakt finnes"),
-    IKKE_TILGANG_IKKE_EKSTERN("Bare eksterne kan nå dette endepunktet her"),
-    IKKE_TILGANG_UMYNDIG("Innlogget bruker er under myndighetsalder"),
-    IKKE_TILGANG_MANGLER_DRIFT_ROLLE("Innlogget ansatt har ikke driftrolle");
+    DUPLIKAT_FORSENDELSE("Duplikat forespørsel"),
+    VEDLEGG_OPPLASTNING("Opplasting av vedlegg feilet"),
+    KRYPTERING_MELLOMLAGRING("Kryptering eller dekryptering av mellomlagring feilet");
+
 
     private final String beskrivelse;
 

@@ -2,7 +2,6 @@ package no.nav.foreldrepenger.soknad.innsending.fordel.dokument;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -14,6 +13,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import no.nav.vedtak.exception.TekniskException;
 
 @Entity
 @Table(name = "DOKUMENT")
@@ -61,13 +61,9 @@ public class DokumentEntitet {
 
     public String getKlartekstDokument() {
         if (!ArkivFilType.erKlartekstType(this.arkivFilType)) {
-            throw new IllegalStateException("Utviklerfeil: prøver å hente klartekst av binærdokument");
+            throw new TekniskException("SOKNAD-1003", "Utviklerfeil: prøver å hente klartekst av binærdokument");
         }
         return new String(content, StandardCharsets.UTF_8);
-    }
-
-    public String getBase64EncodetDokument() {
-        return Base64.getEncoder().encodeToString(content);
     }
 
     public byte[] getByteArrayDokument() {

@@ -11,6 +11,7 @@ import no.nav.foreldrepenger.soknad.innsending.kontrakt.EngangsstønadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SvangerskapspengesøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøknadDto;
+import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 
 
@@ -22,11 +23,13 @@ public class SøknadJsonMapper {
         // static
     }
 
+
+
     public static UtalelseOmTilbakebetaling deseraliserUttalelsePåTilbakebetaling(DokumentEntitet ettersendelse) {
         try {
             return MAPPER.readValue(ettersendelse.getByteArrayDokument(), UtalelseOmTilbakebetaling.class);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new TekniskException("SOKNAD-1004", "Klarte ikke deseralisere uttalelse om tilbakekreving", e);
         }
     }
 

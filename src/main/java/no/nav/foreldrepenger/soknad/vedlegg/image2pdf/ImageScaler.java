@@ -20,7 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jakarta.ws.rs.core.MediaType;
-import no.nav.foreldrepenger.soknad.vedlegg.error.AttachmentConversionException;
+import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningConversionException;
 
 class ImageScaler {
 
@@ -45,7 +45,7 @@ class ImageScaler {
             }
             pdPageContentStream.drawImage(pdImageXObject, matrix);
         } catch (IOException e) {
-            throw new AttachmentConversionException("Konvertering av vedlegg feilet", e);
+            throw new VedleggOpplastningConversionException(mediaType, e);
         }
     }
 

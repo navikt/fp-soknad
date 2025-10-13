@@ -16,8 +16,8 @@ import org.slf4j.LoggerFactory;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.MediaType;
 import no.nav.foreldrepenger.soknad.vedlegg.Vedlegg;
-import no.nav.foreldrepenger.soknad.vedlegg.error.AttachmentConversionException;
-import no.nav.foreldrepenger.soknad.vedlegg.error.AttachmentTypeUnsupportedException;
+import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningConversionException;
+import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningTypeUnsupportedException;
 
 @ApplicationScoped
 public class Image2PDFConverter {
@@ -47,7 +47,7 @@ public class Image2PDFConverter {
             LOG.info("Konvertering av {} til PDF tok {}ms", mediaType, slutt - start);
             return new Vedlegg(pdfBytes, APPLICATION_PDF, vedlegg.filnavn(), vedlegg.uuid());
         }
-        throw new AttachmentTypeUnsupportedException(mediaType);
+        throw new VedleggOpplastningTypeUnsupportedException(mediaType);
     }
 
     private static byte[] konverterBildeTilPdf(byte[] innhold, MediaType mediaType) {
@@ -56,7 +56,7 @@ public class Image2PDFConverter {
             doc.save(outputStream);
             return outputStream.toByteArray();
         } catch (Exception e) {
-            throw new AttachmentConversionException("Konvertering av vedlegg feilet", e);
+            throw new VedleggOpplastningConversionException(mediaType, e);
         }
     }
 
@@ -64,7 +64,7 @@ public class Image2PDFConverter {
         try {
            pdfFraBilde(doc, orig, mediaType);
         } catch (Exception e) {
-            throw new AttachmentConversionException("Konvertering av vedlegg feilet", e);
+            throw new VedleggOpplastningConversionException(mediaType, e);
         }
     }
 

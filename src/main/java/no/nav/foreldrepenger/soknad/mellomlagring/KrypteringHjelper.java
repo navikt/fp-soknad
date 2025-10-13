@@ -16,6 +16,8 @@ import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import no.nav.foreldrepenger.soknad.mellomlagring.error.KrypteringMellomlagringException;
+
 public class KrypteringHjelper {
 
     private final SecretKey key;
@@ -25,7 +27,7 @@ public class KrypteringHjelper {
 
     public KrypteringHjelper(String passphrase, String fnr) {
         if (passphrase == null || passphrase.isEmpty() || fnr == null || fnr.isEmpty()) {
-            throw new IllegalArgumentException("Both passphrase and fnr must be provided");
+            throw new KrypteringMellomlagringException("Både passord og fnr må være satt og kan ikke være null", null);
         }
         key = key(passphrase, fnr);
         iv = fnr;
@@ -35,22 +37,14 @@ public class KrypteringHjelper {
         try {
             return Base64.getEncoder().encodeToString(cipher(ENCRYPT_MODE).doFinal(plainText.getBytes()));
         } catch (Exception ex) {
-            throw new RuntimeException("Error while encrypting text", ex); // TODO: Bedre excetpions med riktig håndtering!
+            throw new KrypteringMellomlagringException("Klarte ikke kryptere mellomlagring", ex);
         }
     }
     public byte[] encryptVedlegg(byte[] innhold) {
         try {
             return cipher(ENCRYPT_MODE).doFinal(innhold);
         } catch (Exception ex) {
-            throw new RuntimeException("Error while encrypting bytes", ex);
-        }
-    }
-
-    public byte[] decryptVedlegg(byte[] encrypted) {
-        try {
-            return cipher(DECRYPT_MODE).doFinal(encrypted);
-        } catch (Exception ex) {
-            throw new RuntimeException("Error while decrypting text", ex);
+            throw new KrypteringMellomlagringException("Klarte ikke kryptere mellomlagret vedlegg", ex);
         }
     }
 
@@ -58,7 +52,15 @@ public class KrypteringHjelper {
         try {
             return new String(cipher(DECRYPT_MODE).doFinal(Base64.getDecoder().decode(encrypted)));
         } catch (Exception ex) {
-            throw new RuntimeException("Error while decrypting text", ex);
+            throw new KrypteringMellomlagringException("Klarte ikke kryptere mellomlagring", ex);
+        }
+    }
+
+    public byte[] decryptVedlegg(byte[] encrypted) {
+        try {
+            return cipher(DECRYPT_MODE).doFinal(encrypted);
+        } catch (Exception ex) {
+            throw new KrypteringMellomlagringException("Klarte ikke kryptere mellomlagret vedlegg", ex);
         }
     }
 
@@ -74,7 +76,7 @@ public class KrypteringHjelper {
                     .generateSecret(new PBEKeySpec(passphrase.toCharArray(), salt.getBytes(), 10000, 256)).getEncoded(),
                     "AES");
         } catch (Exception ex) {
-            throw new RuntimeException("Error while generating key", ex);
+            throw new KrypteringMellomlagringException("Klarte ikke generere secret til kryptering", ex);
         }
     }
 

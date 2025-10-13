@@ -4,10 +4,7 @@ import static jakarta.xml.bind.Marshaller.JAXB_FORMATTED_OUTPUT;
 import static java.lang.String.format;
 
 import java.io.StringWriter;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.Optional;
 
 import javax.xml.transform.dom.DOMResult;
 
@@ -15,7 +12,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.helpers.DefaultValidationEventHandler;
@@ -66,32 +62,6 @@ abstract class AbstractJAXBUtil {
         } catch (JAXBException e) {
             throw new UnexpectedInputException(format("Feil ved konstruksjon av marshaller fra kontekst %s", context), e);
         }
-    }
-
-    public static Double tilDoubleFraBigDecimal(JAXBElement<BigDecimal> value) {
-        return Optional.ofNullable(value)
-                .map(JAXBElement::getValue)
-                .map(BigDecimal::doubleValue)
-                .orElse(null);
-    }
-
-    public static Double tilDoubleFraBigInteger(JAXBElement<BigInteger> value) {
-        return Optional.ofNullable(value)
-                .map(JAXBElement::getValue)
-                .map(BigInteger::doubleValue)
-                .orElse(null);
-    }
-
-    public static boolean tilBoolean(JAXBElement<Boolean> value) {
-        return Optional.ofNullable(value)
-                .map(JAXBElement::getValue)
-                .orElse(false);
-    }
-
-    public static String tilTekst(JAXBElement<String> tekst) {
-        return Optional.ofNullable(tekst)
-                .map(JAXBElement::getValue)
-                .orElse(null);
     }
 
     @Override

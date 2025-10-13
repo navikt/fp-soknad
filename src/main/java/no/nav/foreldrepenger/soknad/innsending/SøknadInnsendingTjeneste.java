@@ -74,8 +74,7 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
     @Override
     public void lagreSøknadInnsending(SøknadDto søknad) {
         if (erForsendelseAlleredeMottatt(søknad)) {
-            LOG.info("Duplikat forsendelse av søknad mottatt for bruker, avbryter lagring og behandling");
-            return; // Unngå lagring og behandling av duplikat forsendelse
+            throw new DuplikatInnsendingException("Duplikat forsendelse av søknad mottatt for bruker, avbryter lagring og behandling");
         }
 
         var forsendelseId = UUID.randomUUID();
@@ -108,8 +107,7 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
     public void lagreEttersendelseInnsending(EttersendelseDto ettersendelse) {
         var vedleggMedInnhold = hentAlleVedlegg(ettersendelse.vedlegg(), tilYtelseTypeMellomlagring(ettersendelse.type()));
         if (erEttersendelseAlleredeMottatt(vedleggMedInnhold)) {
-            LOG.info("Duplikat forsendelse av ettersendelse mottatt for bruker, avbryter lagring og behandling");
-            return; // Unngå lagring og behandling av duplikat forsendelse
+            throw new DuplikatInnsendingException("Duplikat forsendelse av ettersendelse mottatt for bruker, avbryter lagring og behandling");
         }
 
         var forsendelseId = UUID.randomUUID();
@@ -136,8 +134,7 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
     public void lagreUttalelseOmTilbakekreving(EttersendelseDto ettersendelse) {
         var uttalelseOmTilbakebetaling = new UtalelseOmTilbakebetaling(ettersendelse.type(), ettersendelse.brukerTekst());
         if (erForsendelseAlleredeMottatt(uttalelseOmTilbakebetaling)) {
-            LOG.warn("Duplikat forsendelse av svar på uttalelse om tilbakebetaling oppdaget for bruker, avbryter lagring og behandling");
-            return; // Unngå lagring og behandling av duplikat forsendelse
+            throw new DuplikatInnsendingException("Duplikat forsendelse av svar på uttalelse om tilbakebetaling oppdaget for bruker, avbryter lagring og behandling");
         }
 
         var forsendelseId = UUID.randomUUID();
@@ -243,9 +240,9 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
     private static DokumentTypeId utledDokumentType(SøknadDto dto) {
         return switch (dto) {
             case ForeldrepengesøknadDto fp-> erAdopsjonEllerOmsorgsovertakelse(fp.barn()) ? DokumentTypeId.I000002 : DokumentTypeId.I000005;
-            case EndringssøknadForeldrepengerDto ignored -> DokumentTypeId.I000050;
+            case EndringssøknadForeldrepengerDto _ -> DokumentTypeId.I000050;
             case EngangsstønadDto es ->  erAdopsjonEllerOmsorgsovertakelse(es.barn()) ? DokumentTypeId.I000004 : DokumentTypeId.I000003;
-            case SvangerskapspengesøknadDto ignored ->  DokumentTypeId.I000001;
+            case SvangerskapspengesøknadDto _ ->  DokumentTypeId.I000001;
         };
     }
 
@@ -257,16 +254,16 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
         try {
             return MAPPER.writeValueAsBytes(object);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e); // TODO: Exceaption handling
+            throw new RuntimeException(e);
         }
     }
 
     private static YtelseMellomlagringType finnYtelseType(SøknadDto dto) {
         return switch (dto) {
-            case ForeldrepengesøknadDto ignored -> YtelseMellomlagringType.FORELDREPENGER;
-            case EndringssøknadForeldrepengerDto ignored -> YtelseMellomlagringType.FORELDREPENGER;
-            case EngangsstønadDto ignored ->  YtelseMellomlagringType.ENGANGSSTONAD;
-            case SvangerskapspengesøknadDto ignored ->  YtelseMellomlagringType.SVANGERSKAPSPENGER;
+            case ForeldrepengesøknadDto _ -> YtelseMellomlagringType.FORELDREPENGER;
+            case EndringssøknadForeldrepengerDto _ -> YtelseMellomlagringType.FORELDREPENGER;
+            case EngangsstønadDto _ ->  YtelseMellomlagringType.ENGANGSSTONAD;
+            case SvangerskapspengesøknadDto _ ->  YtelseMellomlagringType.SVANGERSKAPSPENGER;
         };
     }
 

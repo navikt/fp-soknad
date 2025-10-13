@@ -9,8 +9,8 @@ import org.slf4j.LoggerFactory;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import no.nav.foreldrepenger.soknad.vedlegg.Vedlegg;
-import no.nav.foreldrepenger.soknad.vedlegg.error.AttachmentPasswordProtectedException;
-import no.nav.foreldrepenger.soknad.vedlegg.error.AttachmentUnreadableException;
+import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningPasswordProtectedException;
+import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningUnreadableException;
 
 
 @ApplicationScoped
@@ -22,12 +22,12 @@ public class PDFEncryptionVedleggSjekker implements VedleggSjekker {
     public void sjekk(Vedlegg vedlegg) {
         var innhold = vedlegg.bytes();
         if (innhold != null && APPLICATION_PDF.equals(vedlegg.mediaType())) {
-            try (var doc = Loader.loadPDF(innhold)) {
+            try (var _ = Loader.loadPDF(innhold)) {
             } catch (InvalidPasswordException e) {
                 LOG.info("Pdf feiler sjekk for kryptering", e);
-                throw new AttachmentPasswordProtectedException();
+                throw new VedleggOpplastningPasswordProtectedException(vedlegg.mediaType());
             } catch (Exception e) {
-                throw new AttachmentUnreadableException("Pdf er uleselig");
+                throw new VedleggOpplastningUnreadableException("Pdf er uleselig", vedlegg.mediaType(), e);
             }
         }
     }

@@ -27,6 +27,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import no.nav.foreldrepenger.soknad.vedlegg.Vedlegg;
 import no.nav.foreldrepenger.soknad.vedlegg.VedleggSjekkerTjeneste;
+import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningUnreadableException;
 import no.nav.foreldrepenger.soknad.vedlegg.image2pdf.Image2PDFConverter;
 
 @Path("/storage")
@@ -125,7 +126,7 @@ public class MellomlagringRest {
         try {
             return fileInputStream.readAllBytes();
         } catch (IOException e) {
-            throw new RuntimeException(e); // TODO: Bedre feilhåndtering
+            throw new VedleggOpplastningUnreadableException("Klarte ikke lese innsending", null, e);
         }
     }
 
