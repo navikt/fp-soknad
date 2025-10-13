@@ -119,7 +119,7 @@ public class JettyServer {
     }
 
     public static FluentConfiguration flywayConfig(DataSource dataSource) {
-        return Flyway.configure().dataSource(dataSource).locations("classpath:/db/migration/defaultDS").baselineOnMigrate(true);
+        return Flyway.configure().dataSource(dataSource).locations("classpath:/db/postgres/defaultDS").baselineOnMigrate(true);
     }
 
     public static DataSource setupDataSource() throws NamingException {
