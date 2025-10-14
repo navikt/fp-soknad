@@ -115,7 +115,7 @@ class BehandleEttersendelseTaskTest {
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY)).isEqualTo(forsendelseId.toString());
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.SAKSNUMMER_PROPERTY)).isEqualTo(saksnummer);
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.BEHANDLING_TEMA_PROPERTY)).isEqualTo(BehandlingTema.FORELDREPENGER_FØDSEL.getOffisiellKode());
-        assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.DOKUMENT_TYPE_ID_PROPERTY)).isEqualTo(DokumentTypeId.I000051.getKode());
+        assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.DOKUMENT_TYPE_ID_PROPERTY)).isEqualTo(DokumentTypeId.I000132.getKode());
 
     }
 }
