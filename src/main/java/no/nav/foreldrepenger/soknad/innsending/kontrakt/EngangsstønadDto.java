@@ -20,6 +20,7 @@ public record EngangsstønadDto(LocalDateTime mottattdato,
                                @Valid @VedlegglistestørrelseConstraint @Size(max = 100) List<@Valid @NotNull VedleggDto> vedlegg) implements SøknadDto {
 
     public EngangsstønadDto {
+        utenlandsopphold = Optional.ofNullable(utenlandsopphold).orElse(List.of());
         vedlegg = Optional.ofNullable(vedlegg).orElse(List.of());
     }
 }

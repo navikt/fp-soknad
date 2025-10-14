@@ -45,7 +45,6 @@ public class VLKlargjørerTask implements ProsessTaskHandler {
         var dokumenttypeId = DokumentTypeId.valueOf(prosessTaskData.getPropertyValue(BehandleSøknadTask.DOKUMENT_TYPE_ID_PROPERTY));
         var behandlingsTema = BehandlingTema.fraOffisiellKode(prosessTaskData.getPropertyValue(BehandleSøknadTask.BEHANDLING_TEMA_PROPERTY));
 
-
         var metadata = dokumentRepository.hentEksaktDokumentMetadata(forsendelseId); // Eller hente fra prosesstask prop?
         var hoverdDokument = dokumentRepository.hentDokumenter(forsendelseId, ArkivFilType.XML).stream()
             .filter(DokumentEntitet::erSøknad)

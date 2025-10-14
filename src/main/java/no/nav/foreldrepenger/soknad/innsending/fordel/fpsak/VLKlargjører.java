@@ -8,28 +8,27 @@ import org.slf4j.LoggerFactory;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import no.nav.foreldrepenger.kontrakter.fordel.JournalpostKnyttningDto;
 import no.nav.foreldrepenger.kontrakter.fordel.JournalpostMottakDto;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
-import no.nav.foreldrepenger.soknad.innsending.fordel.fptilbake.TilbakekrevingKlient;
+import no.nav.foreldrepenger.soknad.innsending.fordel.fptilbake.FtilbakeTjeneste;
 
 @ApplicationScoped
 public class VLKlargjører {
 
     private static final Logger LOG = LoggerFactory.getLogger(VLKlargjører.class);
 
-    private FpsakTjeneste fagsak;
-    private TilbakekrevingKlient tilbakeJournalpostSender;
+    private FpsakTjeneste fpsakTjeneste;
+    private FtilbakeTjeneste fptilbakeTjeneste;
 
     public VLKlargjører() {
         // CDI
     }
 
     @Inject
-    public VLKlargjører(FpsakTjeneste fagsak, TilbakekrevingKlient tilbakeJournalpostSender) {
-        this.fagsak = fagsak;
-        this.tilbakeJournalpostSender = tilbakeJournalpostSender;
+    public VLKlargjører(FpsakTjeneste fpsakTjeneste, FtilbakeTjeneste fptilbakeTjeneste) {
+        this.fpsakTjeneste = fpsakTjeneste;
+        this.fptilbakeTjeneste = fptilbakeTjeneste;
     }
 
     public void klargjør(String payloadHoveddokument,
@@ -42,36 +41,22 @@ public class VLKlargjører {
         var behandlingTemaString = (behandlingsTema == null) || BehandlingTema.UDEFINERT.equals(behandlingsTema)
             ? BehandlingTema.UDEFINERT.getOffisiellKode()
             : behandlingsTema.getOffisiellKode();
-        sendForsendelseTilFpsak(payloadHoveddokument, saksnummer, arkivId, dokumenttypeId, forsendelseMottatt, forsendelseId, behandlingTemaString);
-        sendForsendelseTilFptilbake(payloadHoveddokument, saksnummer, arkivId, dokumenttypeId, forsendelseMottatt, forsendelseId, behandlingTemaString);
-    }
-
-    private void sendForsendelseTilFpsak(String payload,
-                                         String saksnummer,
-                                         String arkivId,
-                                         DokumentTypeId dokumenttypeId,
-                                         LocalDateTime forsendelseMottatt,
-                                         UUID forsendelseId,
-                                         String behandlingTemaString) {
-        var journalpost = new JournalpostMottakDto(saksnummer, arkivId, behandlingTemaString, dokumenttypeId.name(), forsendelseMottatt, payload);
+        var journalpost = new JournalpostMottakDto(saksnummer, arkivId, behandlingTemaString, dokumenttypeId.name(), forsendelseMottatt, payloadHoveddokument);
         journalpost.setForsendelseId(forsendelseId);
-        journalpost.setKnyttSakOgJournalpost(true);
-        fagsak.sendOgKnyttJournalpost(journalpost);
+        sendForsendelseTilFpsak(journalpost);
+        sendForsendelseTilFptilbake(journalpost);
     }
 
-    private void sendForsendelseTilFptilbake(String payload,
-                                             String saksnummer,
-                                             String arkivId,
-                                             DokumentTypeId dokumenttypeId,
-                                             LocalDateTime forsendelseMottatt,
-                                             UUID forsendelseId,
-                                             String behandlingTemaString) {
+    private void sendForsendelseTilFpsak(JournalpostMottakDto journalpost) {
+        journalpost.setKnyttSakOgJournalpost(true);
+        fpsakTjeneste.sendOgKnyttJournalpost(journalpost);
+    }
+
+    private void sendForsendelseTilFptilbake(JournalpostMottakDto journalpost) {
         try {
-            var tilbakeMottakDto = new JournalpostMottakDto(saksnummer, arkivId, behandlingTemaString, dokumenttypeId.name(), forsendelseMottatt, payload);
-            tilbakeMottakDto.setForsendelseId(forsendelseId);
-            tilbakeJournalpostSender.send(tilbakeMottakDto);
+            fptilbakeTjeneste.send(journalpost);
         } catch (Exception e) {
-            LOG.warn("Feil ved sending av forsendelse til fptilbake, ukjent feil", e);
+            LOG.warn("Kunne ikke sende forsendelse til fptilbake. Forsendelsen er sendt til fpsak, men ikke til fptilbake. Innsending forsetter, men feilen bør undersøkes.", e);;
         }
     }
 }

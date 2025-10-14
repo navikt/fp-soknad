@@ -17,9 +17,9 @@ import no.nav.vedtak.felles.integrasjon.rest.TokenFlow;
 
 @ApplicationScoped
 @RestClientConfig(tokenConfig = TokenFlow.ADAPTIVE, application = FpApplication.FPTILBAKE)
-public class TilbakekrevingKlient {
+public class FptilbakeKlient implements FtilbakeTjeneste {
 
-    protected static final Logger LOG = LoggerFactory.getLogger(TilbakekrevingKlient.class);
+    protected static final Logger LOG = LoggerFactory.getLogger(FptilbakeKlient.class);
 
     private static final String MOTTAK_JOURNALPOST_PATH = "/api/fordel/journalpost";
 
@@ -27,12 +27,13 @@ public class TilbakekrevingKlient {
     private final RestConfig restConfig;
     private final URI endpoint;
 
-    public TilbakekrevingKlient() {
+    public FptilbakeKlient() {
         this.klient = RestClient.client();
         this.restConfig = RestConfig.forClient(this.getClass());
         this.endpoint = UriBuilder.fromUri(restConfig.fpContextPath()).path(MOTTAK_JOURNALPOST_PATH).build();
     }
 
+    @Override
     public void send(JournalpostMottakDto journalpost) {
         LOG.info("Sender journalpost for {}", getClass().getSimpleName());
         klient.sendReturnOptional(RestRequest.newPOSTJson(journalpost, endpoint, restConfig), String.class);
