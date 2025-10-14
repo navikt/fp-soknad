@@ -55,7 +55,7 @@ public class MapNAVSkjemaDokumentTypeId {
         if (minrank < MAX_RANK) {
             return RANK_DOKUMENT_TYPE.get(minrank);
         } else {
-            return typerMedBeskrivelse.stream().findFirst().or(() -> alleTyper.stream().findFirst()).orElseThrow();
+            return typerMedBeskrivelse.stream().sorted().findFirst().or(() -> alleTyper.stream().findFirst()).orElseThrow();
         }
     }
 
