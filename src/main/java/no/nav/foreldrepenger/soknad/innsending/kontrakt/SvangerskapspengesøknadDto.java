@@ -30,9 +30,9 @@ public record SvangerskapspengesøknadDto(LocalDateTime mottattdato,
                                          @NotNull @Valid @VedlegglistestørrelseConstraint @Size(min = 1, max = 20) List<@Valid @NotNull VedleggDto> vedlegg) implements SøknadDto {
 
     public SvangerskapspengesøknadDto {
+        andreInntekterSiste10Mnd = Optional.ofNullable(andreInntekterSiste10Mnd).orElse(List.of());
         utenlandsopphold = Optional.ofNullable(utenlandsopphold).orElse(List.of());
         tilretteleggingsbehov = Optional.ofNullable(tilretteleggingsbehov).orElse(List.of());
-        andreInntekterSiste10Mnd = Optional.ofNullable(andreInntekterSiste10Mnd).orElse(List.of());
         avtaltFerie = Optional.ofNullable(avtaltFerie).orElse(List.of());
         vedlegg = Optional.ofNullable(vedlegg).orElse(List.of());
     }

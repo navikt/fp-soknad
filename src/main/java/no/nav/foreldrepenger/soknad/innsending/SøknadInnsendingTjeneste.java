@@ -9,9 +9,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -48,7 +45,6 @@ import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 
 @ApplicationScoped
 public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
-    private static final Logger LOG = LoggerFactory.getLogger(SøknadInnsendingTjeneste.class);
     private static final ObjectMapper MAPPER = DefaultJsonMapper.getObjectMapper();
     private static final Environment ENV = Environment.current();
 
@@ -82,6 +78,7 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
             .setFødselsnummer(innloggetBruker.brukerFraKontekst())
             .setStatus(ForsendelseStatus.PENDING)
             .setForsendelseId(forsendelseId)
+            .setSaksnummer(søknad instanceof EndringssøknadForeldrepengerDto endring ? endring.saksnummer().value() : null)
             .setForsendelseMottatt(forsendelsesTidspunkt(søknad.mottattdato()))
             .build();
         dokumentRepository.lagre(metadata);

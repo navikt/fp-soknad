@@ -4,9 +4,7 @@ import static no.nav.foreldrepenger.common.domain.validation.InputValideringRege
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import no.nav.foreldrepenger.common.domain.felles.DokumentType;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
 
-public record BrukerTekstDto(@NotNull DokumentType dokumentType,
-                             @Pattern(regexp = FRITEKST) String tekst,
-                             @Pattern(regexp = FRITEKST) String overskrift) {
+public record BrukerTekstDto(@NotNull DokumentTypeId dokumentType, @NotNull @Pattern(regexp = FRITEKST) String tekst) {
 }
