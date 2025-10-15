@@ -97,7 +97,6 @@ public class SøknadRest {
         } else {
             søknadInnsendingTjeneste.lagreEttersendelseInnsending(ettersendelseDto);
         }
-        søknadInnsendingTjeneste.lagreEttersendelseInnsending(ettersendelseDto);
         return Response.ok().build();
     }
 
