@@ -19,11 +19,11 @@ jobs:
       contents: read
       packages: write
       id-token: write
+      pull-requests: read
     uses: navikt/fp-gha-workflows/.github/workflows/build-app-no-db.yml@main
     with:
-      sonar-scan: true
-      build-image: ${{ github.ref_name == 'main' }} # default: true
-      push-image: ${{ github.ref_name == 'main' }} # default: false
+      build-image: ${{ github.ref_name == 'master' }} # default: true
+      push-image: ${{ github.ref_name == 'master' }} # default: false
     secrets: inherit
 
 
@@ -54,7 +54,7 @@ jobs:
     name: Deploy dev
     permissions:
       id-token: write
-    if: github.ref_name == 'main'
+    if: github.ref_name == 'master'
     needs: build-app
     uses: navikt/fp-gha-workflows/.github/workflows/deploy.yml@main
     with:
@@ -62,7 +62,7 @@ jobs:
       image: ${{ needs.build-app.outputs.build-version }}
       cluster: dev-gcp
     secrets: inherit
-#
+
 #  deploy-prod:
 #    name: Deploy prod
 #    permissions:
