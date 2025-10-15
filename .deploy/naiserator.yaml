@@ -83,6 +83,7 @@ spec:
         - application: engangsstonad
         - application: foreldrepengesoknad
         - application: svangerskapspengesoknad
+        - application: foreldrepengeoversikt
     outbound:
       rules:
         - application: fpdokgen
