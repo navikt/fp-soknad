@@ -23,6 +23,7 @@ public class PDFEncryptionVedleggSjekker implements VedleggSjekker {
         var innhold = vedlegg.bytes();
         if (innhold != null && APPLICATION_PDF.equals(vedlegg.mediaType())) {
             try (var _ = Loader.loadPDF(innhold)) {
+                // Check to read PDF, and close it automatically
             } catch (InvalidPasswordException e) {
                 LOG.info("Pdf feiler sjekk for kryptering", e);
                 throw new VedleggOpplastningPasswordProtectedException(vedlegg.mediaType());

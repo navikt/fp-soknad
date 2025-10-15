@@ -52,13 +52,10 @@ public class DokumentasjonReferanseMapper {
 
     private static boolean matcherArbeidsforhold(ArbeidsforholdDto arbeidsforholdVedlegg, ArbeidsforholdDto arbeidsforholdSøknad) {
         return switch (arbeidsforholdSøknad) {
-            case ArbeidsforholdDto.VirksomhetDto v ->
-                arbeidsforholdVedlegg instanceof ArbeidsforholdDto.VirksomhetDto afVedlegg && afVedlegg.id().equals(v.id());
-            case ArbeidsforholdDto.PrivatArbeidsgiverDto p ->
-                arbeidsforholdVedlegg instanceof ArbeidsforholdDto.PrivatArbeidsgiverDto afVedlegg && afVedlegg.id().equals(p.id());
-            case ArbeidsforholdDto.SelvstendigNæringsdrivendeDto ignored ->
-                arbeidsforholdVedlegg instanceof ArbeidsforholdDto.SelvstendigNæringsdrivendeDto;
-            case ArbeidsforholdDto.FrilanserDto ignored -> arbeidsforholdVedlegg instanceof ArbeidsforholdDto.FrilanserDto;
+            case ArbeidsforholdDto.VirksomhetDto(var id1) -> arbeidsforholdVedlegg instanceof ArbeidsforholdDto.VirksomhetDto(var id2) && id2.equals(id1);
+            case ArbeidsforholdDto.PrivatArbeidsgiverDto(var id1) -> arbeidsforholdVedlegg instanceof ArbeidsforholdDto.PrivatArbeidsgiverDto(var id2) && id2.equals(id1);
+            case ArbeidsforholdDto.SelvstendigNæringsdrivendeDto _ -> arbeidsforholdVedlegg instanceof ArbeidsforholdDto.SelvstendigNæringsdrivendeDto;
+            case ArbeidsforholdDto.FrilanserDto _ -> arbeidsforholdVedlegg instanceof ArbeidsforholdDto.FrilanserDto;
             default -> throw new IllegalStateException("Unexpected value: " + arbeidsforholdSøknad);
         };
     }

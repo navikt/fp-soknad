@@ -24,7 +24,6 @@ import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.Tilre
 public class SvangerskapspengerBuilder {
     private LocalDateTime mottattdato;
     private SøkerDto søkerinfo;
-    private BrukerRolle rolle;
     private Målform språkkode;
     private BarnSvpDto barnSvp;
     private FrilansDto frilans;

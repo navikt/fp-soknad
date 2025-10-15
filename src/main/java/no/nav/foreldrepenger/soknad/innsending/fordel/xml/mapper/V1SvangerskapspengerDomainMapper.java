@@ -59,7 +59,7 @@ public class V1SvangerskapspengerDomainMapper {
         var soeknad = new Soeknad();
         soeknad.setSprakvalg(målformFra(svp.språkkode()));
         soeknad.getPaakrevdeVedlegg().addAll(vedleggFra(svp.vedlegg()));
-        soeknad.setSoeker(søkerFra(søker, svp.rolle()));
+        soeknad.setSoeker(søkerFra(søker));
         soeknad.setOmYtelse(ytelseFra(svp));
         soeknad.setMottattDato(forsendelseMottatt.toLocalDate());
         return soeknad;
@@ -114,9 +114,9 @@ public class V1SvangerskapspengerDomainMapper {
                 privatArbeidsgiverXml.setIdentifikator(fnr.value());
                 yield privatArbeidsgiverXml;
             }
-            case ArbeidsforholdDto.SelvstendigNæringsdrivendeDto ignored ->
+            case ArbeidsforholdDto.SelvstendigNæringsdrivendeDto _ ->
                     throw new IllegalStateException("Oppgitt ferie er ikke støttet for selvstendig næringsdrivende eller frilansere");
-            case ArbeidsforholdDto.FrilanserDto ignored ->
+            case ArbeidsforholdDto.FrilanserDto _ ->
                     throw new IllegalStateException("Oppgitt ferie er ikke støttet for selvstendig næringsdrivende eller frilansere");
             default -> throw new IllegalStateException("Unexpected value: " + af.arbeidsforhold()); // Permits?
         };

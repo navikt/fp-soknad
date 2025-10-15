@@ -11,8 +11,16 @@ import jakarta.servlet.annotation.WebListener;
 @WebListener
 public class ServiceStarterListener implements ServletContextListener {
 
-    @Inject
     private ApplicationServiceStarter applicationServiceStarter;
+
+    ServiceStarterListener() {
+        // CDI
+    }
+
+    @Inject
+    public ServiceStarterListener(ApplicationServiceStarter applicationServiceStarter) {
+        this.applicationServiceStarter = applicationServiceStarter;
+    }
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {

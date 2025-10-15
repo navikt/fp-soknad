@@ -6,8 +6,7 @@ import java.math.RoundingMode;
 
 
 public final class VedleggUtil {
-    private final static BigDecimal BYTES_TO_KILOBYTES = BigDecimal.valueOf(1024L * 1024L);
-    private final static BigDecimal BYTES_TO_MEGABYTES = BigDecimal.valueOf(1024L * 1024L);
+    private static final BigDecimal BYTES_TO_MEGABYTES = BigDecimal.valueOf(1024L * 1024L);
 
     private VedleggUtil() {
     }

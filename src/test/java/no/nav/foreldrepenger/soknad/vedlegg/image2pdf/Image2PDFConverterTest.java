@@ -32,7 +32,8 @@ class ImageByteArray2PDFConverterTest {
 
     @Test
     void gifFailsfWhenNotConfigured() {
-        assertThrows(VedleggOpplastningTypeUnsupportedException.class, () -> converter.convert(hentVedleggFraResourcs("loading.gif", MediaType.valueOf("image/gif"))));
+        var vedlegg = hentVedleggFraResourcs("loading.gif", MediaType.valueOf("image/gif"));
+        assertThrows(VedleggOpplastningTypeUnsupportedException.class, () -> converter.convert(vedlegg));
     }
 
     @Test

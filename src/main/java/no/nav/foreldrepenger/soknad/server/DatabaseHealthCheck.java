@@ -33,7 +33,7 @@ public class DatabaseHealthCheck implements LiveAndReadinessAware {
                     return false;
                 }
             }
-        } catch (SQLException e) {
+        } catch (SQLException _) {
             LOG.warn("Feil ved SQL-spørring {} mot databasen", SQL_QUERY);
             return false;
         }

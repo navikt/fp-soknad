@@ -32,7 +32,7 @@ public record NæringDto(@Valid @NotNull LocalDate fom,
     @AssertTrue(message = "Søker har oppgitt varig endring men varigEndringDato, varigEndringInntektEtterEndring og varigEndringBeskrivelse er ikke"
         + " satt")
     public boolean isVarigEndringGyldig() {
-        if (hattVarigEndringAvNæringsinntektSiste4Kalenderår) {
+        if (Boolean.TRUE.equals(hattVarigEndringAvNæringsinntektSiste4Kalenderår)) {
             return varigEndringDato != null && varigEndringInntektEtterEndring != null && varigEndringBeskrivelse != null;
         }
         return true;

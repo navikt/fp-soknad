@@ -53,10 +53,10 @@ public class DokgenRestKlient {
 
     private String utledTemplatePath(SøknadDto søknadDto) {
         var templateNavn = switch (søknadDto) {
-            case ForeldrepengesøknadDto ignored -> "søknad-foreldrepenger";
-            case EndringssøknadForeldrepengerDto ignored1 -> "søknad-foreldrepenger-endring";
-            case SvangerskapspengesøknadDto ignored -> "søknad-svangerskapspenger";
-            case EngangsstønadDto ignored -> "søknad-engangsstønad";
+            case ForeldrepengesøknadDto _ -> "søknad-foreldrepenger";
+            case EndringssøknadForeldrepengerDto _ -> "søknad-foreldrepenger-endring";
+            case SvangerskapspengesøknadDto _ -> "søknad-svangerskapspenger";
+            case EngangsstønadDto _ -> "søknad-engangsstønad";
         };
         var språk = "nb"; // Hardkodet, men kan bruke søknadDto.getSpråk().toLowerCase() for å støtte flere språk
         return String.format("/template/%s/template_%s", templateNavn, språk);

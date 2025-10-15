@@ -112,8 +112,8 @@ public class DestinasjonsRuter {
         return switch (søknadDto) {
             case ForeldrepengesøknadDto fp -> norskAnnenForelderIdent(fp.annenForelder());
             case EndringssøknadForeldrepengerDto fp -> norskAnnenForelderIdent(fp.annenForelder());
-            case EngangsstønadDto ignored -> Optional.empty();
-            case SvangerskapspengesøknadDto ignored -> Optional.empty();
+            case EngangsstønadDto _ -> Optional.empty();
+            case SvangerskapspengesøknadDto _ -> Optional.empty();
         };
     }
 
@@ -128,8 +128,8 @@ public class DestinasjonsRuter {
         return switch (søknad) {
             case ForeldrepengesøknadDto fp -> Optional.of(førsteUttaksdatoFraPlan(fp.uttaksplan()));
             case EndringssøknadForeldrepengerDto fp -> Optional.of(førsteUttaksdatoFraPlan(fp.uttaksplan()));
-            case EngangsstønadDto ignored -> Optional.empty();
-            case SvangerskapspengesøknadDto ignored -> Optional.empty();
+            case EngangsstønadDto _ -> Optional.empty();
+            case SvangerskapspengesøknadDto _ -> Optional.empty();
         };
     }
 

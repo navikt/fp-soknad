@@ -41,7 +41,7 @@ public class PdfTjeneste {
 
     public DokumentEntitet lagUttalelseOmTilbakebetalingPDF(ForsendelseEntitet metadata, DokumentEntitet dokument) {
         var utalelseOmTilbakebetaling = SøknadJsonMapper.deseraliserUttalelsePåTilbakebetaling(dokument);
-        LOG.info("Genererer PDF for uttalelse om tilbakekreving for sak: {}", metadata.getSaksnummer().orElseThrow());
+        LOG.info("Genererer PDF for uttalelse om tilbakekreving for sak: {}", metadata.getSaksnummer().orElse("Ukjent"));
         var pdfDokument = DokumentEntitet.builder()
             .setDokumentTypeId(dokument.getDokumentTypeId())
             .setForsendelseId(dokument.getForsendelseId())

@@ -52,11 +52,6 @@ public class EngangsstønadBuilder {
         return this;
     }
 
-    public EngangsstønadBuilder medBrukerRolle(BrukerRolle rolle) {
-        this.rolle = rolle;
-        return this;
-    }
-
     public EngangsstønadBuilder medBarn(BarnDto barn) {
         this.barn = barn;
         return this;

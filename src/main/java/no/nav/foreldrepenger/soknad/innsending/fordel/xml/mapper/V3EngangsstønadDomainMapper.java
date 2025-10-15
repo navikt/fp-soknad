@@ -50,7 +50,7 @@ public class V3EngangsstønadDomainMapper {
         var soeknad = new Soeknad();
         soeknad.setSprakvalg(målformFra(søknad.språkkode()));
         soeknad.getPaakrevdeVedlegg().addAll(vedleggFra(søknad.vedlegg()));
-        soeknad.setSoeker(søkerFra(søker, søknad.rolle()));
+        soeknad.setSoeker(søkerFra(søker));
         soeknad.setMottattDato(forsendelseMottatt.toLocalDate());
         soeknad.setOmYtelse(ytelseFra(søknad));
         return soeknad;
@@ -74,7 +74,7 @@ public class V3EngangsstønadDomainMapper {
             case AdopsjonDto a -> create(a, dokumentasjonSomDokumentererBarn(vedlegg));
             case FødselDto f -> create(f, dokumentasjonSomDokumentererBarn(vedlegg));
             case TerminDto t -> create(t, dokumentasjonSomDokumentererBarn(vedlegg));
-            case OmsorgsovertakelseDto ignored -> throw new UnexpectedInputException("Omsorgsovertakelse er ikke støttet for engangsstønad");
+            case OmsorgsovertakelseDto _ -> throw new UnexpectedInputException("Omsorgsovertakelse er ikke støttet for engangsstønad");
         };
     }
 

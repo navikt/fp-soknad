@@ -54,7 +54,7 @@ class TilgangskontrollTjenesteTest {
         when(innloggetBruker.brukerFraKontekst()).thenReturn(dummyFnr2.value());
 
         var ex = assertThrows(ManglerTilgangException.class, () -> tilgangskontrollTjeneste.validerSøkerFraKontekstErSammeSomSøknad(dummyFnr1));
-        assertThat(ex.getMessage().contains("Søker som er angitt i innsendt søknad er ulik fra innlogget bruker"));
+        assertThat(ex.getMessage()).contains("Søker som er angitt i innsendt søknad er ulik fra innlogget bruker");
     }
 
     @Test
@@ -73,12 +73,13 @@ class TilgangskontrollTjenesteTest {
         var innloggetSøkersAktørid = "9912345678910";
         var aktørIdRegistrertPåSak = "999999999";
         var dummyFnr = new Fødselsnummer("1234567890");
+        var saksnummer = new Saksnummer("1234567890");
         when(innloggetBruker.brukerFraKontekst()).thenReturn(dummyFnr.value());
         when(fpsakTjeneste.finnFagsakInfomasjon(any())).thenReturn(Optional.of(new FagsakInfomasjonDto(aktørIdRegistrertPåSak, null)));
         when(pdlKlientSystem.aktørId(dummyFnr.value())).thenReturn(new AktørId(innloggetSøkersAktørid));
 
-        var ex = assertThrows(ManglerTilgangException.class, () -> tilgangskontrollTjeneste.validerSaksnummerKnyttetTilSøker(new Saksnummer("1234567890")));
-        assertThat(ex.getMessage().contains("Søker som er angitt i innsendt søknad er ulik fra innlogget bruker"));
+        var ex = assertThrows(ManglerTilgangException.class, () -> tilgangskontrollTjeneste.validerSaksnummerKnyttetTilSøker(saksnummer));
+        assertThat(ex.getMessage()).contains("Saksnummer spesifisert i innsending er ikke knyttet til søker.");
         assertThat(innloggetSøkersAktørid).isNotEqualTo(aktørIdRegistrertPåSak);
     }
 

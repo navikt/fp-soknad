@@ -171,6 +171,7 @@ public class AnnenforelderBuilder {
         private Boolean harAnnenForelderTilsvarendeRettEØS;
 
         public RettighetBuilder() {
+            // Default konstruktør
         }
 
         public RettighetBuilder medHarRettPåForeldrepenger(Boolean harRettPåForeldrepenger) {

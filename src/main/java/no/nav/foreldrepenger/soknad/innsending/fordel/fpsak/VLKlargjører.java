@@ -56,7 +56,7 @@ public class VLKlargjører {
         try {
             fptilbakeTjeneste.send(journalpost);
         } catch (Exception e) {
-            LOG.warn("Kunne ikke sende forsendelse til fptilbake. Forsendelsen er sendt til fpsak, men ikke til fptilbake. Innsending forsetter, men feilen bør undersøkes.", e);;
+            LOG.warn("Kunne ikke sende forsendelse til fptilbake. Forsendelsen er sendt til fpsak, men ikke til fptilbake. Innsending forsetter, men feilen bør undersøkes.", e);
         }
     }
 }

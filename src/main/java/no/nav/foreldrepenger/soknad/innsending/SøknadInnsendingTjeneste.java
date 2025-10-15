@@ -39,6 +39,7 @@ import no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse.YtelseType
 import no.nav.foreldrepenger.soknad.mellomlagring.MellomlagringTjeneste;
 import no.nav.foreldrepenger.soknad.mellomlagring.YtelseMellomlagringType;
 import no.nav.foreldrepenger.soknad.utils.InnloggetBruker;
+import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 import no.nav.vedtak.mapper.json.DefaultJsonMapper;
@@ -251,7 +252,7 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
         try {
             return MAPPER.writeValueAsBytes(object);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new TekniskException("SOKNAD-1005", "Noe gikk galt med seralisering av objekt!", e);
         }
     }
 

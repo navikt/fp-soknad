@@ -5,7 +5,7 @@ import jakarta.ws.rs.core.MediaType;
 
 public abstract class VedleggOpplastningException extends RuntimeException {
 
-    private final MediaType mediaType;
+    private final transient MediaType mediaType;
 
     protected VedleggOpplastningException(String msg) {
         this(msg, null, null);

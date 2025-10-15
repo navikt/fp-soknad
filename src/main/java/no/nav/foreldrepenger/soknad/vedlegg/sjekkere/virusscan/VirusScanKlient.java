@@ -63,7 +63,7 @@ public class VirusScanKlient {
             .PUT(HttpRequest.BodyPublishers.ofByteArray(bytes))
             .build();
         var scanResults = sendAndHandle(request);
-        if (scanResults == null || scanResults.size() != 1) {
+        if (scanResults.size() != 1) {
             LOG.warn("Uventet respons med lengde {}, forventet lengde er 1", scanResults.size());
             throw new VedleggOpplastningVirusException(uuid.toString());
         }
@@ -82,7 +82,7 @@ public class VirusScanKlient {
             var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             int status = response.statusCode();
             if (status == HttpURLConnection.HTTP_NO_CONTENT) {
-                return null;
+                return List.of();
             }
             if ((status >= HttpURLConnection.HTTP_OK && status < HttpURLConnection.HTTP_MULT_CHOICE)) {
                 return List.of(DefaultJsonMapper.fromJson(response.body(), ScanResult[].class));

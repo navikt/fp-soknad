@@ -43,7 +43,7 @@ public class SøknadJsonMapper {
                 default -> throw new IllegalArgumentException("Utviklerfeil: Dokument som er lagret er ikke en søknad: " + søknad.getDokumentTypeId());
             };
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new TekniskException("SOKNAD-1005", "Noe gikk galt med seralisering av søknad", e);
         }
     }
 }
