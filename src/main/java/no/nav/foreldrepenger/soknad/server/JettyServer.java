@@ -1,9 +1,5 @@
 package no.nav.foreldrepenger.soknad.server;
 
-import static org.eclipse.jetty.ee11.webapp.MetaInfConfiguration.CONTAINER_JAR_PATTERN;
-
-import java.io.File;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -14,20 +10,22 @@ import javax.sql.DataSource;
 
 import org.eclipse.jetty.ee11.cdi.CdiDecoratingListener;
 import org.eclipse.jetty.ee11.cdi.CdiServletContainerInitializer;
-import org.eclipse.jetty.ee11.servlet.ErrorPageErrorHandler;
+import org.eclipse.jetty.ee11.servlet.DefaultServlet;
 import org.eclipse.jetty.ee11.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee11.servlet.ServletHolder;
 import org.eclipse.jetty.ee11.servlet.security.ConstraintMapping;
 import org.eclipse.jetty.ee11.servlet.security.ConstraintSecurityHandler;
-import org.eclipse.jetty.ee11.webapp.WebAppContext;
 import org.eclipse.jetty.plus.jndi.EnvEntry;
 import org.eclipse.jetty.security.Constraint;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.ContextHandler;
-import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.configuration.FluentConfiguration;
+import org.glassfish.jersey.servlet.ServletContainer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -35,13 +33,12 @@ import com.zaxxer.hikari.HikariDataSource;
 import no.nav.foreldrepenger.konfig.Environment;
 
 public class JettyServer {
-
+    private static final Logger LOG = LoggerFactory.getLogger(JettyServer.class);
     private static final Environment ENV = Environment.current();
+    private static final String APPLICATION = "jakarta.ws.rs.Application";
 
     private static final String CONTEXT_PATH = "/";
 
-    private static final String JETTY_SCAN_LOCATIONS = "^.*jersey-.*\\.jar$|^.*felles-.*\\.jar$|^.*app.*\\.jar$";
-    private static final String JETTY_LOCAL_CLASSES = "^.*/target/classes/|";
     private final Integer serverPort;
 
     JettyServer(int serverPort) {
@@ -56,58 +53,41 @@ public class JettyServer {
         return new JettyServer(ENV.getProperty("server.port", Integer.class, 8080));
     }
 
-    private static ContextHandler createContext() throws MalformedURLException {
-        var ctx = new WebAppContext(CONTEXT_PATH, null, simpleConstraints(), null, new ErrorPageErrorHandler(), ServletContextHandler.NO_SESSIONS);
-        ctx.setParentLoaderPriority(true);
+    private static ContextHandler createContext() {
+        var ctx = new ServletContextHandler(CONTEXT_PATH, ServletContextHandler.NO_SESSIONS);
 
-        String baseResource;
-        try (var factory = ResourceFactory.closeable()) {
-            baseResource = factory.newResource(".").getRealURI().toURL().toExternalForm();
-        }
-        ctx.setBaseResourceAsString(baseResource);
+        // Sikkerhet
+        ctx.setSecurityHandler(simpleConstraints());
 
-        ctx.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
-        ctx.setInitParameter("pathInfoOnly", "true");
+        // Servlets
+        registerDefaultServlet(ctx);
+        registerServlet(ctx, 0, InternalApiConfig.API_URI, InternalApiConfig.class);
+        registerServlet(ctx, 1, ApiConfig.API_URI, ApiConfig.class);
 
-        // Scanns the CLASSPATH for classes and jars.
-        ctx.setAttribute(CONTAINER_JAR_PATTERN, String.format("%s%s", ENV.isLocal() ? JETTY_LOCAL_CLASSES : "", JETTY_SCAN_LOCATIONS));
+        // Starter tjenester
+        ctx.addEventListener(new ServiceStarterListener());
 
         // Enable Weld + CDI
         ctx.setInitParameter(CdiServletContainerInitializer.CDI_INTEGRATION_ATTRIBUTE, CdiDecoratingListener.MODE);
         ctx.addServletContainerInitializer(new CdiServletContainerInitializer());
         ctx.addServletContainerInitializer(new org.jboss.weld.environment.servlet.EnhancedListener());
-
-        ctx.setThrowUnavailableOnStartupException(true);
-
         return ctx;
     }
 
-    private static void konfigurerSikkerhet() {
-        if (ENV.isLocal()) {
-            initTrustStore();
-        }
+    private static void registerDefaultServlet(ServletContextHandler context) {
+        var defaultServlet = new ServletHolder(new DefaultServlet());
+        context.addServlet(defaultServlet, "/*");
     }
 
-    private static void initTrustStore() {
-        final var trustStorePathProp = "javax.net.ssl.trustStore";
-        final var trustStorePasswordProp = "javax.net.ssl.trustStorePassword";
-
-        var defaultLocation = ENV.getProperty("user.home", ".") + "/.modig/truststore.jks";
-        var storePath = ENV.getProperty(trustStorePathProp, defaultLocation);
-        var storeFile = new File(storePath);
-        if (!storeFile.exists()) {
-            throw new IllegalStateException(
-                "Finner ikke truststore i " + storePath + "\n\tKonfigurer enten som System property '" + trustStorePathProp
-                    + "' eller environment variabel '" + trustStorePathProp.toUpperCase().replace('.', '_') + "'");
-        }
-        var password = ENV.getProperty(trustStorePasswordProp, "changeit");
-        System.setProperty(trustStorePathProp, storeFile.getAbsolutePath());
-        System.setProperty(trustStorePasswordProp, password);
+    private static void registerServlet(ServletContextHandler context, int prioritet, String path, Class<?> appClass) {
+        var servlet = new ServletHolder(new ServletContainer());
+        servlet.setInitOrder(prioritet);
+        servlet.setInitParameter(APPLICATION, appClass.getName());
+        context.addServlet(servlet, path + "/*");
     }
 
     void bootStrap() throws Exception {
         System.setProperty("task.manager.runner.threads", "4");
-        konfigurerSikkerhet();
         var dataSource = setupDataSource();
         migrer(dataSource);
         start();
@@ -131,9 +111,10 @@ public class JettyServer {
     public static DataSource dataSource() {
         var config = new HikariConfig();
         config.setJdbcUrl(ENV.getProperty("NAIS_DATABASE_FPSOKNAD_FPSOKNAD_JDBC_URL"));
-        config.setConnectionTimeout(TimeUnit.SECONDS.toMillis(1));
+        config.setConnectionTimeout(TimeUnit.SECONDS.toMillis(2));
         config.setMinimumIdle(1);
-        config.setMaximumPoolSize(6);
+        config.setMaximumPoolSize(12);
+        config.setInitializationFailTimeout(30000);
         config.setConnectionTestQuery("select 1");
         config.setDriverClassName("org.postgresql.Driver");
         config.setAutoCommit(false);
@@ -148,10 +129,14 @@ public class JettyServer {
     }
 
     private void start() throws Exception {
+        LOG.info("Starter server");
         var server = new Server(getServerPort());
         server.setConnectors(createConnectors(server).toArray(new Connector[]{}));
         server.setHandler(createContext());
+        server.setStopAtShutdown(true);
+        server.setStopTimeout(10_000);
         server.start();
+        LOG.info("Server startet på port: {}", getServerPort());
         server.join();
     }
 
