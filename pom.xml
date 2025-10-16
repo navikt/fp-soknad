@@ -155,6 +155,7 @@
             <artifactId>swagger-jaxrs2-jakarta</artifactId>
         </dependency>
 
+        <!-- Hibernate -->
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
