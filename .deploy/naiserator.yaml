@@ -51,7 +51,7 @@ spec:
         lifecycleCondition:
           daysSinceCustomTime: 7
     sqlInstances:
-      - type: POSTGRES_18
+      - type: POSTGRES_17
         databases:
           - name: fpsoknad
         tier: {{dbTier}}
