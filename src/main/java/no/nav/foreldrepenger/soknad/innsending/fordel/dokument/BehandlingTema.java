@@ -6,13 +6,12 @@ import java.util.Map;
 
 public enum BehandlingTema {
     ENGANGSSTØNAD("ab0327"),
-    ENGANGSSTØNAD_FØDSEL("ab0050" ),
-    ENGANGSSTØNAD_ADOPSJON("ab0027" ),
-    FORELDREPENGER("ab0326"),
-    FORELDREPENGER_FØDSEL("ab0047" ),
-    FORELDREPENGER_ADOPSJON("ab0072" ),
-    SVANGERSKAPSPENGER("ab0126"),
-    UDEFINERT("-"),
+    ENGANGSSTØNAD_FØDSEL("ab0050"),
+    ENGANGSSTØNAD_ADOPSJON("ab0027"),
+    FORELDREPENGER_FØDSEL("ab0047"),
+    FORELDREPENGER_ADOPSJON("ab0072"),
+    FORELDREPENGER_ENDRING("ab0326"),
+    SVANGERSKAPSPENGER("ab0126");
     ;
 
     private static final Map<String, BehandlingTema> OFFISIELLE_KODER = new LinkedHashMap<>();
@@ -33,10 +32,7 @@ public enum BehandlingTema {
 
 
     public static BehandlingTema fraOffisiellKode(String kode) {
-        if (kode == null) {
-            return UDEFINERT;
-        }
-        return OFFISIELLE_KODER.getOrDefault(kode, UDEFINERT);
+        return OFFISIELLE_KODER.get(kode);
     }
 
     public String getOffisiellKode() {

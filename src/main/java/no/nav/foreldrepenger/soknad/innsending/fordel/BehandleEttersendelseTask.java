@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import no.nav.foreldrepenger.kontrakter.fordel.FagsakInfomasjonDto;
 import no.nav.foreldrepenger.kontrakter.fordel.SaksnummerDto;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
@@ -61,15 +60,14 @@ public class BehandleEttersendelseTask implements ProsessTaskHandler {
 
         var dokumenter = dokumentRepository.hentDokumenter(forsendelseId);
         var metadata = dokumentRepository.hentEksaktDokumentMetadata(forsendelseId);
-        var fagsakInfo = fagsakInformasjon(metadata);
         var dokumentTypeId = utledDokumentTypeId(dokumenter);
-        var behandlingTema = utledBehandlingstema(fagsakInfo);
+        var behandlingTema = utledBehandlingstema(metadata);
         var destinasjon = new Destinasjon(FPSAK, metadata.getSaksnummer().orElseThrow());
 
         var dokumenterForJournalføring = dokumentTypeId.erUttalelseOmTilbakebetaling()
             ? List.of(pdfTjeneste.lagUttalelseOmTilbakebetalingPDF(metadata, dokumenter.getFirst()))
             : dokumenter;
-        var opprettetJournalpost = arkivTjeneste.forsøkEndeligJournalføring(metadata, dokumenterForJournalføring, forsendelseId, destinasjon.saksnummer());
+        var opprettetJournalpost = arkivTjeneste.forsøkEndeligJournalføring(metadata, dokumenterForJournalføring, forsendelseId, destinasjon.saksnummer(), behandlingTema);
         dokumentRepository.oppdaterForsendelseMetadata(forsendelseId, opprettetJournalpost.journalpostId(), destinasjon);
         utledNesteSteg(opprettetJournalpost, behandlingTema, dokumentTypeId, forsendelseId, destinasjon);
     }
@@ -78,12 +76,9 @@ public class BehandleEttersendelseTask implements ProsessTaskHandler {
         return utledHovedDokumentType(dokumenter.stream().map(DokumentEntitet::getDokumentTypeId).collect(Collectors.toSet()));
     }
 
-    private static BehandlingTema utledBehandlingstema(FagsakInfomasjonDto fagsakInfo) {
-        return BehandlingTema.fraOffisiellKode(fagsakInfo.behandlingstemaOffisiellKode());
-    }
-
-    private FagsakInfomasjonDto fagsakInformasjon(ForsendelseEntitet metadata) {
-        return fpsakTjeneste.finnFagsakInfomasjon(new SaksnummerDto(metadata.getSaksnummer().orElseThrow())).orElseThrow();
+    private BehandlingTema utledBehandlingstema(ForsendelseEntitet metadata) {
+        var fagsakinfo =  fpsakTjeneste.finnFagsakInfomasjon(new SaksnummerDto(metadata.getSaksnummer().orElseThrow())).orElseThrow();
+        return BehandlingTema.fraOffisiellKode(fagsakinfo.behandlingstemaOffisiellKode());
     }
 
     private void utledNesteSteg(OpprettetJournalpost opprettetJournalpost, BehandlingTema behandlingTema, DokumentTypeId dokumentTypeId,

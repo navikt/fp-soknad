@@ -134,8 +134,8 @@ public class ForsendelseEntitet {
             forsendelseEntitet.journalpostId = journalpostId;
             forsendelseEntitet.saksnummer = saksnummer;
             forsendelseEntitet.forsendelseId = forsendelseId;
-            forsendelseEntitet.forsendelseMottatt = forsendelseMottatt;
             forsendelseEntitet.status = status;
+            forsendelseEntitet.forsendelseMottatt = forsendelseMottatt;
             return forsendelseEntitet;
         }
     }

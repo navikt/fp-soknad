@@ -1,7 +1,7 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel;
 
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus.FPSAK;
-import static no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.ArkivUtil.behandlingtemaFraDokumentType;
+import static no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.ArkivUtil.behandlingstemaFraSøknadDokumentType;
 
 import java.util.List;
 import java.util.UUID;
@@ -72,14 +72,14 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
         var pdf = pdfTjeneste.lagPDFFraSøknad(metadata, søknad);
 
         var dokumentTypeId = søknad.getDokumentTypeId();
-        var behandlingTema = behandlingtemaFraDokumentType(dokumentTypeId);
+        var behandlingTema = behandlingstemaFraSøknadDokumentType(dokumentTypeId);
         var destinasjon = utledDestinasjonForForsendelse(metadata, søknad, behandlingTema);
 
         var dokumenterForInnsending = Stream.concat(
             alleVedlegg(orginaleDokumenter),
             Stream.of(xml, pdf))
             .toList();
-        var opprettetJournalpost = journalførForsøkEndelig(metadata, dokumenterForInnsending, forsendelseId, destinasjon);
+        var opprettetJournalpost = journalførForsøkEndelig(metadata, dokumenterForInnsending, forsendelseId, behandlingTema, destinasjon);
 
         dokumentRepository.oppdaterForsendelseMetadata(forsendelseId, opprettetJournalpost.journalpostId(), destinasjon);
         utledNesteSteg(opprettetJournalpost, behandlingTema, dokumentTypeId, forsendelseId, destinasjon);
@@ -97,12 +97,13 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
         return ruter.bestemDestinasjon(metadata, søknad, behandlingTema);
     }
 
-    private OpprettetJournalpost journalførForsøkEndelig(ForsendelseEntitet metadata, List<DokumentEntitet> dokumenter, UUID forsendelseId, Destinasjon destinasjon) {
+    private OpprettetJournalpost journalførForsøkEndelig(ForsendelseEntitet metadata, List<DokumentEntitet> dokumenter, UUID forsendelseId,
+                                                         BehandlingTema behandlingTema, Destinasjon destinasjon) {
         if (destinasjon.erGosys()) {
-            return arkivTjeneste.midlertidigJournalføring(metadata, dokumenter, forsendelseId); // Midlertidig journalføring, håndteres av fp-mottak.
+            return arkivTjeneste.midlertidigJournalføring(metadata, dokumenter, forsendelseId, behandlingTema); // Midlertidig journalføring, håndteres av fp-mottak.
         }
 
-        var opprettetJournalpost = arkivTjeneste.forsøkEndeligJournalføring(metadata, dokumenter, forsendelseId, destinasjon.saksnummer());
+        var opprettetJournalpost = arkivTjeneste.forsøkEndeligJournalføring(metadata, dokumenter, forsendelseId, destinasjon.saksnummer(), behandlingTema);
         if (!opprettetJournalpost.ferdigstilt()) {
             LOG.info("FP-SOKNAD FORSENDELSE kunne ikke ferdigstille sak {} forsendelse {}", destinasjon.saksnummer(), forsendelseId);
         }

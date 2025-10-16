@@ -2,14 +2,12 @@ package no.nav.foreldrepenger.soknad.innsending.fordel.journalføring;
 
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema.ENGANGSSTØNAD_ADOPSJON;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema.ENGANGSSTØNAD_FØDSEL;
-import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema.FORELDREPENGER;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema.FORELDREPENGER_ADOPSJON;
+import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema.FORELDREPENGER_ENDRING;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema.FORELDREPENGER_FØDSEL;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema.SVANGERSKAPSPENGER;
-import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema.UDEFINERT;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
@@ -24,7 +22,7 @@ public final class ArkivUtil {
         Map.entry(DokumentTypeId.I000005, FORELDREPENGER_FØDSEL),
         Map.entry(DokumentTypeId.I000004, ENGANGSSTØNAD_ADOPSJON),
         Map.entry(DokumentTypeId.I000003, ENGANGSSTØNAD_FØDSEL),
-        Map.entry(DokumentTypeId.I000050, FORELDREPENGER));
+        Map.entry(DokumentTypeId.I000050, FORELDREPENGER_ENDRING));
 
     private ArkivUtil() {
     }
@@ -33,11 +31,7 @@ public final class ArkivUtil {
         return MapNAVSkjemaDokumentTypeId.velgRangertHovedDokumentType(alleTyper);
     }
 
-    public static BehandlingTema utledBehandlingTemaFraHovedDokumentType(Set<DokumentTypeId> alleTyper) {
-        return behandlingtemaFraDokumentType(utledHovedDokumentType(alleTyper));
-    }
-
-    public static BehandlingTema behandlingtemaFraDokumentType(DokumentTypeId type) {
-        return Optional.ofNullable(type).map(DOKUMENT_BEHANDLING_TEMA::get).orElse(UDEFINERT);
+    public static BehandlingTema behandlingstemaFraSøknadDokumentType(DokumentTypeId type) {
+        return DOKUMENT_BEHANDLING_TEMA.get(type);
     }
 }

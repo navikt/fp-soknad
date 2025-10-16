@@ -72,7 +72,7 @@ class VLKlargjørerTaskTest {
             .build();
         dokumentRepository.lagre(søknadXML);
 
-        var behandlingTema = BehandlingTema.FORELDREPENGER;
+        var behandlingTema = BehandlingTema.FORELDREPENGER_ENDRING;
         var prosessTaskData = ProsessTaskData.forProsessTask(BehandleSøknadTask.class);
         prosessTaskData.setProperty(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
         prosessTaskData.setProperty(BehandleSøknadTask.SAKSNUMMER_PROPERTY, metadata.getSaksnummer().orElseThrow());

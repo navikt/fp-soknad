@@ -38,10 +38,7 @@ public class VLKlargjører {
                          LocalDateTime forsendelseMottatt,
                          BehandlingTema behandlingsTema,
                          UUID forsendelseId) {
-        var behandlingTemaString = (behandlingsTema == null) || BehandlingTema.UDEFINERT.equals(behandlingsTema)
-            ? BehandlingTema.UDEFINERT.getOffisiellKode()
-            : behandlingsTema.getOffisiellKode();
-        var journalpost = new JournalpostMottakDto(saksnummer, arkivId, behandlingTemaString, dokumenttypeId.name(), forsendelseMottatt, payloadHoveddokument);
+        var journalpost = new JournalpostMottakDto(saksnummer, arkivId, behandlingsTema.getOffisiellKode(), dokumenttypeId.name(), forsendelseMottatt, payloadHoveddokument);
         journalpost.setForsendelseId(forsendelseId);
         sendForsendelseTilFpsak(journalpost);
         sendForsendelseTilFptilbake(journalpost);
