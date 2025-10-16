@@ -174,7 +174,7 @@ final class V3DomainMapperCommon {
         utenlandskOrganisasjon.setErNyoppstartet(erNyopprettet(utenlandskOrg.fom()));
         utenlandskOrganisasjon.setErNyIArbeidslivet(utenlandskOrg.harBlittYrkesaktivILøpetAvDeTreSisteFerdigliknedeÅrene());
         utenlandskOrganisasjon.setErVarigEndring(utenlandskOrg.hattVarigEndringAvNæringsinntektSiste4Kalenderår());
-        utenlandskOrganisasjon.setNaeringsinntektBrutto(BigInteger.valueOf(utenlandskOrg.næringsinntekt()));
+        utenlandskOrganisasjon.setNaeringsinntektBrutto(bigIntegerNullSafe(utenlandskOrg.næringsinntekt()));
         utenlandskOrganisasjon.setNavn(utenlandskOrg.navnPåNæringen());
         utenlandskOrganisasjon.setRegistrertILand(landFra(utenlandskOrg.registrertILand()));
         utenlandskOrganisasjon.setPeriode(tilPeriode(utenlandskOrg.fom(), utenlandskOrg.tom()));
@@ -194,12 +194,19 @@ final class V3DomainMapperCommon {
         norskOrganisasjon.setErNyoppstartet(erNyopprettet(norskOrg.fom()));
         norskOrganisasjon.setErNyIArbeidslivet(norskOrg.harBlittYrkesaktivILøpetAvDeTreSisteFerdigliknedeÅrene());
         norskOrganisasjon.setErVarigEndring(norskOrg.hattVarigEndringAvNæringsinntektSiste4Kalenderår());
-        norskOrganisasjon.setNaeringsinntektBrutto(BigInteger.valueOf(norskOrg.næringsinntekt()));
+        norskOrganisasjon.setNaeringsinntektBrutto(bigIntegerNullSafe(norskOrg.næringsinntekt()));
         norskOrganisasjon.setNavn(norskOrg.navnPåNæringen());
         norskOrganisasjon.setOrganisasjonsnummer(norskOrg.organisasjonsnummer().value());
         norskOrganisasjon.setPeriode(tilPeriode(norskOrg.fom(), norskOrg.tom()));
         norskOrganisasjon.getVirksomhetstype().add(virksomhetsTypeFra(norskOrg.næringstype()));
         return norskOrganisasjon;
+    }
+
+    private static BigInteger bigIntegerNullSafe(Integer value) {
+        if (value == null) {
+            return null;
+        }
+        return BigInteger.valueOf(value);
     }
 
     private static List<JAXBElement<Object>> egenNæringVedleggFraIDs(List<UUID> vedlegg) {

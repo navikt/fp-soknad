@@ -101,7 +101,6 @@ public class SøknadRest {
     }
 
 
-
     @GET
     @Path("/status")
     @Consumes(MediaType.APPLICATION_JSON)

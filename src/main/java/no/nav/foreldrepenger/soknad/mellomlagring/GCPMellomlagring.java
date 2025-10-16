@@ -79,6 +79,7 @@ public class GCPMellomlagring implements Mellomlagring {
 
     @Override
     public Optional<byte[]> lesVedlegg(String katalog, String key) {
+        LOG.info("Lese vedlegg med key {} i katalog {}", key, katalog);
         return Optional.ofNullable(storage.get(mellomlagringBøtte.navn(), key(katalog, key))).map(Blob::getContent);
     }
 
