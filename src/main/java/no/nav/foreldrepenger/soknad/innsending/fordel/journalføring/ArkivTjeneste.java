@@ -3,7 +3,6 @@ package no.nav.foreldrepenger.soknad.innsending.fordel.journalføring;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -44,15 +43,16 @@ public class ArkivTjeneste {
     }
 
     public OpprettetJournalpost midlertidigJournalføring(ForsendelseEntitet metadata, List<DokumentEntitet> dokumenter, UUID forsendelseId,
+                                                         DokumentTypeId dokumentTypeId,
                                                          BehandlingTema behandlingTema) {
-        var request = lagOpprettRequest(metadata, dokumenter, forsendelseId, behandlingTema);
+        var request = lagOpprettRequest(metadata, dokumenter, forsendelseId, dokumentTypeId, behandlingTema);
         var response = dokArkivTjeneste.opprettJournalpost(request.build(), false);
         return new OpprettetJournalpost(response.journalpostId(), response.journalpostferdigstilt());
     }
 
     public OpprettetJournalpost forsøkEndeligJournalføring(ForsendelseEntitet metadata, List<DokumentEntitet> dokumenter, UUID forsendelseId,
-                                                           String saksnummer, BehandlingTema behandlingTema) {
-        var request = lagOpprettRequest(metadata, dokumenter, forsendelseId, behandlingTema)
+                                                           String saksnummer, DokumentTypeId dokumentTypeId, BehandlingTema behandlingTema) {
+        var request = lagOpprettRequest(metadata, dokumenter, forsendelseId, dokumentTypeId, behandlingTema)
             .medSak(new Sak(saksnummer, "FS36", Sak.Sakstype.FAGSAK))
             .medJournalfoerendeEnhet("9999");
         var response = dokArkivTjeneste.opprettJournalpost(request.build(), true);
@@ -62,11 +62,10 @@ public class ArkivTjeneste {
     private OpprettJournalpostRequest.OpprettJournalpostRequestBuilder lagOpprettRequest(ForsendelseEntitet metadata,
                                                                                          List<DokumentEntitet> dokumenter,
                                                                                          UUID forsendelseId,
+                                                                                         DokumentTypeId hovedtype,
                                                                                          BehandlingTema behandlingTema) {
         var søknad = lagDokumenterForSøknad(dokumenter);
         var vedleggg = lagDokumenterForVedlegg(dokumenter);
-        var dokumenttyper = dokumenter.stream().map(DokumentEntitet::getDokumentTypeId).collect(Collectors.toSet());
-        var hovedtype = ArkivUtil.utledHovedDokumentType(dokumenttyper);
         var bruker = new Bruker(personoppslag.aktørId(metadata.getBrukersFnr()).value(), Bruker.BrukerIdType.AKTOERID);
         var avsender = new AvsenderMottaker(metadata.getBrukersFnr(), AvsenderMottaker.AvsenderMottakerIdType.FNR, null); // Hvis fnr, så er ikke navn nødvendig
         return OpprettJournalpostRequest.nyInngående()
@@ -114,8 +113,10 @@ public class ArkivTjeneste {
         var arkiv = new Dokumentvariant(Dokumentvariant.Variantformat.ARKIV, Dokumentvariant.Filtype.valueOf(arkivdokument.getArkivFilType().name()),
             arkivdokument.getByteArrayDokument());
         var type = arkivdokument.getDokumentTypeId();
-        var tittel = DokumentTypeId.I000060.equals(type) && (arkivdokument.getBeskrivelse() != null) ? arkivdokument.getBeskrivelse() : type.getTittel();
-        var brevkode = MapNAVSkjemaDokumentTypeId.mapDokumentTypeId(type);
+        var tittel = DokumentTypeId.I000060.equals(type) && (arkivdokument.getBeskrivelse() != null)
+            ? arkivdokument.getBeskrivelse()
+            : type.getTittel();
+        var brevkode = ArkivUtil.mapDokumentTypeId(type);
         var builder = DokumentInfoOpprett.builder()
             .medTittel(tittel)
             .medBrevkode(brevkode.getOffisiellKode())

@@ -84,7 +84,7 @@ class SøknadInnsendingTjenesteTest {
         var fnr = new Fødselsnummer("1234567890");
         var søknad = (ForeldrepengesøknadDto) new ForeldrepengerBuilder()
             .medRolle(BrukerRolle.MOR)
-            .medSøkerinfo(new SøkerDto(fnr, "Per", null))
+            .medSøkerinfo(new SøkerDto(fnr, new SøkerDto.Navn("Per", null, null), null))
             .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
             .medUttaksplan(
                 List.of(
@@ -138,7 +138,7 @@ class SøknadInnsendingTjenesteTest {
         var fnr = new Fødselsnummer("1234567890");
         var søknad = new EngangsstønadBuilder()
             .medRolle(BrukerRolle.MOR)
-            .medSøkerinfo(new SøkerDto(fnr, "Per", null))
+            .medSøkerinfo(new SøkerDto(fnr, new SøkerDto.Navn("Per", null, "Pål"), null))
             .medBarn(new FødselDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
             .medUtenlandsopphold(List.of(new UtenlandsoppholdsperiodeDto(LocalDate.now().minusYears(1), LocalDate.now().minusMonths(6), CountryCode.XK)))
             .build();
@@ -178,7 +178,7 @@ class SøknadInnsendingTjenesteTest {
                 ))
         );
         var søknad = new SvangerskapspengerBuilder(tilrettelegginger)
-            .medSøkerinfo(new SøkerDto(fnr, "Per", null))
+            .medSøkerinfo(new SøkerDto(fnr, new SøkerDto.Navn("Per", null, null), null))
             .medBarn(new TerminDto(1, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
             .medUtenlandsopphold(List.of(new UtenlandsoppholdsperiodeDto(LocalDate.now().minusYears(1), LocalDate.now().minusMonths(6), CountryCode.XK)))
             .medFrilansInformasjon(OpptjeningMaler.frilansOpptjening())
@@ -214,7 +214,7 @@ class SøknadInnsendingTjenesteTest {
         var fnr = new Fødselsnummer("1234567890");
         var søknad = new EndringssøknadBuilder(new Saksnummer("9292929"))
             .medRolle(BrukerRolle.MOR)
-            .medSøkerinfo(new SøkerDto(fnr, "Per", null))
+            .medSøkerinfo(new SøkerDto(fnr, new SøkerDto.Navn("Per", null, null), null))
             .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
             .medUttaksplan(
                 List.of(

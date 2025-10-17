@@ -12,7 +12,6 @@ public enum BehandlingTema {
     FORELDREPENGER_ADOPSJON("ab0072"),
     FORELDREPENGER_ENDRING("ab0326"),
     SVANGERSKAPSPENGER("ab0126");
-    ;
 
     private static final Map<String, BehandlingTema> OFFISIELLE_KODER = new LinkedHashMap<>();
 

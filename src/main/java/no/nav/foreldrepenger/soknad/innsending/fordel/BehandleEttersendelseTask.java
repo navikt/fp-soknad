@@ -1,11 +1,10 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel;
 
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus.FPSAK;
-import static no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.ArkivUtil.utledHovedDokumentType;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -60,20 +59,26 @@ public class BehandleEttersendelseTask implements ProsessTaskHandler {
 
         var dokumenter = dokumentRepository.hentDokumenter(forsendelseId);
         var metadata = dokumentRepository.hentEksaktDokumentMetadata(forsendelseId);
-        var dokumentTypeId = utledDokumentTypeId(dokumenter);
+        var hovedDokumenttype = utledHovedDokumentType(dokumenter);
         var behandlingTema = utledBehandlingstema(metadata);
         var destinasjon = new Destinasjon(FPSAK, metadata.getSaksnummer().orElseThrow());
 
-        var dokumenterForJournalføring = dokumentTypeId.erUttalelseOmTilbakebetaling()
+        var dokumenterForJournalføring = hovedDokumenttype.erUttalelseOmTilbakebetaling()
             ? List.of(pdfTjeneste.lagUttalelseOmTilbakebetalingPDF(metadata, dokumenter.getFirst()))
             : dokumenter;
-        var opprettetJournalpost = arkivTjeneste.forsøkEndeligJournalføring(metadata, dokumenterForJournalføring, forsendelseId, destinasjon.saksnummer(), behandlingTema);
+        var opprettetJournalpost = arkivTjeneste.forsøkEndeligJournalføring(metadata, dokumenterForJournalføring, forsendelseId, destinasjon.saksnummer(), hovedDokumenttype,
+            behandlingTema);
         dokumentRepository.oppdaterForsendelseMetadata(forsendelseId, opprettetJournalpost.journalpostId(), destinasjon);
-        utledNesteSteg(opprettetJournalpost, behandlingTema, dokumentTypeId, forsendelseId, destinasjon);
+        utledNesteSteg(opprettetJournalpost, behandlingTema, hovedDokumenttype, forsendelseId, destinasjon);
     }
 
-    private DokumentTypeId utledDokumentTypeId(List<DokumentEntitet> dokumenter) {
-        return utledHovedDokumentType(dokumenter.stream().map(DokumentEntitet::getDokumentTypeId).collect(Collectors.toSet()));
+    // Er konsekvent og velger en hoveddokumenttype for forsendelsen (gitt flere type vedlegg)
+    private static DokumentTypeId utledHovedDokumentType(List<DokumentEntitet> dokumenter) {
+        return dokumenter.stream()
+            .map(DokumentEntitet::getDokumentTypeId)
+            .filter(t -> !DokumentTypeId.I000060.equals(t))
+            .min(Comparator.comparing(DokumentTypeId::getKode))
+            .orElse(DokumentTypeId.I000060);
     }
 
     private BehandlingTema utledBehandlingstema(ForsendelseEntitet metadata) {

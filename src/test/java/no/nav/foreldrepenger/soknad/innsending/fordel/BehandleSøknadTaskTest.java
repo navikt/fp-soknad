@@ -103,7 +103,7 @@ class BehandleSøknadTaskTest {
         var familehendelseDato = LocalDateTime.now().minusWeeks(1).toLocalDate();
         var søknad = (ForeldrepengesøknadDto) new ForeldrepengerBuilder()
             .medRolle(BrukerRolle.MOR)
-            .medSøkerinfo(new SøkerDto(new Fødselsnummer("1234567890"), "Per", null))
+            .medSøkerinfo(new SøkerDto(new Fødselsnummer("1234567890"), new SøkerDto.Navn("Per", null, "etternavn"), null))
             .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
             .medUttaksplan(
                 List.of(
@@ -126,7 +126,7 @@ class BehandleSøknadTaskTest {
         when(dokgenRestKlient.genererPdf(any(), any())).thenReturn(new byte[]{1, 2, 3});
         when(personoppslag.aktørId((Fødselsnummer) any())).thenReturn(new AktørId("123"));
         when(personoppslag.aktørId((String) any())).thenReturn(new AktørId("123"));
-        when(arkivtjeneste.forsøkEndeligJournalføring(any(), any(), any(), any(), any())).thenReturn(new OpprettetJournalpost("123", true));
+        when(arkivtjeneste.forsøkEndeligJournalføring(any(), any(), any(), any(), any(), any())).thenReturn(new OpprettetJournalpost("123", true));
 
         // Act
         var prosessTaskData = ProsessTaskData.forProsessTask(BehandleSøknadTask.class);
@@ -147,7 +147,7 @@ class BehandleSøknadTaskTest {
         var dokumenterSomSkalTilJournalføring = dokumenter.stream()
             .filter(d -> !d.getArkivFilType().equals(ArkivFilType.JSON))
             .toList();
-        verify(arkivtjeneste, times(1)).forsøkEndeligJournalføring(any(), eq(dokumenterSomSkalTilJournalføring), any(), any(), any());
+        verify(arkivtjeneste, times(1)).forsøkEndeligJournalføring(any(), eq(dokumenterSomSkalTilJournalføring), any(), any(), any(), any());
 
         validerProsesstaskOpprettet(forsendelseId, saksnummer);
     }
@@ -159,7 +159,7 @@ class BehandleSøknadTaskTest {
         var saksnummer = new Saksnummer("111111");
         var endringssøknad = new EndringssøknadBuilder(saksnummer)
             .medRolle(BrukerRolle.MOR)
-            .medSøkerinfo(new SøkerDto(new Fødselsnummer("1234567890"), "Per", null))
+            .medSøkerinfo(new SøkerDto(new Fødselsnummer("1234567890"), new SøkerDto.Navn("Per", null, "etternavn"), null))
             .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
             .medUttaksplan(
                 List.of(
@@ -177,7 +177,7 @@ class BehandleSøknadTaskTest {
         when(dokgenRestKlient.genererPdf(any(), any())).thenReturn(new byte[]{1, 2, 3});
         when(personoppslag.aktørId((Fødselsnummer) any())).thenReturn(new AktørId("123"));
         when(personoppslag.aktørId((String) any())).thenReturn(new AktørId("123"));
-        when(arkivtjeneste.forsøkEndeligJournalføring(any(), any(), any(), any(), any())).thenReturn(new OpprettetJournalpost("123", true));
+        when(arkivtjeneste.forsøkEndeligJournalføring(any(), any(), any(), any(), any(), any())).thenReturn(new OpprettetJournalpost("123", true));
 
         // Act
         var prosessTaskData = ProsessTaskData.forProsessTask(BehandleSøknadTask.class);
@@ -198,7 +198,7 @@ class BehandleSøknadTaskTest {
         var dokumenterSomSkalTilJournalføring = dokumenter.stream()
             .filter(d -> !d.getArkivFilType().equals(ArkivFilType.JSON))
             .toList();
-        verify(arkivtjeneste, times(1)).forsøkEndeligJournalføring(any(), eq(dokumenterSomSkalTilJournalføring), any(), any(), any());
+        verify(arkivtjeneste, times(1)).forsøkEndeligJournalføring(any(), eq(dokumenterSomSkalTilJournalføring), any(), any(), any(), any());
         verify(fpsakTjeneste, never()).vurderFagsystem(any());
 
         validerProsesstaskOpprettet(forsendelseId, saksnummer.value());
