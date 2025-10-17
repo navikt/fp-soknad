@@ -18,7 +18,7 @@ public class MellomlagringKrypto {
     }
 
     @Inject
-    public MellomlagringKrypto(@KonfigVerdi(value = "KRYPTERING_NOKKEL") String passphrase,
+    public MellomlagringKrypto(@KonfigVerdi(value = "KRYPTERING_PASSWORD") String passphrase,
                                InnloggetBruker innloggetBruker) {
         this.passphrase = passphrase;
         this.innloggetBruker = innloggetBruker;
