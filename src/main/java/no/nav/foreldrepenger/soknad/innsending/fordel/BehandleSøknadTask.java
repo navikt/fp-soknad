@@ -79,7 +79,7 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
             alleVedlegg(orginaleDokumenter),
             Stream.of(xml, pdf))
             .toList();
-        var opprettetJournalpost = journalførForsøkEndelig(metadata, dokumenterForInnsending, forsendelseId, behandlingTema, destinasjon);
+        var opprettetJournalpost = journalførForsøkEndelig(metadata, dokumenterForInnsending, forsendelseId, dokumentTypeId, behandlingTema, destinasjon);
 
         dokumentRepository.oppdaterForsendelseMetadata(forsendelseId, opprettetJournalpost.journalpostId(), destinasjon);
         utledNesteSteg(opprettetJournalpost, behandlingTema, dokumentTypeId, forsendelseId, destinasjon);
@@ -98,12 +98,12 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
     }
 
     private OpprettetJournalpost journalførForsøkEndelig(ForsendelseEntitet metadata, List<DokumentEntitet> dokumenter, UUID forsendelseId,
-                                                         BehandlingTema behandlingTema, Destinasjon destinasjon) {
+                                                         DokumentTypeId dokumentTypeId, BehandlingTema behandlingTema, Destinasjon destinasjon) {
         if (destinasjon.erGosys()) {
-            return arkivTjeneste.midlertidigJournalføring(metadata, dokumenter, forsendelseId, behandlingTema); // Midlertidig journalføring, håndteres av fp-mottak.
+            return arkivTjeneste.midlertidigJournalføring(metadata, dokumenter, forsendelseId, dokumentTypeId, behandlingTema); // Midlertidig journalføring, håndteres av fp-mottak.
         }
 
-        var opprettetJournalpost = arkivTjeneste.forsøkEndeligJournalføring(metadata, dokumenter, forsendelseId, destinasjon.saksnummer(), behandlingTema);
+        var opprettetJournalpost = arkivTjeneste.forsøkEndeligJournalføring(metadata, dokumenter, forsendelseId, destinasjon.saksnummer(), dokumentTypeId, behandlingTema);
         if (!opprettetJournalpost.ferdigstilt()) {
             LOG.info("FP-SOKNAD FORSENDELSE kunne ikke ferdigstille sak {} forsendelse {}", destinasjon.saksnummer(), forsendelseId);
         }

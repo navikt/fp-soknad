@@ -8,7 +8,6 @@ import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Behandling
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema.SVANGERSKAPSPENGER;
 
 import java.util.Map;
-import java.util.Set;
 
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
@@ -24,11 +23,21 @@ public final class ArkivUtil {
         Map.entry(DokumentTypeId.I000003, ENGANGSSTØNAD_FØDSEL),
         Map.entry(DokumentTypeId.I000050, FORELDREPENGER_ENDRING));
 
+    private static final Map<DokumentTypeId, NAVSkjema> DOKUMENT_TYPE_BREVKODE = Map.ofEntries(
+        Map.entry(DokumentTypeId.I000001, NAVSkjema.SKJEMA_SVANGERSKAPSPENGER),
+        Map.entry(DokumentTypeId.I000002, NAVSkjema.SKJEMA_FORELDREPENGER_ADOPSJON),
+        Map.entry(DokumentTypeId.I000003, NAVSkjema.SKJEMA_ENGANGSSTØNAD_FØDSEL),
+        Map.entry(DokumentTypeId.I000004, NAVSkjema.SKJEMA_ENGANGSSTØNAD_ADOPSJON),
+        Map.entry(DokumentTypeId.I000005, NAVSkjema.SKJEMA_FORELDREPENGER_FØDSEL),
+        Map.entry(DokumentTypeId.I000050, NAVSkjema.SKJEMA_FORELDREPENGER_ENDRING),
+        Map.entry(DokumentTypeId.I000060, NAVSkjema.SKJEMA_ANNEN_POST));
+
     private ArkivUtil() {
+        // Hide constructor
     }
 
-    public static DokumentTypeId utledHovedDokumentType(Set<DokumentTypeId> alleTyper) {
-        return MapNAVSkjemaDokumentTypeId.velgRangertHovedDokumentType(alleTyper);
+    public static NAVSkjema mapDokumentTypeId(DokumentTypeId typeId) {
+        return DOKUMENT_TYPE_BREVKODE.getOrDefault(typeId, NAVSkjema.UDEFINERT);
     }
 
     public static BehandlingTema behandlingstemaFraSøknadDokumentType(DokumentTypeId type) {

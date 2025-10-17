@@ -88,7 +88,7 @@ class BehandleEttersendelseTaskTest {
         dokumentRepository.lagre(vedlegg2);
 
         when(fpsakTjeneste.finnFagsakInfomasjon(any())).thenReturn(java.util.Optional.of(new FagsakInfomasjonDto("99123456789", BehandlingTema.FORELDREPENGER_FØDSEL.getOffisiellKode())));
-        when(arkivtjeneste.forsøkEndeligJournalføring(any(), any(), any(), any(), any())).thenReturn(new OpprettetJournalpost("9999999", true));
+        when(arkivtjeneste.forsøkEndeligJournalføring(any(), any(), any(), any(), any(), any())).thenReturn(new OpprettetJournalpost("9999999", true));
 
         // Act
         var prosessTaskData = ProsessTaskData.forProsessTask(BehandleSøknadTask.class);
@@ -106,7 +106,7 @@ class BehandleEttersendelseTaskTest {
         assertThat(dokumenter).extracting(DokumentEntitet::getByteArrayDokument).containsExactlyInAnyOrder(vedlegg1.getByteArrayDokument(), vedlegg2.getByteArrayDokument());
         assertThat(dokumenter).extracting(DokumentEntitet::getArkivFilType).containsExactlyInAnyOrder(vedlegg1.getArkivFilType(), vedlegg2.getArkivFilType());
 
-        verify(arkivtjeneste, times(1)).forsøkEndeligJournalføring(any(), eq(dokumenter), any(), any(), any());
+        verify(arkivtjeneste, times(1)).forsøkEndeligJournalføring(any(), eq(dokumenter), any(), any(), any(), any());
 
         var captor = ArgumentCaptor.forClass(ProsessTaskData.class);
         verify(taskTjeneste, times(1)).lagre(captor.capture());
