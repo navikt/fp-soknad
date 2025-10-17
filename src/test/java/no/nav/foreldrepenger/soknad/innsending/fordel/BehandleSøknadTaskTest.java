@@ -103,7 +103,7 @@ class BehandleSøknadTaskTest {
         var familehendelseDato = LocalDateTime.now().minusWeeks(1).toLocalDate();
         var søknad = (ForeldrepengesøknadDto) new ForeldrepengerBuilder()
             .medRolle(BrukerRolle.MOR)
-            .medSøkerinfo(new SøkerDto(new Fødselsnummer("1234567890"), "Per", null))
+            .medSøkerinfo(new SøkerDto(new Fødselsnummer("1234567890"), new SøkerDto.Navn("Per", null, "etternavn"), null))
             .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
             .medUttaksplan(
                 List.of(
@@ -159,7 +159,7 @@ class BehandleSøknadTaskTest {
         var saksnummer = new Saksnummer("111111");
         var endringssøknad = new EndringssøknadBuilder(saksnummer)
             .medRolle(BrukerRolle.MOR)
-            .medSøkerinfo(new SøkerDto(new Fødselsnummer("1234567890"), "Per", null))
+            .medSøkerinfo(new SøkerDto(new Fødselsnummer("1234567890"), new SøkerDto.Navn("Per", null, "etternavn"), null))
             .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
             .medUttaksplan(
                 List.of(
