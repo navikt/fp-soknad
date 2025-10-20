@@ -12,7 +12,6 @@ import no.nav.foreldrepenger.common.oppslag.dkif.Målform;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.Dekningsgrad;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.annenpart.AnnenForelderDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.UttaksplanDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.validering.VedlegglistestørrelseConstraint;
 
 public record ForeldrepengesøknadDto(LocalDateTime mottattdato,
                                      @Valid @NotNull SøkerDto søkerinfo,
@@ -26,7 +25,7 @@ public record ForeldrepengesøknadDto(LocalDateTime mottattdato,
                                      @Valid @NotNull Dekningsgrad dekningsgrad,
                                      @Valid @NotNull UttaksplanDto uttaksplan,
                                      @Valid @Size(max = 40) List<@Valid @NotNull UtenlandsoppholdsperiodeDto> utenlandsopphold,
-                                     @Valid @VedlegglistestørrelseConstraint List<@Valid VedleggDto> vedlegg) implements SøknadDto {
+                                     @Valid List<@Valid @NotNull VedleggDto> vedlegg) implements SøknadDto {
     public ForeldrepengesøknadDto {
         andreInntekterSiste10Mnd = Optional.ofNullable(andreInntekterSiste10Mnd).orElse(List.of());
         utenlandsopphold = Optional.ofNullable(utenlandsopphold).orElse(List.of());

@@ -12,7 +12,7 @@ import jakarta.validation.constraints.Size;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.ArbeidsforholdDto;
 
-public record VedleggDto(@NotNull UUID uuid,
+public record VedleggDto(UUID uuid,
                          @NotNull DokumentTypeId skjemanummer,
                          @NotNull VedleggInnsendingType innsendingsType,
                          @Pattern(regexp = FRITEKST) String beskrivelse,
