@@ -17,6 +17,11 @@ public record VedleggDto(UUID uuid,
                          @NotNull VedleggInnsendingType innsendingsType,
                          @Pattern(regexp = FRITEKST) String beskrivelse,
                          @Valid Dokumenterer dokumenterer) {
+    public VedleggDto {
+        if (!VedleggInnsendingType.LASTET_OPP.equals(innsendingsType)) {
+            uuid = UUID.randomUUID(); // UUID er kun definert for opplastede vedlegg, og brukes
+        }
+    }
 
     public record Dokumenterer(@NotNull VedleggDto.Dokumenterer.DokumentererType type,
                                @Valid ArbeidsforholdDto arbeidsforhold,

@@ -225,8 +225,7 @@ final class V3DomainMapperCommon {
     // The @XmlID annotation requires the value to be a valid XML ID, which must start with a letter or underscore and cannot start with a digit.
     // UUID may contain a digit at the start, so we prefix with 'V' to ensure it's a valid XML ID.
     private static String tilGyldigVedleggreferanse(UUID uuid) {
-        var referanse = uuid != null ? uuid : UUID.randomUUID(); // SEND_SENERE og AUTOMATISK har ikke UUID satt
-        return "V" + referanse;
+        return "V" + uuid;
     }
 
     private static List<AnnenOpptjening> andreOpptjeningerFra(List<AnnenInntektDto> annenOpptjening, List<VedleggDto> vedlegg) {
