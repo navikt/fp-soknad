@@ -9,7 +9,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import no.nav.foreldrepenger.common.domain.BrukerRolle;
 import no.nav.foreldrepenger.common.oppslag.dkif.Målform;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.AvtaltFerieDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.BarnSvpDto;
@@ -18,7 +17,6 @@ import no.nav.foreldrepenger.soknad.innsending.kontrakt.validering.Vedlegglistes
 
 public record SvangerskapspengesøknadDto(LocalDateTime mottattdato,
                                          @Valid @NotNull SøkerDto søkerinfo,
-                                         @Valid BrukerRolle rolle,
                                          @NotNull @Valid Målform språkkode,
                                          @NotNull @Valid @JsonProperty("barn") BarnSvpDto barnSvp, // Litt hack eller?
                                          @Valid FrilansDto frilans,

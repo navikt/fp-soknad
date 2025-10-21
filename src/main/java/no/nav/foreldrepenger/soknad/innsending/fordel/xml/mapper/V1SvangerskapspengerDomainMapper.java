@@ -20,6 +20,7 @@ import java.util.UUID;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.xml.bind.JAXBElement;
 import no.nav.foreldrepenger.common.domain.AktørId;
+import no.nav.foreldrepenger.common.domain.BrukerRolle;
 import no.nav.foreldrepenger.common.error.UnexpectedInputException;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.jaxb.SVPV1JAXBUtil;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SvangerskapspengesøknadDto;
@@ -59,7 +60,7 @@ public class V1SvangerskapspengerDomainMapper {
         var soeknad = new Soeknad();
         soeknad.setSprakvalg(målformFra(svp.språkkode()));
         soeknad.getPaakrevdeVedlegg().addAll(vedleggFra(svp.vedlegg()));
-        soeknad.setSoeker(søkerFra(søker));
+        soeknad.setSoeker(søkerFra(søker, BrukerRolle.MOR));
         soeknad.setOmYtelse(ytelseFra(svp));
         soeknad.setMottattDato(forsendelseMottatt.toLocalDate());
         return soeknad;

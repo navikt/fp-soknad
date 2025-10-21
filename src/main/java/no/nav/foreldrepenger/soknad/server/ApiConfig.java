@@ -20,6 +20,7 @@ import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.foreldrepenger.soknad.innsending.SøknadRest;
 import no.nav.foreldrepenger.soknad.mellomlagring.MellomlagringRest;
 import no.nav.foreldrepenger.soknad.server.error.GeneralRestExceptionMapper;
+import no.nav.foreldrepenger.soknad.server.error.ValidationExceptionMapper;
 import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.rest.ProsessTaskRestTjeneste;
 
@@ -62,6 +63,7 @@ public class ApiConfig extends Application {
             AuthenticationFilter.class,
             MultiPartFeature.class,
             GeneralRestExceptionMapper.class,
+            ValidationExceptionMapper.class,
             // API
             SøknadRest.class,
             MellomlagringRest.class

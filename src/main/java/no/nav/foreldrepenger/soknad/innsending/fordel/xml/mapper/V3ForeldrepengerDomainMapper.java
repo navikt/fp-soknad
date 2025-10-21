@@ -10,7 +10,7 @@ import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3Domain
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.relasjonDato;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.søkerFra;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.tilVedlegg;
-import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.toBoolean;
+import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.toBooleanNullSafe;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.vedleggFra;
 
 import java.time.LocalDateTime;
@@ -116,7 +116,7 @@ public class V3ForeldrepengerDomainMapper  {
         var soeknad = new Soeknad();
         soeknad.setSprakvalg(målformFra(søknad.språkkode()));
         soeknad.getPaakrevdeVedlegg().addAll(vedleggFra(søknad.vedlegg()));
-        soeknad.setSoeker(søkerFra(søker));
+        soeknad.setSoeker(søkerFra(søker, søknad.rolle()));
         soeknad.setOmYtelse(ytelseFraSøknad(søknad));
         soeknad.setMottattDato(forsendelseMottatt.toLocalDate());
         return soeknad;
@@ -126,7 +126,7 @@ public class V3ForeldrepengerDomainMapper  {
         var soeknad = new Soeknad();
         soeknad.setSprakvalg(målformFra(endringsøknad.språkkode()));
         soeknad.getPaakrevdeVedlegg().addAll(vedleggFra(endringsøknad.vedlegg()));
-        soeknad.setSoeker(søkerFra(søker));
+        soeknad.setSoeker(søkerFra(søker, endringsøknad.rolle()));
         soeknad.setOmYtelse(ytelseFraEndringssøknad(endringsøknad));
         soeknad.setMottattDato(forsendelseMottatt.toLocalDate());
         return soeknad;
@@ -190,7 +190,7 @@ public class V3ForeldrepengerDomainMapper  {
         fordelingXML.getPerioder().addAll(perioderFra(uttaksplan.uttaksperioder(), vedlegg));
         fordelingXML.setOenskerJustertVedFoedsel(uttaksplan.ønskerJustertUttakVedFødsel());
         fordelingXML.setOenskerKvoteOverfoert(overføringsÅrsakFra(UKJENT_KODEVERKSVERDI));
-        fordelingXML.setAnnenForelderErInformert(toBoolean(erAnnenpartInformert(annenForelder)));
+        fordelingXML.setAnnenForelderErInformert(toBooleanNullSafe(erAnnenpartInformert(annenForelder)));
         return fordelingXML;
     }
 
@@ -422,10 +422,10 @@ public class V3ForeldrepengerDomainMapper  {
         var rettigheter = new Rettigheter();
         rettigheter.setHarOmsorgForBarnetIPeriodene(true);
         rettigheter.setHarAnnenForelderRett(rettigheterDto.harRettPåForeldrepenger());
-        rettigheter.setHarAleneomsorgForBarnet(toBoolean(rettigheterDto.erAleneOmOmsorg())); // TODO: Må være satt, selv om Boolean undefined..
-        rettigheter.setHarMorUforetrygd(toBoolean(rettigheterDto.harMorUføretrygd())); // TODO: Må være satt, selv om Boolean undefined..
+        rettigheter.setHarAleneomsorgForBarnet(toBooleanNullSafe(rettigheterDto.erAleneOmOmsorg())); // TODO: Må være satt, selv om Boolean undefined..
+        rettigheter.setHarMorUforetrygd(toBooleanNullSafe(rettigheterDto.harMorUføretrygd())); // TODO: Må være satt, selv om Boolean undefined..
         rettigheter.setHarAnnenForelderOppholdtSegIEOS(rettigheterDto.harAnnenForelderOppholdtSegIEØS());
-        rettigheter.setHarAnnenForelderTilsvarendeRettEOS(toBoolean(rettigheterDto.harAnnenForelderTilsvarendeRettEØS())); // TODO: Må være satt, selv om Boolean undefined..
+        rettigheter.setHarAnnenForelderTilsvarendeRettEOS(toBooleanNullSafe(rettigheterDto.harAnnenForelderTilsvarendeRettEØS())); // TODO: Må være satt, selv om Boolean undefined..
         return rettigheter;
     }
 

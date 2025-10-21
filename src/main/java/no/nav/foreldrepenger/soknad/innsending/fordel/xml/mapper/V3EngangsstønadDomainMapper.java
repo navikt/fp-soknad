@@ -16,6 +16,7 @@ import java.util.UUID;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.xml.bind.JAXBElement;
 import no.nav.foreldrepenger.common.domain.AktørId;
+import no.nav.foreldrepenger.common.domain.BrukerRolle;
 import no.nav.foreldrepenger.common.error.UnexpectedInputException;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.jaxb.ESV3JAXBUtil;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.AdopsjonDto;
@@ -50,7 +51,7 @@ public class V3EngangsstønadDomainMapper {
         var soeknad = new Soeknad();
         soeknad.setSprakvalg(målformFra(søknad.språkkode()));
         soeknad.getPaakrevdeVedlegg().addAll(vedleggFra(søknad.vedlegg()));
-        soeknad.setSoeker(søkerFra(søker));
+        soeknad.setSoeker(søkerFra(søker, BrukerRolle.MOR)); // Hardkodet til mor for alle ES søknader. Har vært slikt alltid
         soeknad.setMottattDato(forsendelseMottatt.toLocalDate());
         soeknad.setOmYtelse(ytelseFra(søknad));
         return soeknad;
