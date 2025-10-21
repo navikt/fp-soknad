@@ -296,10 +296,10 @@ final class V3DomainMapperCommon {
                 .toList();
     }
 
-    static Bruker søkerFra(AktørId aktørId) {
+    static Bruker søkerFra(AktørId aktørId, BrukerRolle rolle) {
         var bruker = new Bruker();
         bruker.setAktoerId(aktørId.value());
-        bruker.setSoeknadsrolle(brukerRolleFra(BrukerRolle.MOR)); // Hardkodet til mor for alle ES søknader. Har vært slikt alltid
+        bruker.setSoeknadsrolle(brukerRolleFra(rolle));
         return bruker;
     }
 

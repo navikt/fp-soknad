@@ -116,7 +116,7 @@ public class V3ForeldrepengerDomainMapper  {
         var soeknad = new Soeknad();
         soeknad.setSprakvalg(målformFra(søknad.språkkode()));
         soeknad.getPaakrevdeVedlegg().addAll(vedleggFra(søknad.vedlegg()));
-        soeknad.setSoeker(søkerFra(søker));
+        soeknad.setSoeker(søkerFra(søker, søknad.rolle()));
         soeknad.setOmYtelse(ytelseFraSøknad(søknad));
         soeknad.setMottattDato(forsendelseMottatt.toLocalDate());
         return soeknad;
@@ -126,7 +126,7 @@ public class V3ForeldrepengerDomainMapper  {
         var soeknad = new Soeknad();
         soeknad.setSprakvalg(målformFra(endringsøknad.språkkode()));
         soeknad.getPaakrevdeVedlegg().addAll(vedleggFra(endringsøknad.vedlegg()));
-        soeknad.setSoeker(søkerFra(søker));
+        soeknad.setSoeker(søkerFra(søker, endringsøknad.rolle()));
         soeknad.setOmYtelse(ytelseFraEndringssøknad(endringsøknad));
         soeknad.setMottattDato(forsendelseMottatt.toLocalDate());
         return soeknad;

@@ -59,7 +59,7 @@ public class V1SvangerskapspengerDomainMapper {
         var soeknad = new Soeknad();
         soeknad.setSprakvalg(målformFra(svp.språkkode()));
         soeknad.getPaakrevdeVedlegg().addAll(vedleggFra(svp.vedlegg()));
-        soeknad.setSoeker(søkerFra(søker));
+        soeknad.setSoeker(søkerFra(søker, svp.rolle()));
         soeknad.setOmYtelse(ytelseFra(svp));
         soeknad.setMottattDato(forsendelseMottatt.toLocalDate());
         return soeknad;
