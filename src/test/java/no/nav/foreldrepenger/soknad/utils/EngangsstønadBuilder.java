@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
-import no.nav.foreldrepenger.common.domain.BrukerRolle;
 import no.nav.foreldrepenger.common.oppslag.dkif.Målform;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.BarnDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.EngangsstønadDto;
@@ -18,7 +17,6 @@ public class EngangsstønadBuilder {
     private LocalDateTime mottattdato;
     private SøkerDto søkerinfo;
     private Målform språkkode;
-    private BrukerRolle rolle;
     private BarnDto barn;
     private List<UtenlandsoppholdsperiodeDto> utenlandsopphold;
     private List<VedleggDto> vedlegg;
@@ -39,11 +37,6 @@ public class EngangsstønadBuilder {
 
     public EngangsstønadBuilder medSøkerinfo(SøkerDto søkerinfo) {
         this.søkerinfo = søkerinfo;
-        return this;
-    }
-
-    public EngangsstønadBuilder medRolle(BrukerRolle rolle) {
-        this.rolle = rolle;
         return this;
     }
 
@@ -71,6 +64,6 @@ public class EngangsstønadBuilder {
         if (mottattdato == null) {
             mottattdato = LocalDateTime.now();
         }
-        return new EngangsstønadDto(mottattdato, søkerinfo, språkkode, rolle, barn, utenlandsopphold, vedlegg);
+        return new EngangsstønadDto(mottattdato, søkerinfo, språkkode, barn, utenlandsopphold, vedlegg);
     }
 }

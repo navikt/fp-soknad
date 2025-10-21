@@ -137,7 +137,6 @@ class SøknadInnsendingTjenesteTest {
         // Arrange
         var fnr = new Fødselsnummer("1234567890");
         var søknad = new EngangsstønadBuilder()
-            .medRolle(BrukerRolle.MOR)
             .medSøkerinfo(new SøkerDto(fnr, new SøkerDto.Navn("Per", null, "Pål"), null))
             .medBarn(new FødselDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
             .medUtenlandsopphold(List.of(new UtenlandsoppholdsperiodeDto(LocalDate.now().minusYears(1), LocalDate.now().minusMonths(6), CountryCode.XK)))

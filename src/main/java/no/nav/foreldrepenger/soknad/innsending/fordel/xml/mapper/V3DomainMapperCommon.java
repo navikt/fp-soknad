@@ -173,16 +173,14 @@ final class V3DomainMapperCommon {
         utenlandskOrganisasjon.setOppstartsdato(utenlandskOrg.oppstartsdato());
         utenlandskOrganisasjon.setErNyoppstartet(erNyopprettet(utenlandskOrg.fom()));
         utenlandskOrganisasjon.setErNyIArbeidslivet(utenlandskOrg.harBlittYrkesaktivILøpetAvDeTreSisteFerdigliknedeÅrene());
-        utenlandskOrganisasjon.setErVarigEndring(utenlandskOrg.hattVarigEndringAvNæringsinntektSiste4Kalenderår());
-        utenlandskOrganisasjon.setNaeringsinntektBrutto(bigIntegerNullSafe(utenlandskOrg.næringsinntekt()));
+        utenlandskOrganisasjon.setErVarigEndring(toBooleanNullSafe(utenlandskOrg.hattVarigEndringAvNæringsinntektSiste4Kalenderår()));
+        utenlandskOrganisasjon.setNaeringsinntektBrutto(næringsinntekt(utenlandskOrg));
         utenlandskOrganisasjon.setNavn(utenlandskOrg.navnPåNæringen());
         utenlandskOrganisasjon.setRegistrertILand(landFra(utenlandskOrg.registrertILand()));
         utenlandskOrganisasjon.setPeriode(tilPeriode(utenlandskOrg.fom(), utenlandskOrg.tom()));
         utenlandskOrganisasjon.getVirksomhetstype().add(virksomhetsTypeFra(utenlandskOrg.næringstype()));
         return utenlandskOrganisasjon;
     }
-
-
 
     private static NorskOrganisasjon norskOrganisasjon(NæringDto norskOrg, List<UUID> vedleggReferanser) {
         var norskOrganisasjon = new NorskOrganisasjon();
@@ -193,13 +191,19 @@ final class V3DomainMapperCommon {
         norskOrganisasjon.setOppstartsdato(norskOrg.oppstartsdato());
         norskOrganisasjon.setErNyoppstartet(erNyopprettet(norskOrg.fom()));
         norskOrganisasjon.setErNyIArbeidslivet(norskOrg.harBlittYrkesaktivILøpetAvDeTreSisteFerdigliknedeÅrene());
-        norskOrganisasjon.setErVarigEndring(norskOrg.hattVarigEndringAvNæringsinntektSiste4Kalenderår());
-        norskOrganisasjon.setNaeringsinntektBrutto(bigIntegerNullSafe(norskOrg.næringsinntekt()));
+        norskOrganisasjon.setErVarigEndring(toBooleanNullSafe(norskOrg.hattVarigEndringAvNæringsinntektSiste4Kalenderår()));
+        norskOrganisasjon.setNaeringsinntektBrutto(næringsinntekt(norskOrg));
         norskOrganisasjon.setNavn(norskOrg.navnPåNæringen());
         norskOrganisasjon.setOrganisasjonsnummer(norskOrg.organisasjonsnummer().value());
         norskOrganisasjon.setPeriode(tilPeriode(norskOrg.fom(), norskOrg.tom()));
         norskOrganisasjon.getVirksomhetstype().add(virksomhetsTypeFra(norskOrg.næringstype()));
         return norskOrganisasjon;
+    }
+
+    private static BigInteger næringsinntekt(NæringDto næring) {
+        var næringsinntektBrutto = Optional.ofNullable(næring.varigEndringInntektEtterEndring())
+            .orElse(næring.næringsinntekt());
+        return bigIntegerNullSafe(næringsinntektBrutto);
     }
 
     private static BigInteger bigIntegerNullSafe(Integer value) {
@@ -383,7 +387,7 @@ final class V3DomainMapperCommon {
     static boolean erNyopprettet(LocalDate nå, LocalDate fom) {
         return fom.isAfter(now().minusYears(nå.isAfter(LocalDate.of(nå.getYear(), OCTOBER, 20)) ? 3 : 4).with(firstDayOfYear()).minusDays(1));
     }
-    static boolean toBoolean(Boolean bool) {
+    static boolean toBooleanNullSafe(Boolean bool) {
         return bool != null && bool;
     }
 }

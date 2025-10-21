@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
-import no.nav.foreldrepenger.common.domain.BrukerRolle;
 import no.nav.foreldrepenger.common.oppslag.dkif.Målform;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.AnnenInntektDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.BarnDto;
@@ -107,7 +106,6 @@ public class SvangerskapspengerBuilder {
         return new SvangerskapspengesøknadDto(
                 mottattdato,
                 søkerinfo,
-                BrukerRolle.MOR,
                 språkkode,
                 barnSvp,
                 frilans,
