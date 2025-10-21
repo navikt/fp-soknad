@@ -157,7 +157,7 @@ final class V3DomainMapperCommon {
         // Fiskere kan svare nei på om den er registert i norge og deretter velge norge for å unngå å fylle inn orgnummer
         // I dette tilfelle vil de bli lagret som utenlandsk næring
         var vedleggReferanser = dokumentasjonSomDokumentererOpptjeningsperiode(vedlegg, new ÅpenPeriodeDto(egenNæring.fom(), egenNæring.tom()));
-        if (CountryCode.NO.equals(egenNæring.registrertILand()) && egenNæring.organisasjonsnummer() != null) {
+        if ((egenNæring.registrertINorge() || CountryCode.NO.equals(egenNæring.registrertILand())) && egenNæring.organisasjonsnummer() != null) {
             return norskOrganisasjon(egenNæring, vedleggReferanser);
         } else {
             return utenlandskOrganisasjon(egenNæring, vedleggReferanser);
@@ -176,7 +176,9 @@ final class V3DomainMapperCommon {
         utenlandskOrganisasjon.setErVarigEndring(toBooleanNullSafe(utenlandskOrg.hattVarigEndringAvNæringsinntektSiste4Kalenderår()));
         utenlandskOrganisasjon.setNaeringsinntektBrutto(næringsinntekt(utenlandskOrg));
         utenlandskOrganisasjon.setNavn(utenlandskOrg.navnPåNæringen());
-        utenlandskOrganisasjon.setRegistrertILand(landFra(utenlandskOrg.registrertILand()));
+        // Fiskere kan være registrert i NO, uten orgnummer. I dette tilfelle skal de lagres som utenlandsk næring.
+        var land = landFra(utenlandskOrg.registrertINorge() ? NO : utenlandskOrg.registrertILand());
+        utenlandskOrganisasjon.setRegistrertILand(land);
         utenlandskOrganisasjon.setPeriode(tilPeriode(utenlandskOrg.fom(), utenlandskOrg.tom()));
         utenlandskOrganisasjon.getVirksomhetstype().add(virksomhetsTypeFra(utenlandskOrg.næringstype()));
         return utenlandskOrganisasjon;
