@@ -172,7 +172,7 @@ final class V3DomainMapperCommon {
         utenlandskOrganisasjon.setEndringsDato(utenlandskOrg.varigEndringDato());
         utenlandskOrganisasjon.setOppstartsdato(utenlandskOrg.oppstartsdato());
         utenlandskOrganisasjon.setErNyoppstartet(erNyopprettet(utenlandskOrg.fom()));
-        utenlandskOrganisasjon.setErNyIArbeidslivet(utenlandskOrg.harBlittYrkesaktivILøpetAvDeTreSisteFerdigliknedeÅrene());
+        utenlandskOrganisasjon.setErNyIArbeidslivet(toBooleanNullSafe(utenlandskOrg.harBlittYrkesaktivILøpetAvDeTreSisteFerdigliknedeÅrene()));
         utenlandskOrganisasjon.setErVarigEndring(toBooleanNullSafe(utenlandskOrg.hattVarigEndringAvNæringsinntektSiste4Kalenderår()));
         utenlandskOrganisasjon.setNaeringsinntektBrutto(næringsinntekt(utenlandskOrg));
         utenlandskOrganisasjon.setNavn(utenlandskOrg.navnPåNæringen());
@@ -192,7 +192,7 @@ final class V3DomainMapperCommon {
         norskOrganisasjon.setEndringsDato(norskOrg.varigEndringDato());
         norskOrganisasjon.setOppstartsdato(norskOrg.oppstartsdato());
         norskOrganisasjon.setErNyoppstartet(erNyopprettet(norskOrg.fom()));
-        norskOrganisasjon.setErNyIArbeidslivet(norskOrg.harBlittYrkesaktivILøpetAvDeTreSisteFerdigliknedeÅrene());
+        norskOrganisasjon.setErNyIArbeidslivet(toBooleanNullSafe(norskOrg.harBlittYrkesaktivILøpetAvDeTreSisteFerdigliknedeÅrene()));
         norskOrganisasjon.setErVarigEndring(toBooleanNullSafe(norskOrg.hattVarigEndringAvNæringsinntektSiste4Kalenderår()));
         norskOrganisasjon.setNaeringsinntektBrutto(næringsinntekt(norskOrg));
         norskOrganisasjon.setNavn(norskOrg.navnPåNæringen());
