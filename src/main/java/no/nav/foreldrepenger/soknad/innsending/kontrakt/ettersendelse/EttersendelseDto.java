@@ -8,8 +8,8 @@ import java.util.Optional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import no.nav.foreldrepenger.common.domain.Fødselsnummer;
-import no.nav.foreldrepenger.common.domain.Saksnummer;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.Fødselsnummer;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.Saksnummer;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggDto;
 
 public record EttersendelseDto(LocalDateTime mottattdato,

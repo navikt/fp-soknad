@@ -1,8 +1,8 @@
 package no.nav.foreldrepenger.soknad.innsending;
 
-import static no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.StønadskontoType.FELLESPERIODE;
-import static no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.StønadskontoType.FORELDREPENGER_FØR_FØDSEL;
-import static no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.StønadskontoType.MØDREKVOTE;
+import static no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.KontoType.FELLESPERIODE;
+import static no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.KontoType.FORELDREPENGER_FØR_FØDSEL;
+import static no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.KontoType.MØDREKVOTE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -22,10 +22,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.neovisionaries.i18n.CountryCode;
 
 import jakarta.persistence.EntityManager;
-import no.nav.foreldrepenger.common.domain.BrukerRolle;
-import no.nav.foreldrepenger.common.domain.Fødselsnummer;
-import no.nav.foreldrepenger.common.domain.Orgnummer;
-import no.nav.foreldrepenger.common.domain.Saksnummer;
 import no.nav.foreldrepenger.soknad.database.JpaExtension;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
@@ -33,8 +29,12 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepositor
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus;
 import no.nav.foreldrepenger.soknad.innsending.fordel.utils.SøknadJsonMapper;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.BrukerRolle;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.FødselDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.Fødselsnummer;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.Orgnummer;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.Saksnummer;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøkerDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.TerminDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.UtenlandsoppholdsperiodeDto;

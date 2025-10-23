@@ -7,7 +7,6 @@ import java.util.Optional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import no.nav.foreldrepenger.common.oppslag.dkif.Målform;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.validering.VedlegglistestørrelseConstraint;
 
 public record EngangsstønadDto(LocalDateTime mottattdato,

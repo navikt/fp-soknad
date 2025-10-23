@@ -4,12 +4,10 @@ import java.time.LocalDate;
 
 import com.neovisionaries.i18n.CountryCode;
 
-import no.nav.foreldrepenger.common.domain.Orgnummer;
-import no.nav.foreldrepenger.common.domain.felles.opptjening.AnnenOpptjeningType;
-import no.nav.foreldrepenger.common.domain.felles.opptjening.Virksomhetstype;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.AnnenInntektDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.FrilansDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.NæringDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.Orgnummer;
 
 public final class OpptjeningMaler {
 
@@ -38,14 +36,14 @@ public final class OpptjeningMaler {
     }
 
     public static AnnenInntektDto utenlandskArbeidsforhold(CountryCode landKode) {
-        return annenInntekt(AnnenOpptjeningType.JOBB_I_UTLANDET, landKode, LocalDate.now().minusYears(4), LocalDate.now());
+        return annenInntekt(AnnenInntektDto.AnnenOpptjeningType.JOBB_I_UTLANDET, landKode, LocalDate.now().minusYears(4), LocalDate.now());
     }
 
-    public static AnnenInntektDto annenInntektNorsk(AnnenOpptjeningType type) {
+    public static AnnenInntektDto annenInntektNorsk(AnnenInntektDto.AnnenOpptjeningType type) {
         return annenInntekt(type, CountryCode.NO, LocalDate.now().minusYears(4), LocalDate.now());
     }
 
-    public static AnnenInntektDto annenInntektNorsk(AnnenOpptjeningType type, LocalDate fom, LocalDate tom) {
+    public static AnnenInntektDto annenInntektNorsk(AnnenInntektDto.AnnenOpptjeningType type, LocalDate fom, LocalDate tom) {
         return annenInntekt(type, CountryCode.NO, fom, tom);
     }
 
@@ -59,7 +57,7 @@ public final class OpptjeningMaler {
                                                   Boolean varigEndretNæring) {
         return new NæringDto(fom,
             tom,
-            Virksomhetstype.ANNEN,
+            NæringDto.Virksomhetstype.ANNEN,
             "Navnet på Næring",
             new Orgnummer(orgnummer),
             næringsInntekt.intValue(),
@@ -74,8 +72,8 @@ public final class OpptjeningMaler {
 
     }
 
-    private static AnnenInntektDto annenInntekt(AnnenOpptjeningType type, CountryCode landKode, LocalDate fom, LocalDate tom) {
-        if (AnnenOpptjeningType.JOBB_I_UTLANDET.equals(type)) {
+    private static AnnenInntektDto annenInntekt(AnnenInntektDto.AnnenOpptjeningType type, CountryCode landKode, LocalDate fom, LocalDate tom) {
+        if (AnnenInntektDto.AnnenOpptjeningType.JOBB_I_UTLANDET.equals(type)) {
             return new AnnenInntektDto(type, fom, tom, landKode, "Utenlandsk arbeidsgiver AS");
         }
         return new AnnenInntektDto(type, fom, tom, null, null);

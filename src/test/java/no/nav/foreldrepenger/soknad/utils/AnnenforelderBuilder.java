@@ -2,7 +2,7 @@ package no.nav.foreldrepenger.soknad.utils;
 
 import com.neovisionaries.i18n.CountryCode;
 
-import no.nav.foreldrepenger.common.domain.Fødselsnummer;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.Fødselsnummer;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.annenpart.AnnenForelderDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.annenpart.NorskForelderDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.annenpart.UtenlandskForelderDto;

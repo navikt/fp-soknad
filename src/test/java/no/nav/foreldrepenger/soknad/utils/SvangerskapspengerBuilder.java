@@ -5,11 +5,11 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
-import no.nav.foreldrepenger.common.oppslag.dkif.Målform;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.AnnenInntektDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.BarnDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.FrilansDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.FødselDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.Målform;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.NæringDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SvangerskapspengesøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøkerDto;

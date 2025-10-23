@@ -7,8 +7,6 @@ import java.util.Optional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import no.nav.foreldrepenger.common.domain.BrukerRolle;
-import no.nav.foreldrepenger.common.oppslag.dkif.Målform;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.Dekningsgrad;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.annenpart.AnnenForelderDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.UttaksplanDto;

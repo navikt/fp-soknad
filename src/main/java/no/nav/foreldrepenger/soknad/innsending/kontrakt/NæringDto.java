@@ -1,6 +1,6 @@
 package no.nav.foreldrepenger.soknad.innsending.kontrakt;
 
-import static no.nav.foreldrepenger.common.domain.validation.InputValideringRegex.FRITEKST;
+import static no.nav.vedtak.util.InputValideringRegex.FRITEKST;
 
 import java.time.LocalDate;
 
@@ -11,8 +11,6 @@ import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import no.nav.foreldrepenger.common.domain.Orgnummer;
-import no.nav.foreldrepenger.common.domain.felles.opptjening.Virksomhetstype;
 
 public record NæringDto(@Valid @NotNull LocalDate fom,
                         @Valid LocalDate tom,
@@ -36,5 +34,12 @@ public record NæringDto(@Valid @NotNull LocalDate fom,
             return varigEndringDato != null && varigEndringInntektEtterEndring != null && varigEndringBeskrivelse != null;
         }
         return true;
+    }
+
+    public enum Virksomhetstype {
+        ANNEN,
+        JORDBRUK_SKOGBRUK,
+        FISKE,
+        DAGMAMMA
     }
 }

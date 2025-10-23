@@ -1,6 +1,5 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper;
 
-import static no.nav.foreldrepenger.common.util.StreamUtil.safeStream;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.DokumentasjonReferanseMapper.dokumentasjonSomDokumentererTilrettelegggingAv;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.medlemsskapFra;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.målformFra;
@@ -8,6 +7,7 @@ import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3Domain
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.søkerFra;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.tilVedlegg;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.vedleggFra;
+import static no.nav.foreldrepenger.soknad.utils.StreamUtil.safeStream;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,10 +19,9 @@ import java.util.UUID;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.xml.bind.JAXBElement;
-import no.nav.foreldrepenger.common.domain.AktørId;
-import no.nav.foreldrepenger.common.domain.BrukerRolle;
-import no.nav.foreldrepenger.common.error.UnexpectedInputException;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.jaxb.SVPV1JAXBUtil;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.AktørId;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.BrukerRolle;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SvangerskapspengesøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.ArbeidsforholdDto;
@@ -143,7 +142,7 @@ public class V1SvangerskapspengerDomainMapper {
                 case TilretteleggingbehovDto.TilretteleggingDto.Hel hel -> tilrettelegging.getHelTilrettelegging().add(tilHelTilrettelegging(hel));
                 case TilretteleggingbehovDto.TilretteleggingDto.Del del -> tilrettelegging.getDelvisTilrettelegging().add(tilDelTilrettelegging(del));
                 case TilretteleggingbehovDto.TilretteleggingDto.Ingen ingen -> tilrettelegging.getIngenTilrettelegging().add(tilIngenTilrettelegging(ingen));
-                default -> throw new UnexpectedInputException("Ukjent tilrettelegging %s", tilrettelegging.getClass().getSimpleName());
+                default -> throw new IllegalStateException("Ukjent tilrettelegging " +  tilrettelegging.getClass().getSimpleName());
             }
         }
         return tilrettelegging;
@@ -202,7 +201,7 @@ public class V1SvangerskapspengerDomainMapper {
             return selvstendigNæringsdrivende;
         }
 
-        throw new UnexpectedInputException("Ukjent arbeidsforhold %s", arbeidsforhold.getClass().getSimpleName());
+        throw new IllegalStateException("Ukjent arbeidsforhold " + arbeidsforhold.getClass().getSimpleName());
     }
 
     private static LocalDate relasjonsDatoFra(LocalDate termindato, LocalDate fødselsdato) {

@@ -2,11 +2,11 @@ package no.nav.foreldrepenger.soknad.innsending;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import no.nav.foreldrepenger.common.domain.Fødselsnummer;
-import no.nav.foreldrepenger.common.domain.Saksnummer;
 import no.nav.foreldrepenger.kontrakter.fordel.SaksnummerDto;
 import no.nav.foreldrepenger.soknad.innsending.fordel.fpsak.FpsakTjeneste;
 import no.nav.foreldrepenger.soknad.innsending.fordel.pdl.PdlKlientSystem;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.Fødselsnummer;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.Saksnummer;
 import no.nav.foreldrepenger.soknad.utils.InnloggetBruker;
 import no.nav.vedtak.exception.ManglerTilgangException;
 

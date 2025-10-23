@@ -9,7 +9,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import no.nav.foreldrepenger.common.oppslag.dkif.Målform;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.AvtaltFerieDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.BarnSvpDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.TilretteleggingbehovDto;

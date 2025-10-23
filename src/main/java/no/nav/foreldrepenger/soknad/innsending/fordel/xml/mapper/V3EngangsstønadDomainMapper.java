@@ -1,6 +1,5 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper;
 
-import static no.nav.foreldrepenger.common.util.StreamUtil.safeStream;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.DokumentasjonReferanseMapper.dokumentasjonSomDokumentererBarn;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.medlemsskapFra;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.målformFra;
@@ -8,6 +7,7 @@ import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3Domain
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.søkerFra;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.tilVedlegg;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.vedleggFra;
+import static no.nav.foreldrepenger.soknad.utils.StreamUtil.safeStream;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,12 +15,11 @@ import java.util.UUID;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.xml.bind.JAXBElement;
-import no.nav.foreldrepenger.common.domain.AktørId;
-import no.nav.foreldrepenger.common.domain.BrukerRolle;
-import no.nav.foreldrepenger.common.error.UnexpectedInputException;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.jaxb.ESV3JAXBUtil;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.AdopsjonDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.AktørId;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.BarnDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.BrukerRolle;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.EngangsstønadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.FødselDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.OmsorgsovertakelseDto;
@@ -75,7 +74,7 @@ public class V3EngangsstønadDomainMapper {
             case AdopsjonDto a -> create(a, dokumentasjonSomDokumentererBarn(vedlegg));
             case FødselDto f -> create(f, dokumentasjonSomDokumentererBarn(vedlegg));
             case TerminDto t -> create(t, dokumentasjonSomDokumentererBarn(vedlegg));
-            case OmsorgsovertakelseDto _ -> throw new UnexpectedInputException("Omsorgsovertakelse er ikke støttet for engangsstønad");
+            case OmsorgsovertakelseDto _ -> throw new IllegalStateException("Omsorgsovertakelse er ikke støttet for engangsstønad");
         };
     }
 

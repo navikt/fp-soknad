@@ -3,7 +3,6 @@ package no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttakspl
 import java.time.LocalDate;
 
 import jakarta.validation.constraints.NotNull;
-import no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.Overføringsårsak;
 
 public record OverføringsPeriodeDto(@NotNull LocalDate fom,
                                     @NotNull LocalDate tom,

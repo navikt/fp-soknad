@@ -15,7 +15,6 @@ import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.helpers.DefaultValidationEventHandler;
-import no.nav.foreldrepenger.common.error.UnexpectedInputException;
 
 abstract class AbstractJAXBUtil {
     private final JAXBContext context;
@@ -28,7 +27,7 @@ abstract class AbstractJAXBUtil {
         try {
             return JAXBContext.newInstance(classes);
         } catch (JAXBException e) {
-            throw new UnexpectedInputException(
+            throw new IllegalStateException(
                     format("Feil ved konfigurasjon av kontekst fra %s", Arrays.toString(classes)), e);
         }
     }
@@ -39,7 +38,7 @@ abstract class AbstractJAXBUtil {
             marshaller().marshal(model, res);
             return ((Document) res.getNode()).getDocumentElement();
         } catch (JAXBException e) {
-            throw new UnexpectedInputException(format("Feil ved marshalling av model %s", model.getClass()), e);
+            throw new IllegalStateException(format("Feil ved marshalling av model %s", model.getClass()), e);
         }
     }
 
@@ -49,7 +48,7 @@ abstract class AbstractJAXBUtil {
             marshaller().marshal(model, sw);
             return sw.toString();
         } catch (JAXBException e) {
-            throw new UnexpectedInputException(format("Feil ved marshalling av model %s", model.getClass()), e);
+            throw new IllegalStateException(format("Feil ved marshalling av model %s", model.getClass()), e);
         }
     }
 
@@ -60,7 +59,7 @@ abstract class AbstractJAXBUtil {
             marshaller.setEventHandler(new DefaultValidationEventHandler());
             return marshaller;
         } catch (JAXBException e) {
-            throw new UnexpectedInputException(format("Feil ved konstruksjon av marshaller fra kontekst %s", context), e);
+            throw new IllegalStateException(format("Feil ved konstruksjon av marshaller fra kontekst %s", context), e);
         }
     }
 

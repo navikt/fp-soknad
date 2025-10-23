@@ -2,7 +2,7 @@ package no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger;
 
 import static com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY;
 import static com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME;
-import static no.nav.foreldrepenger.common.domain.validation.InputValideringRegex.FRITEKST;
+import static no.nav.vedtak.util.InputValideringRegex.FRITEKST;
 
 import java.time.LocalDate;
 import java.util.List;

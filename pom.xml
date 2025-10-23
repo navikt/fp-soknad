@@ -19,7 +19,6 @@
         <sonar.projectKey>navikt_fp-soknad</sonar.projectKey>
 
         <felles.version>7.6.8</felles.version>
-        <fpsoknad-felles.version>3.3.5</fpsoknad-felles.version> <!-- fjern på sikt ...-->
         <prosesstask.version>5.2.1</prosesstask.version>
         <fp-kontrakter.version>9.4.3</fp-kontrakter.version>
 
@@ -79,11 +78,6 @@
             <groupId>com.neovisionaries</groupId>
             <artifactId>nv-i18n</artifactId>
             <version>${nv.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>no.nav.foreldrepenger</groupId>
-            <artifactId>fpsoknad-felles</artifactId>
-            <version>${fpsoknad-felles.version}</version>
         </dependency>
         <dependency>
             <groupId>no.nav.foreldrepenger.felles</groupId>

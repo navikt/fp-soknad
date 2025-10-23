@@ -5,10 +5,8 @@ import static com.neovisionaries.i18n.CountryCode.XK;
 import static java.time.LocalDate.now;
 import static java.time.Month.OCTOBER;
 import static java.time.temporal.TemporalAdjusters.firstDayOfYear;
-import static no.nav.foreldrepenger.common.domain.felles.InnsendingsType.LASTET_OPP;
-import static no.nav.foreldrepenger.common.domain.felles.InnsendingsType.SEND_SENERE;
-import static no.nav.foreldrepenger.common.util.StreamUtil.safeStream;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.DokumentasjonReferanseMapper.dokumentasjonSomDokumentererOpptjeningsperiode;
+import static no.nav.foreldrepenger.soknad.utils.StreamUtil.safeStream;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -20,18 +18,14 @@ import java.util.UUID;
 import com.neovisionaries.i18n.CountryCode;
 
 import jakarta.xml.bind.JAXBElement;
-import no.nav.foreldrepenger.common.domain.AktørId;
-import no.nav.foreldrepenger.common.domain.BrukerRolle;
-import no.nav.foreldrepenger.common.domain.felles.InnsendingsType;
-import no.nav.foreldrepenger.common.domain.felles.opptjening.AnnenOpptjeningType;
-import no.nav.foreldrepenger.common.domain.felles.opptjening.Virksomhetstype;
-import no.nav.foreldrepenger.common.error.UnexpectedInputException;
-import no.nav.foreldrepenger.common.oppslag.dkif.Målform;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.AdopsjonDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.AktørId;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.AnnenInntektDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.BarnDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.BrukerRolle;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.FrilansDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.FødselDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.Målform;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.NæringDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.OmsorgsovertakelseDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.TerminDto;
@@ -135,9 +129,9 @@ final class V3DomainMapperCommon {
         return periode;
     }
 
-    private static Virksomhetstyper virksomhetsTypeFra(Virksomhetstype type) {
+    private static Virksomhetstyper virksomhetsTypeFra(NæringDto.Virksomhetstype type) {
         return Optional.ofNullable(type)
-                .map(Virksomhetstype::name)
+                .map(NæringDto.Virksomhetstype::name)
                 .map(V3DomainMapperCommon::virksomhetsTypeFra)
                 .orElse(null);
     }
@@ -236,7 +230,7 @@ final class V3DomainMapperCommon {
 
     private static List<AnnenOpptjening> andreOpptjeningerFra(List<AnnenInntektDto> annenOpptjening, List<VedleggDto> vedlegg) {
         return safeStream(annenOpptjening)
-            .filter(a -> !AnnenOpptjeningType.JOBB_I_UTLANDET.equals(a.type()))
+            .filter(a -> !AnnenInntektDto.AnnenOpptjeningType.JOBB_I_UTLANDET.equals(a.type()))
             .map((AnnenInntektDto annen) -> annenOpptjeningFra(annen, vedlegg))
             .toList();
     }
@@ -263,9 +257,9 @@ final class V3DomainMapperCommon {
         return annenOpptjening;
     }
 
-    private static AnnenOpptjeningTyper annenOpptjeningTypeFra(AnnenOpptjeningType type) {
+    private static AnnenOpptjeningTyper annenOpptjeningTypeFra(AnnenInntektDto.AnnenOpptjeningType type) {
         return Optional.ofNullable(type)
-                .map(AnnenOpptjeningType::name)
+                .map(AnnenInntektDto.AnnenOpptjeningType::name)
                 .map(V3DomainMapperCommon::create)
                 .orElse(null);
     }
@@ -281,7 +275,7 @@ final class V3DomainMapperCommon {
 
     private static List<UtenlandskArbeidsforhold> utenlandskeArbeidsforholdFra(List<AnnenInntektDto> arbeidsforhold, List<VedleggDto> vedlegg) {
         return safeStream(arbeidsforhold)
-                .filter(u -> AnnenOpptjeningType.JOBB_I_UTLANDET.equals(u.type()))
+                .filter(u -> AnnenInntektDto.AnnenOpptjeningType.JOBB_I_UTLANDET.equals(u.type()))
                 .map(anneninntekt -> utenlandskArbeidsforholdFra(anneninntekt, dokumentasjonSomDokumentererOpptjeningsperiode(vedlegg, new ÅpenPeriodeDto(anneninntekt.fom(), anneninntekt.tom()))))
                 .toList();
     }
@@ -327,9 +321,8 @@ final class V3DomainMapperCommon {
 
     private static Innsendingstype innsendingstypeFra(VedleggInnsendingType innsendingsType) {
         return switch (innsendingsType) {
-            case SEND_SENERE -> innsendingsTypeMedKodeverk(SEND_SENERE);
-            case LASTET_OPP -> innsendingsTypeMedKodeverk(LASTET_OPP);
-            case AUTOMATISK -> throw new UnexpectedInputException("Automatiske vedlegg skal ikke sendes til journalføring");
+            case SEND_SENERE, LASTET_OPP -> innsendingsTypeMedKodeverk(innsendingsType);
+            case AUTOMATISK -> throw new IllegalStateException("Automatiske vedlegg skal ikke sendes til journalføring");
         };
     }
 
@@ -355,9 +348,7 @@ final class V3DomainMapperCommon {
                 .toList();
     }
 
-
-
-    private static Innsendingstype innsendingsTypeMedKodeverk(InnsendingsType type) {
+    private static Innsendingstype innsendingsTypeMedKodeverk(VedleggInnsendingType type) {
         var innsendingstype = new Innsendingstype();
         innsendingstype.setKode(type.name());
         innsendingstype.setKodeverk(innsendingstype.getKodeverk()); // TODO: Fjern..

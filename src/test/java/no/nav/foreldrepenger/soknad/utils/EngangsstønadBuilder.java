@@ -5,9 +5,9 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
-import no.nav.foreldrepenger.common.oppslag.dkif.Målform;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.BarnDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.EngangsstønadDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.Målform;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøkerDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.UtenlandsoppholdsperiodeDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggDto;

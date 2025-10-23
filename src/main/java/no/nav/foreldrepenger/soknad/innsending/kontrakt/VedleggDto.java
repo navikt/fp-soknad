@@ -1,6 +1,6 @@
 package no.nav.foreldrepenger.soknad.innsending.kontrakt;
 
-import static no.nav.foreldrepenger.common.domain.validation.InputValideringRegex.FRITEKST;
+import static no.nav.vedtak.util.InputValideringRegex.FRITEKST;
 
 import java.util.List;
 import java.util.UUID;

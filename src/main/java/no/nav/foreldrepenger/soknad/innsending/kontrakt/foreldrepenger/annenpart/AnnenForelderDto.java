@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
-import no.nav.foreldrepenger.common.domain.Fødselsnummer;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.Fødselsnummer;
 
 @Schema(discriminatorProperty = "type", discriminatorMapping = {
     @DiscriminatorMapping(value = "norsk", schema = NorskForelderDto.class),

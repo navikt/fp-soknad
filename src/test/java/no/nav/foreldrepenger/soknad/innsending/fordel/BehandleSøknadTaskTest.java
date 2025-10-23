@@ -1,10 +1,9 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel;
 
-import static no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.StønadskontoType.FEDREKVOTE;
-import static no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.StønadskontoType.FELLESPERIODE;
-import static no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.StønadskontoType.FORELDREPENGER_FØR_FØDSEL;
-import static no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.StønadskontoType.MØDREKVOTE;
-import static no.nav.foreldrepenger.common.mapper.DefaultJsonMapper.MAPPER;
+import static no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.KontoType.FEDREKVOTE;
+import static no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.KontoType.FELLESPERIODE;
+import static no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.KontoType.FORELDREPENGER_FØR_FØDSEL;
+import static no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.KontoType.MØDREKVOTE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -29,11 +28,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import jakarta.persistence.EntityManager;
-import no.nav.foreldrepenger.common.domain.AktørId;
-import no.nav.foreldrepenger.common.domain.BrukerRolle;
-import no.nav.foreldrepenger.common.domain.Fødselsnummer;
-import no.nav.foreldrepenger.common.domain.Saksnummer;
-import no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.Overføringsårsak;
 import no.nav.foreldrepenger.soknad.database.JpaExtension;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
@@ -54,20 +48,26 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.xml.StrukturertDokumentMap
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V1SvangerskapspengerDomainMapper;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3EngangsstønadDomainMapper;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3ForeldrepengerDomainMapper;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.AktørId;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.BrukerRolle;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.Fødselsnummer;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.Saksnummer;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøkerDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.TerminDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggInnsendingType;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.Dekningsgrad;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.Overføringsårsak;
 import no.nav.foreldrepenger.soknad.utils.AnnenforelderBuilder;
 import no.nav.foreldrepenger.soknad.utils.EndringssøknadBuilder;
 import no.nav.foreldrepenger.soknad.utils.ForeldrepengerBuilder;
 import no.nav.foreldrepenger.soknad.utils.UttakplanPeriodeBuilder;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
+import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -226,7 +226,7 @@ class BehandleSøknadTaskTest {
         dokumentRepository.lagre(metadata);
 
         var søknadDokument = DokumentEntitet.builder()
-            .setDokumentInnhold(MAPPER.writeValueAsBytes(søknad), ArkivFilType.JSON)
+            .setDokumentInnhold(DefaultJsonMapper.getObjectMapper().writeValueAsBytes(søknad), ArkivFilType.JSON)
             .setForsendelseId(forsendelseId)
             .setDokumentTypeId(DokumentTypeId.I000005)
             .build();

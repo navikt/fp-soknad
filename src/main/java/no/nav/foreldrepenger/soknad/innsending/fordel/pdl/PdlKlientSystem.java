@@ -4,8 +4,8 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import jakarta.enterprise.context.Dependent;
-import no.nav.foreldrepenger.common.domain.AktørId;
-import no.nav.foreldrepenger.common.domain.Fødselsnummer;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.AktørId;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.Fødselsnummer;
 import no.nav.vedtak.felles.integrasjon.person.AbstractPersonKlient;
 import no.nav.vedtak.felles.integrasjon.rest.RestClientConfig;
 import no.nav.vedtak.felles.integrasjon.rest.TokenFlow;

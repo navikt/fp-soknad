@@ -1,6 +1,5 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper;
 
-import static no.nav.foreldrepenger.common.util.StreamUtil.safeStream;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.DokumentasjonReferanseMapper.dokumentasjonSomDokumentererBarn;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.DokumentasjonReferanseMapper.dokumentasjonSomDokumentererUttaksperiode;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.landFra;
@@ -12,6 +11,7 @@ import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3Domain
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.tilVedlegg;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.toBooleanNullSafe;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.vedleggFra;
+import static no.nav.foreldrepenger.soknad.utils.StreamUtil.safeStream;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,15 +22,10 @@ import java.util.UUID;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.xml.bind.JAXBElement;
-import no.nav.foreldrepenger.common.domain.AktørId;
-import no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.MorsAktivitet;
-import no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.Oppholdsårsak;
-import no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.Overføringsårsak;
-import no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.UtsettelsesÅrsak;
-import no.nav.foreldrepenger.common.error.UnexpectedInputException;
 import no.nav.foreldrepenger.soknad.innsending.fordel.pdl.Personoppslag;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.jaxb.FPV3JAXBUtil;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.AdopsjonDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.AktørId;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.BarnDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
@@ -42,9 +37,13 @@ import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.annenpart
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.annenpart.NorskForelderDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.annenpart.UtenlandskForelderDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.KontoType;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.MorsAktivitet;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.OppholdsPeriodeDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.Oppholdsårsak;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.OverføringsPeriodeDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.Overføringsårsak;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.UtsettelsesPeriodeDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.UtsettelsesÅrsak;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.UttaksPeriodeDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.UttaksplanDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.Uttaksplanperiode;
@@ -314,7 +313,7 @@ public class V3ForeldrepengerDomainMapper  {
         return switch (id.length()) {
             case 11 -> tilPerson(id);
             case 9 -> tilArbeidsgiver(id);
-            default -> throw new UnexpectedInputException("Ugyldig lengde " + id.length() + " for arbeidsgiver");
+            default -> throw new IllegalStateException("Ugyldig lengde " + id.length() + " for arbeidsgiver");
         };
     }
 
@@ -379,7 +378,7 @@ public class V3ForeldrepengerDomainMapper  {
         return Optional.ofNullable(årsak)
                 .map(Oppholdsårsak::name)
                 .map(V3ForeldrepengerDomainMapper::oppholdsÅrsakFra)
-                .orElseThrow(() -> new UnexpectedInputException("Oppholdsårsak må være satt"));
+                .orElseThrow(() -> new IllegalStateException("Oppholdsårsak må være satt"));
     }
 
     private static Oppholdsaarsaker oppholdsÅrsakFra(String årsak) {
@@ -393,7 +392,7 @@ public class V3ForeldrepengerDomainMapper  {
         return Optional.ofNullable(årsak)
                 .map(Overføringsårsak::name)
                 .map(V3ForeldrepengerDomainMapper::overføringsÅrsakFra)
-                .orElseThrow(() -> new UnexpectedInputException("Oppholdsårsak må være satt"));
+                .orElseThrow(() -> new IllegalStateException("Oppholdsårsak må være satt"));
     }
 
     private static Overfoeringsaarsaker overføringsÅrsakFra(String årsak) {

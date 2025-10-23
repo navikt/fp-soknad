@@ -3,35 +3,34 @@ package no.nav.foreldrepenger.soknad.utils;
 import java.time.LocalDate;
 import java.util.List;
 
-import no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.MorsAktivitet;
-import no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.Oppholdsårsak;
-import no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.Overføringsårsak;
-import no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.StønadskontoType;
-import no.nav.foreldrepenger.common.domain.foreldrepenger.fordeling.UtsettelsesÅrsak;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.KontoType;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.MorsAktivitet;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.OppholdsPeriodeDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.Oppholdsårsak;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.OverføringsPeriodeDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.Overføringsårsak;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.UtsettelsesPeriodeDto;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.UtsettelsesÅrsak;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.UttaksPeriodeDto;
 import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.Uttaksplanperiode;
 
 
 public class UttakplanPeriodeBuilder {
 
-    public static UttaksperiodeBuilder uttak(StønadskontoType konto, LocalDate fom, LocalDate tom) {
-        return new UttaksperiodeBuilder(tilKontoType(konto), fom, tom);
+    public static UttaksperiodeBuilder uttak(KontoType konto, LocalDate fom, LocalDate tom) {
+        return new UttaksperiodeBuilder(konto, fom, tom);
     }
 
-    public static GradertUttaksperiodeBuilder gradert(StønadskontoType konto, LocalDate fom, LocalDate tom, Double stillingsprosent) {
-        return new GradertUttaksperiodeBuilder(tilKontoType(konto), fom, tom, stillingsprosent);
+    public static GradertUttaksperiodeBuilder gradert(KontoType konto, LocalDate fom, LocalDate tom, Double stillingsprosent) {
+        return new GradertUttaksperiodeBuilder(konto, fom, tom, stillingsprosent);
     }
 
     public static OppholdsPeriodeBuilder opphold(Oppholdsårsak oppholdsårsak, LocalDate fom, LocalDate tom) {
         return new OppholdsPeriodeBuilder(fom, tom, oppholdsårsak);
     }
 
-    public static OverføringsperioderBuilder overføring(Overføringsårsak årsak, StønadskontoType konto, LocalDate fom, LocalDate tom) {
-        return new OverføringsperioderBuilder(tilKontoType(konto), fom, tom, årsak);
+    public static OverføringsperioderBuilder overføring(Overføringsårsak årsak, KontoType konto, LocalDate fom, LocalDate tom) {
+        return new OverføringsperioderBuilder(konto, fom, tom, årsak);
     }
 
     public static UtsettelsePeriodeBuilder utsettelse(UtsettelsesÅrsak årsak, LocalDate fom, LocalDate tom) {
@@ -226,16 +225,5 @@ public class UttakplanPeriodeBuilder {
         public Uttaksplanperiode build() {
             return new UtsettelsesPeriodeDto(fom, tom, årsak, morsAktivitetIPerioden, erArbeidstaker);
         }
-    }
-
-    private static KontoType tilKontoType(StønadskontoType konto) {
-        return switch (konto) {
-            case IKKE_SATT -> null;
-            case FELLESPERIODE -> KontoType.FELLESPERIODE;
-            case MØDREKVOTE -> KontoType.MØDREKVOTE;
-            case FEDREKVOTE -> KontoType.FEDREKVOTE;
-            case FORELDREPENGER -> KontoType.FORELDREPENGER;
-            case FORELDREPENGER_FØR_FØDSEL -> KontoType.FORELDREPENGER_FØR_FØDSEL;
-        };
     }
 }

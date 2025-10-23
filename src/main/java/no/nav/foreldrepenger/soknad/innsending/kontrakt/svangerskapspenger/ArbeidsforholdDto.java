@@ -9,8 +9,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import no.nav.foreldrepenger.common.domain.Fødselsnummer;
-import no.nav.foreldrepenger.common.domain.Orgnummer;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.Fødselsnummer;
+import no.nav.foreldrepenger.soknad.innsending.kontrakt.Orgnummer;
 
 @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
 @JsonSubTypes({

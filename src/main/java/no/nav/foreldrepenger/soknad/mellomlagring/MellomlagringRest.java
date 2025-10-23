@@ -1,6 +1,6 @@
 package no.nav.foreldrepenger.soknad.mellomlagring;
 
-import static no.nav.foreldrepenger.common.domain.validation.InputValideringRegex.FRITEKST;
+import static no.nav.vedtak.util.InputValideringRegex.FRITEKST;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -1,6 +1,6 @@
 package no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse;
 
-import static no.nav.foreldrepenger.common.domain.validation.InputValideringRegex.FRITEKST;
+import static no.nav.vedtak.util.InputValideringRegex.FRITEKST;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;

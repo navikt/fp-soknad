@@ -1,6 +1,6 @@
 package no.nav.foreldrepenger.soknad.innsending.kontrakt;
 
-import static no.nav.foreldrepenger.common.domain.validation.InputValideringRegex.FRITEKST;
+import static no.nav.vedtak.util.InputValideringRegex.FRITEKST;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -9,8 +9,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import no.nav.foreldrepenger.common.domain.Fødselsnummer;
-import no.nav.foreldrepenger.common.domain.Orgnummer;
 
 /**
  * Denne informasjonen hentes fra PDL, AAREG og EEREG ved inngangen til søknadsdialogen vidersendes med resten av søknaden.
