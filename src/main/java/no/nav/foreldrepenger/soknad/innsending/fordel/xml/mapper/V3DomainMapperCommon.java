@@ -18,21 +18,21 @@ import java.util.UUID;
 import com.neovisionaries.i18n.CountryCode;
 
 import jakarta.xml.bind.JAXBElement;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.AdopsjonDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.AktørId;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.AnnenInntektDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.BarnDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.BrukerRolle;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.FrilansDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.FødselDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.Målform;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.NæringDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.OmsorgsovertakelseDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.TerminDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.UtenlandsoppholdsperiodeDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggInnsendingType;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.ÅpenPeriodeDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.BrukerRolle;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.Målform;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.UtenlandsoppholdsperiodeDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.AdopsjonDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.BarnDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.FødselDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.OmsorgsovertakelseDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.TerminDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.opptjening.AnnenInntektDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.opptjening.FrilansDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.opptjening.NæringDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.InnsendingType;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.VedleggDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.ÅpenPeriodeDto;
+import no.nav.foreldrepenger.soknad.innsending.fordel.AktørId;
 import no.nav.vedtak.felles.xml.soeknad.felles.v3.Bruker;
 import no.nav.vedtak.felles.xml.soeknad.felles.v3.Medlemskap;
 import no.nav.vedtak.felles.xml.soeknad.felles.v3.OppholdUtlandet;
@@ -305,7 +305,7 @@ final class V3DomainMapperCommon {
 
     static List<Vedlegg> vedleggFra(List<VedleggDto> vedlegg) {
         return safeStream(vedlegg)
-            .filter(v -> !VedleggInnsendingType.AUTOMATISK.equals(v.innsendingsType())) // Skal ikke sende med automatiske vedlegg til journalføring
+            .filter(v -> !InnsendingType.AUTOMATISK.equals(v.innsendingsType())) // Skal ikke sende med automatiske vedlegg til journalføring
             .map(V3DomainMapperCommon::vedleggFra)
             .toList();
     }
@@ -319,7 +319,7 @@ final class V3DomainMapperCommon {
         return vedleggXML;
     }
 
-    private static Innsendingstype innsendingstypeFra(VedleggInnsendingType innsendingsType) {
+    private static Innsendingstype innsendingstypeFra(InnsendingType innsendingsType) {
         return switch (innsendingsType) {
             case SEND_SENERE, LASTET_OPP -> innsendingsTypeMedKodeverk(innsendingsType);
             case AUTOMATISK -> throw new IllegalStateException("Automatiske vedlegg skal ikke sendes til journalføring");
@@ -348,7 +348,7 @@ final class V3DomainMapperCommon {
                 .toList();
     }
 
-    private static Innsendingstype innsendingsTypeMedKodeverk(VedleggInnsendingType type) {
+    private static Innsendingstype innsendingsTypeMedKodeverk(InnsendingType type) {
         var innsendingstype = new Innsendingstype();
         innsendingstype.setKode(type.name());
         innsendingstype.setKodeverk(innsendingstype.getKodeverk()); // TODO: Fjern..

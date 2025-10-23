@@ -1,7 +1,7 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.pdl;
 
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.AktørId;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.Fødselsnummer;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.Fødselsnummer;
+import no.nav.foreldrepenger.soknad.innsending.fordel.AktørId;
 
 public interface Personoppslag {
 

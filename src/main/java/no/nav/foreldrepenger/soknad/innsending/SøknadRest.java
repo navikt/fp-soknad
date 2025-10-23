@@ -14,11 +14,11 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.EndringssøknadForeldrepengerDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.EngangsstønadDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.SvangerskapspengesøknadDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse.EttersendelseDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.EndringssøknadForeldrepengerDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.EngangsstønadDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.ForeldrepengesøknadDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.SvangerskapspengesøknadDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.ettersendelse.EttersendelseDto;
 import no.nav.foreldrepenger.soknad.utils.InnloggetBruker;
 
 @Path("/soknad")

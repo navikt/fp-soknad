@@ -1,8 +1,8 @@
 package no.nav.foreldrepenger.soknad.innsending;
 
-import static no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.KontoType.FELLESPERIODE;
-import static no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.KontoType.FORELDREPENGER_FØR_FØDSEL;
-import static no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.KontoType.MØDREKVOTE;
+import static no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.KontoType.FELLESPERIODE;
+import static no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.KontoType.FORELDREPENGER_FØR_FØDSEL;
+import static no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.KontoType.MØDREKVOTE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -22,39 +22,40 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.neovisionaries.i18n.CountryCode;
 
 import jakarta.persistence.EntityManager;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.BrukerRolle;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.ForeldrepengesøknadDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.Fødselsnummer;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.Orgnummer;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.Saksnummer;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.SøkerDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.UtenlandsoppholdsperiodeDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.FødselDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.TerminDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.builder.AnnenforelderBuilder;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.builder.EndringssøknadBuilder;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.builder.EngangsstønadBuilder;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.builder.ForeldrepengerBuilder;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.builder.OpptjeningMaler;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.builder.SvangerskapspengerBuilder;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.builder.UttakplanPeriodeBuilder;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.ettersendelse.BrukerTekstDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.ettersendelse.EttersendelseDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.ettersendelse.YtelseType;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.Dekningsgrad;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.svangerskapspenger.ArbeidsforholdDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.svangerskapspenger.TilretteleggingbehovDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.DokumentTypeId;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.Dokumenterer;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.InnsendingType;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.VedleggDto;
 import no.nav.foreldrepenger.soknad.database.JpaExtension;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus;
 import no.nav.foreldrepenger.soknad.innsending.fordel.utils.SøknadJsonMapper;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.BrukerRolle;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.FødselDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.Fødselsnummer;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.Orgnummer;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.Saksnummer;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøkerDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.TerminDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.UtenlandsoppholdsperiodeDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggInnsendingType;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse.BrukerTekstDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse.EttersendelseDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse.YtelseType;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.Dekningsgrad;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.ArbeidsforholdDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.svangerskapspenger.TilretteleggingbehovDto;
 import no.nav.foreldrepenger.soknad.mellomlagring.MellomlagringTjeneste;
-import no.nav.foreldrepenger.soknad.utils.AnnenforelderBuilder;
-import no.nav.foreldrepenger.soknad.utils.EndringssøknadBuilder;
-import no.nav.foreldrepenger.soknad.utils.EngangsstønadBuilder;
-import no.nav.foreldrepenger.soknad.utils.ForeldrepengerBuilder;
 import no.nav.foreldrepenger.soknad.utils.InnloggetBruker;
-import no.nav.foreldrepenger.soknad.utils.OpptjeningMaler;
-import no.nav.foreldrepenger.soknad.utils.SvangerskapspengerBuilder;
-import no.nav.foreldrepenger.soknad.utils.UttakplanPeriodeBuilder;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 
 @ExtendWith(MockitoExtension.class)
@@ -96,8 +97,8 @@ class SøknadInnsendingTjenesteTest {
             .medDekningsgrad(Dekningsgrad.HUNDRE)
             .medUtenlandsopphold(List.of())
             .medAnnenForelder(AnnenforelderBuilder.norskMedRettighetNorge(new Fødselsnummer("0987654321")).build())
-            .medVedlegg(List.of(new VedleggDto(UUID.randomUUID(), DokumentTypeId.I000141, VedleggInnsendingType.LASTET_OPP, null,
-                new VedleggDto.Dokumenterer(VedleggDto.Dokumenterer.DokumentererType.BARN, null, null))))
+            .medVedlegg(List.of(new VedleggDto(UUID.randomUUID(), DokumentTypeId.I000141, InnsendingType.LASTET_OPP, null,
+                new Dokumenterer(Dokumenterer.DokumentererType.BARN, null, null))))
             .build();
         when(innloggetBruker.brukerFraKontekst()).thenReturn(fnr.value());
         var pdfByteArray = new byte[]{1, 2, 3};
@@ -257,8 +258,8 @@ class SøknadInnsendingTjenesteTest {
             YtelseType.FORELDREPENGER,
             null,
             List.of(
-                new VedleggDto(UUID.randomUUID(), DokumentTypeId.I000141, VedleggInnsendingType.LASTET_OPP, null, null),
-                new VedleggDto(UUID.randomUUID(), DokumentTypeId.I000038, VedleggInnsendingType.LASTET_OPP, null, null)
+                new VedleggDto(UUID.randomUUID(), DokumentTypeId.I000141, InnsendingType.LASTET_OPP, null, null),
+                new VedleggDto(UUID.randomUUID(), DokumentTypeId.I000038, InnsendingType.LASTET_OPP, null, null)
             )
         );
         when(innloggetBruker.brukerFraKontekst()).thenReturn(ettersendelse.fnr().value());

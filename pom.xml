@@ -20,7 +20,7 @@
 
         <felles.version>7.6.8</felles.version>
         <prosesstask.version>5.2.1</prosesstask.version>
-        <fp-kontrakter.version>9.4.3</fp-kontrakter.version>
+        <fp-kontrakter.version>1.0-SNAPSHOT</fp-kontrakter.version>
 
         <tika.version>3.2.3</tika.version> <!-- Bedre måter å gjøre det på -->
         <nv.version>1.29</nv.version>
@@ -111,6 +111,10 @@
         <dependency>
             <groupId>no.nav.foreldrepenger.kontrakter</groupId>
             <artifactId>soeknad-v3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>no.nav.foreldrepenger.kontrakter</groupId>
+            <artifactId>fp-soknad-v1</artifactId>
         </dependency>
         <dependency>
             <groupId>no.nav.foreldrepenger.felles.integrasjon</groupId>
@@ -283,6 +287,12 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers-postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>no.nav.foreldrepenger.kontrakter</groupId>
+            <artifactId>fp-soknad-v1</artifactId>
+            <type>test-jar</type>
             <scope>test</scope>
         </dependency>
     </dependencies>

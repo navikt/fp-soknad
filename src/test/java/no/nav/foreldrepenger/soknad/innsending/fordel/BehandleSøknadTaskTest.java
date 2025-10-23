@@ -1,9 +1,9 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel;
 
-import static no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.KontoType.FEDREKVOTE;
-import static no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.KontoType.FELLESPERIODE;
-import static no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.KontoType.FORELDREPENGER_FØR_FØDSEL;
-import static no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.KontoType.MØDREKVOTE;
+import static no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.KontoType.FEDREKVOTE;
+import static no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.KontoType.FELLESPERIODE;
+import static no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.KontoType.FORELDREPENGER_FØR_FØDSEL;
+import static no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.KontoType.MØDREKVOTE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -28,12 +28,29 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import jakarta.persistence.EntityManager;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.BrukerRolle;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.EndringssøknadForeldrepengerDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.ForeldrepengesøknadDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.Fødselsnummer;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.Saksnummer;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.SøkerDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.SøknadDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.TerminDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.builder.AnnenforelderBuilder;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.builder.EndringssøknadBuilder;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.builder.ForeldrepengerBuilder;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.builder.UttakplanPeriodeBuilder;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.Dekningsgrad;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.Overføringsårsak;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.DokumentTypeId;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.Dokumenterer;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.InnsendingType;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.VedleggDto;
 import no.nav.foreldrepenger.soknad.database.JpaExtension;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus;
 import no.nav.foreldrepenger.soknad.innsending.fordel.fpsak.DestinasjonsRuter;
@@ -48,23 +65,6 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.xml.StrukturertDokumentMap
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V1SvangerskapspengerDomainMapper;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3EngangsstønadDomainMapper;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3ForeldrepengerDomainMapper;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.AktørId;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.BrukerRolle;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.EndringssøknadForeldrepengerDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.Fødselsnummer;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.Saksnummer;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøkerDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøknadDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.TerminDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggInnsendingType;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.Dekningsgrad;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.Overføringsårsak;
-import no.nav.foreldrepenger.soknad.utils.AnnenforelderBuilder;
-import no.nav.foreldrepenger.soknad.utils.EndringssøknadBuilder;
-import no.nav.foreldrepenger.soknad.utils.ForeldrepengerBuilder;
-import no.nav.foreldrepenger.soknad.utils.UttakplanPeriodeBuilder;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 import no.nav.vedtak.mapper.json.DefaultJsonMapper;
@@ -115,8 +115,8 @@ class BehandleSøknadTaskTest {
             .medDekningsgrad(Dekningsgrad.HUNDRE)
             .medUtenlandsopphold(List.of())
             .medAnnenForelder(AnnenforelderBuilder.norskMedRettighetNorge(new Fødselsnummer("0987654321")).build())
-            .medVedlegg(List.of(new VedleggDto(UUID.randomUUID(), DokumentTypeId.I000141, VedleggInnsendingType.LASTET_OPP, null,
-                new VedleggDto.Dokumenterer(VedleggDto.Dokumenterer.DokumentererType.BARN, null, null))))
+            .medVedlegg(List.of(new VedleggDto(UUID.randomUUID(), DokumentTypeId.I000141, InnsendingType.LASTET_OPP, null,
+                new Dokumenterer(Dokumenterer.DokumentererType.BARN, null, null))))
             .build();
         var forsendelseId = UUID.randomUUID();
         lagreForsendelseOgSøknad(søknad, forsendelseId);
