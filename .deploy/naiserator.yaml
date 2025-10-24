@@ -9,23 +9,23 @@ spec:
   image: {{image}}
   port: 8080
   liveness:
-    path: /internal/health/isAlive
+    path: /fpsoknad/internal/health/isAlive
     initialDelay: 15
     periodSeconds: 10
     failureThreshold: 20
     timeout: 3
   readiness:
-    path: /internal/health/isReady
+    path: /fpsoknad/internal/health/isReady
     initialDelay: 15
     periodSeconds: 10
     failureThreshold: 20
     timeout: 3
   prometheus:
     enabled: true
-    path: /internal/metrics/prometheus
+    path: /fpsoknad/internal/metrics/prometheus
   preStopHook:
     http:
-      path: /internal/health/preStop
+      path: /fpsoknad/internal/health/preStop
   replicas:
     min: {{minReplicas}}
     max: {{maxReplicas}}
