@@ -35,11 +35,11 @@ public class ApiConfig extends Application {
     public ApiConfig() {
         var oas = new OpenAPI();
         var info = new Info()
-            .title("FPOVERSIKT - saksoversikt")
+            .title("FPSOKNAD - søknad og ettersendelser")
             .version(Optional.ofNullable(ENV.imageName()).orElse("1.0"))
-            .description("REST grensesnitt for FPOVERSIKT.");
+            .description("REST grensesnitt for FPSOKNAD.");
 
-        oas.info(info).addServersItem(new Server().url("/"));
+        oas.info(info).addServersItem(new Server().url(ENV.getProperty("context.path", "/fpsoknad")));
         var oasConfig = new SwaggerConfiguration()
             .openAPI(oas)
             .prettyPrint(true)

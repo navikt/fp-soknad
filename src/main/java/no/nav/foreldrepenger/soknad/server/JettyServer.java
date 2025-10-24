@@ -37,7 +37,7 @@ public class JettyServer {
     private static final Environment ENV = Environment.current();
     private static final String APPLICATION = "jakarta.ws.rs.Application";
 
-    private static final String CONTEXT_PATH = "/fpsoknad";
+    private static final String CONTEXT_PATH = ENV.getProperty("context.path", "/fpsoknad");
 
     private final Integer serverPort;
 
