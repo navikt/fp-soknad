@@ -80,6 +80,12 @@ spec:
         - application: foreldrepengesoknad
         - application: svangerskapspengesoknad
         - application: foreldrepengeoversikt
+        - application: fp-swagger
+          namespace: teamforeldrepenger
+          cluster: {{environment}}-gcp
+          permissions:
+            scopes:
+              - swagger
     outbound:
       rules:
         - application: fpdokgen
