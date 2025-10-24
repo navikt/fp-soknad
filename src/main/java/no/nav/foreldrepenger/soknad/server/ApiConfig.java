@@ -8,6 +8,7 @@ import java.util.Set;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ServerProperties;
 
+import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
 import io.swagger.v3.oas.integration.GenericOpenApiContextBuilder;
 import io.swagger.v3.oas.integration.OpenApiConfigurationException;
 import io.swagger.v3.oas.integration.SwaggerConfiguration;
@@ -59,6 +60,7 @@ public class ApiConfig extends Application {
         // eksponert grensesnitt bak sikkerhet. Nå er vi på max Set.of før varargs-versjonen.
         return Set.of(
             // Filter/providers
+            OpenApiResource.class,
             ProsessTaskRestTjeneste.class,
             JacksonJsonConfig.class,
             AuthenticationFilter.class,
