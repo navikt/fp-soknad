@@ -60,6 +60,14 @@ spec:
   azure:
     application:
       enabled: true
+      claims:
+        extra:
+          - "NAVident"
+          - "azp_name"
+        groups:
+          {{#each groups as |group|}}
+            - id: "{{group.uuid}}"
+          {{/each}}
   env:
     - name: GCP_BUCKET_NAME
       value: {{tmpbucket}}
