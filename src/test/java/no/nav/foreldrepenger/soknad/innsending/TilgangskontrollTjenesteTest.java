@@ -15,11 +15,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import no.nav.foreldrepenger.kontrakter.fordel.FagsakInfomasjonDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.Fødselsnummer;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.Saksnummer;
+import no.nav.foreldrepenger.soknad.innsending.fordel.AktørId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.fpsak.FpsakTjeneste;
 import no.nav.foreldrepenger.soknad.innsending.fordel.pdl.PdlKlientSystem;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.AktørId;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.Fødselsnummer;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.Saksnummer;
 import no.nav.foreldrepenger.soknad.utils.InnloggetBruker;
 import no.nav.vedtak.exception.ManglerTilgangException;
 

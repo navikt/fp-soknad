@@ -13,6 +13,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.DokumentTypeId;
 import no.nav.vedtak.exception.TekniskException;
 
 @Entity

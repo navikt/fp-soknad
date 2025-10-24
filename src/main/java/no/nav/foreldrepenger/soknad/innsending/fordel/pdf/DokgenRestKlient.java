@@ -9,13 +9,13 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.UriBuilder;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.EndringssøknadForeldrepengerDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.EngangsstønadDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.ForeldrepengesøknadDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.SvangerskapspengesøknadDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.SøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.UtalelseOmTilbakebetaling;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.EndringssøknadForeldrepengerDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.EngangsstønadDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.SvangerskapspengesøknadDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøknadDto;
 import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.integrasjon.rest.RestClient;
 import no.nav.vedtak.felles.integrasjon.rest.RestClientConfig;

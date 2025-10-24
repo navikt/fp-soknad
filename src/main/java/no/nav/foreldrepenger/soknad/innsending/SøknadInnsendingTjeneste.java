@@ -15,27 +15,27 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import no.nav.foreldrepenger.konfig.Environment;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.EndringssøknadForeldrepengerDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.EngangsstønadDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.ForeldrepengesøknadDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.SvangerskapspengesøknadDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.SøknadDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.AdopsjonDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.BarnDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.OmsorgsovertakelseDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.ettersendelse.EttersendelseDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.ettersendelse.YtelseType;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.DokumentTypeId;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.InnsendingType;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.VedleggDto;
 import no.nav.foreldrepenger.soknad.innsending.fordel.BehandleEttersendelseTask;
 import no.nav.foreldrepenger.soknad.innsending.fordel.BehandleSøknadTask;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus;
 import no.nav.foreldrepenger.soknad.innsending.fordel.utils.SøknadJsonMapper;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.AdopsjonDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.BarnDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.EndringssøknadForeldrepengerDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.EngangsstønadDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.OmsorgsovertakelseDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.SvangerskapspengesøknadDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøknadDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggInnsendingType;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse.EttersendelseDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse.YtelseType;
 import no.nav.foreldrepenger.soknad.mellomlagring.MellomlagringTjeneste;
 import no.nav.foreldrepenger.soknad.mellomlagring.YtelseMellomlagringType;
 import no.nav.foreldrepenger.soknad.utils.InnloggetBruker;
@@ -267,7 +267,7 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
 
     private List<VedleggSkjemanummerWrapper> hentAlleVedlegg(List<VedleggDto> vedleggene, YtelseMellomlagringType ytelseMellomlagringType) {
         return vedleggene.stream()
-            .filter(v -> VedleggInnsendingType.LASTET_OPP.equals(v.innsendingsType()))
+            .filter(v -> InnsendingType.LASTET_OPP.equals(v.innsendingsType()))
             .map(v -> getVedleggSkjemanummerWrapper(ytelseMellomlagringType, v))
             .toList();
     }

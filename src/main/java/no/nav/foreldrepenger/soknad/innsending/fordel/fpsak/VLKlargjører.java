@@ -9,8 +9,8 @@ import org.slf4j.LoggerFactory;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import no.nav.foreldrepenger.kontrakter.fordel.JournalpostMottakDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.fptilbake.FtilbakeTjeneste;
 
 @ApplicationScoped

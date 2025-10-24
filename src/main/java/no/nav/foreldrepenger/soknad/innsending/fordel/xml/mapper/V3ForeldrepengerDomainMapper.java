@@ -22,32 +22,32 @@ import java.util.UUID;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.xml.bind.JAXBElement;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.EndringssøknadForeldrepengerDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.ForeldrepengesøknadDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.AdopsjonDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.BarnDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.FødselDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.OmsorgsovertakelseDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.TerminDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.annenpart.AnnenForelderDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.annenpart.NorskForelderDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.annenpart.UtenlandskForelderDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.KontoType;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.MorsAktivitet;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.OppholdsPeriodeDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.Oppholdsårsak;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.OverføringsPeriodeDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.Overføringsårsak;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.UtsettelsesPeriodeDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.UtsettelsesÅrsak;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.UttaksPeriodeDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.UttaksplanDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.Uttaksplanperiode;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.VedleggDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.ÅpenPeriodeDto;
+import no.nav.foreldrepenger.soknad.innsending.fordel.AktørId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.pdl.Personoppslag;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.jaxb.FPV3JAXBUtil;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.AdopsjonDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.AktørId;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.BarnDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.EndringssøknadForeldrepengerDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.ForeldrepengesøknadDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.FødselDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.OmsorgsovertakelseDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.TerminDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.VedleggDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.annenpart.AnnenForelderDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.annenpart.NorskForelderDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.annenpart.UtenlandskForelderDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.KontoType;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.MorsAktivitet;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.OppholdsPeriodeDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.Oppholdsårsak;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.OverføringsPeriodeDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.Overføringsårsak;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.UtsettelsesPeriodeDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.UtsettelsesÅrsak;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.UttaksPeriodeDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.UttaksplanDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.uttaksplan.Uttaksplanperiode;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.ÅpenPeriodeDto;
 import no.nav.vedtak.felles.xml.soeknad.endringssoeknad.v3.Endringssoeknad;
 import no.nav.vedtak.felles.xml.soeknad.felles.v3.Adopsjon;
 import no.nav.vedtak.felles.xml.soeknad.felles.v3.AnnenForelder;
@@ -166,19 +166,19 @@ public class V3ForeldrepengerDomainMapper  {
         return omYtelse;
     }
 
-    private static Dekningsgrad dekningsgradFra(no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.Dekningsgrad dekningsgrad) {
+    private static Dekningsgrad dekningsgradFra(no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.Dekningsgrad dekningsgrad) {
         return Optional.ofNullable(dekningsgrad)
                 .map(V3ForeldrepengerDomainMapper::tilDekningsgrad)
                 .orElse(null);
     }
 
-    private static Dekningsgrad tilDekningsgrad(no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.Dekningsgrad d) {
+    private static Dekningsgrad tilDekningsgrad(no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.Dekningsgrad d) {
         var dekningsgrad = new Dekningsgrad();
         dekningsgrad.setDekningsgrad(tilDekningsgrader(d));
         return dekningsgrad;
     }
 
-    private static Dekningsgrader tilDekningsgrader(no.nav.foreldrepenger.soknad.innsending.kontrakt.foreldrepenger.Dekningsgrad d) {
+    private static Dekningsgrader tilDekningsgrader(no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.Dekningsgrad d) {
         var dekningsgrader = new Dekningsgrader();
         dekningsgrader.setKode(d.verdi());
         return dekningsgrader;

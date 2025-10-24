@@ -12,11 +12,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import jakarta.persistence.EntityManager;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.database.JpaExtension;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;

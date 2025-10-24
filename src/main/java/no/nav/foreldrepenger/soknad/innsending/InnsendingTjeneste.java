@@ -1,7 +1,7 @@
 package no.nav.foreldrepenger.soknad.innsending;
 
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.SøknadDto;
-import no.nav.foreldrepenger.soknad.innsending.kontrakt.ettersendelse.EttersendelseDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.SøknadDto;
+import no.nav.foreldrepenger.kontrakter.fpsoknad.ettersendelse.EttersendelseDto;
 
 public interface InnsendingTjeneste {
     void lagreSøknadInnsending(SøknadDto søknad);
