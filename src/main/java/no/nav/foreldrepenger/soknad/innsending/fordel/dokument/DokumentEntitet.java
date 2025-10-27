@@ -76,7 +76,7 @@ public class DokumentEntitet {
     }
 
     public boolean erUttalelseOmTilbakebetaling() {
-        return dokumentTypeId.erUttalelseOmTilbakebetaling();
+        return dokumentTypeId.erUttalelseOmTilbakebetaling() && ArkivFilType.JSON.equals(arkivFilType);
     }
 
     public ArkivFilType getArkivFilType() {

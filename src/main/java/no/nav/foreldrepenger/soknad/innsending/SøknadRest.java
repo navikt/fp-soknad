@@ -96,11 +96,7 @@ public class SøknadRest {
         tilgangskontrollTjeneste.validerSøkerFraKontekstErSammeSomSøknad(ettersendelseDto.fnr());
         tilgangskontrollTjeneste.validerSaksnummerKnyttetTilSøker(ettersendelseDto.saksnummer());
         LOG.info("Mottatt ettersendelse for innsending");
-        if (ettersendelseDto.erInnsendingAvUttalelseOmTilbakekreving()) {
-            søknadInnsendingTjeneste.lagreUttalelseOmTilbakekreving(ettersendelseDto);
-        } else {
-            søknadInnsendingTjeneste.lagreEttersendelseInnsending(ettersendelseDto);
-        }
+        søknadInnsendingTjeneste.lagreEttersendelseInnsending(ettersendelseDto);
         return Response.ok().build();
     }
 
