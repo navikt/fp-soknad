@@ -35,6 +35,7 @@ import no.nav.foreldrepenger.soknad.vedlegg.image2pdf.Image2PDFConverter;
 @Produces(MediaType.APPLICATION_JSON)
 public class MellomlagringRest {
 
+    private ForeldrepengesoknadApiKlient foreldrepengesoknadApiKlient;
     private MellomlagringTjeneste mellomlagring;
     private Image2PDFConverter converter;
     private VedleggSjekkerTjeneste vedleggSjekkerTjeneste;
@@ -44,7 +45,9 @@ public class MellomlagringRest {
     }
 
     @Inject
-    public MellomlagringRest(MellomlagringTjeneste mellomlagring, Image2PDFConverter converter, VedleggSjekkerTjeneste vedleggSjekkerTjeneste) {
+    public MellomlagringRest(ForeldrepengesoknadApiKlient foreldrepengesoknadApiKlient,
+                             MellomlagringTjeneste mellomlagring, Image2PDFConverter converter, VedleggSjekkerTjeneste vedleggSjekkerTjeneste) {
+        this.foreldrepengesoknadApiKlient = foreldrepengesoknadApiKlient;
         this.mellomlagring = mellomlagring;
         this.converter = converter;
         this.vedleggSjekkerTjeneste = vedleggSjekkerTjeneste;
@@ -60,9 +63,11 @@ public class MellomlagringRest {
     @GET
     @Path("/{ytelse}")
     public Response lesSøknad(@PathParam("ytelse") @Valid YtelseMellomlagringType ytelse) {
-        return mellomlagring.lesKryptertSøknad(ytelse)
-            .map(s -> Response.ok(s).build())
-            .orElse(Response.noContent().build());
+        var mellomlagringSøknad = mellomlagring.lesKryptertSøknad(ytelse);
+        if (mellomlagringSøknad.isEmpty()) {
+            return foreldrepengesoknadApiKlient.hentMellomlagretSoknad(ytelse).map(s -> Response.ok(s).build()).orElse(Response.noContent().build());
+        }
+        return mellomlagringSøknad.map(s -> Response.ok(s).build()).orElse(Response.noContent().build());
     }
 
     @DELETE
@@ -85,7 +90,13 @@ public class MellomlagringRest {
     @Produces("application/pdf")
     public Response lesVedlegg(@PathParam("ytelse") @Valid YtelseMellomlagringType ytelse,
                                @PathParam("key") @Pattern(regexp = FRITEKST) String key) {
-        return mellomlagring.lesKryptertVedlegg(key, ytelse)
+        var vedlegg = mellomlagring.lesKryptertVedlegg(key, ytelse);
+        if (vedlegg.isEmpty()) {
+            return foreldrepengesoknadApiKlient.hentMellomlagretVedlegg(ytelse, key)
+                .map(this::found)
+                .orElse(Response.status(Response.Status.NOT_FOUND).build());
+        }
+        return vedlegg
             .map(this::found)
             .orElse(Response.status(Response.Status.NOT_FOUND).build());
     }
