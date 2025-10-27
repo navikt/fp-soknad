@@ -62,6 +62,7 @@ public class SøknadRest {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response send(@Valid @NotNull EngangsstønadDto engangsstønadDto) {
         tilgangskontrollTjeneste.validerSøkerFraKontekstErSammeSomSøknad(engangsstønadDto.søkerinfo().fnr());
+        LOG.info("Mottatt søknad om engangsstønad for innsending, søker: {}", engangsstønadDto.søkerinfo().fnr());
         søknadInnsendingTjeneste.lagreSøknadInnsending(engangsstønadDto);
         return Response.ok().build();
     }
@@ -71,6 +72,7 @@ public class SøknadRest {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response send(@Valid @NotNull SvangerskapspengesøknadDto svangerskapspengesøknadDto) {
         tilgangskontrollTjeneste.validerSøkerFraKontekstErSammeSomSøknad(svangerskapspengesøknadDto.søkerinfo().fnr());
+        LOG.info("Mottatt søknad om svp for innsending, søker: {}", svangerskapspengesøknadDto.søkerinfo().fnr());
         søknadInnsendingTjeneste.lagreSøknadInnsending(svangerskapspengesøknadDto);
         return Response.ok().build();
     }
@@ -81,6 +83,7 @@ public class SøknadRest {
     public Response send(@Valid @NotNull EndringssøknadForeldrepengerDto endringssøknadForeldrepengerDto) {
         tilgangskontrollTjeneste.validerSøkerFraKontekstErSammeSomSøknad(endringssøknadForeldrepengerDto.søkerinfo().fnr());
         tilgangskontrollTjeneste.validerSaksnummerKnyttetTilSøker(endringssøknadForeldrepengerDto.saksnummer());
+        LOG.info("Mottatt søknad om endring for innsending, søker: {}", endringssøknadForeldrepengerDto.søkerinfo().fnr());
         søknadInnsendingTjeneste.lagreSøknadInnsending(endringssøknadForeldrepengerDto);
         return Response.ok().build();
     }
@@ -92,6 +95,7 @@ public class SøknadRest {
     public Response send(@Valid @NotNull EttersendelseDto ettersendelseDto) {
         tilgangskontrollTjeneste.validerSøkerFraKontekstErSammeSomSøknad(ettersendelseDto.fnr());
         tilgangskontrollTjeneste.validerSaksnummerKnyttetTilSøker(ettersendelseDto.saksnummer());
+        LOG.info("Mottatt ettersendelse for innsending");
         if (ettersendelseDto.erInnsendingAvUttalelseOmTilbakekreving()) {
             søknadInnsendingTjeneste.lagreUttalelseOmTilbakekreving(ettersendelseDto);
         } else {
