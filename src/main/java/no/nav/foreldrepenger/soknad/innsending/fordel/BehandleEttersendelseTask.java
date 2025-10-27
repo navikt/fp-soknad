@@ -5,6 +5,7 @@ import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Forsendels
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -63,9 +64,15 @@ public class BehandleEttersendelseTask implements ProsessTaskHandler {
         var behandlingTema = utledBehandlingstema(metadata);
         var destinasjon = new Destinasjon(FPSAK, metadata.getSaksnummer().orElseThrow());
 
-        var dokumenterForJournalføring = hovedDokumenttype.erUttalelseOmTilbakebetaling()
-            ? List.of(pdfTjeneste.lagUttalelseOmTilbakebetalingPDF(metadata, dokumenter.getFirst()))
+        var uttalelseOmTilbakekrevingPDF = dokumenter.stream()
+            .filter(DokumentEntitet::erUttalelseOmTilbakebetaling)
+            .findFirst()
+            .map(d -> pdfTjeneste.lagUttalelseOmTilbakebetalingPDF(metadata, d));
+
+        var dokumenterForJournalføring = uttalelseOmTilbakekrevingPDF.isPresent()
+            ? Stream.concat(uttalelseOmTilbakekrevingPDF.stream(), dokumenter.stream().filter(dokument -> !dokument.erUttalelseOmTilbakebetaling())).toList()
             : dokumenter;
+
         var opprettetJournalpost = arkivTjeneste.forsøkEndeligJournalføring(metadata, dokumenterForJournalføring, forsendelseId, destinasjon.saksnummer(), hovedDokumenttype,
             behandlingTema);
         dokumentRepository.oppdaterForsendelseMetadata(forsendelseId, opprettetJournalpost.journalpostId(), destinasjon);

@@ -87,7 +87,7 @@ public class GCPMellomlagring implements Mellomlagring {
         var objektName = key(katalog, key);
         var blob = storage.get(mellomlagringBøtte.navn(), objektName);
         if (blob != null) {
-            LOG.info("Sletter mellomlagring med id {}", blob.getBlobId());
+            LOG.trace("Sletter mellomlagring med id {}", blob.getBlobId());
             storage.delete(blob.getBlobId());
         } else {
             LOG.info("Kunne ikke finne mellomlagring som skulle slettes med id {}", objektName);
@@ -109,7 +109,7 @@ public class GCPMellomlagring implements Mellomlagring {
                 batch.update(nyBlob);
             }
             batch.submit();
-            LOG.info("Alle blobs i bøtte {} med prefiks {} er oppdatert", mellomlagringBøtte.navn(), katalog);
+            LOG.trace("Alle blobs i bøtte {} med prefiks {} er oppdatert", mellomlagringBøtte.navn(), katalog);
         }
     }
 
@@ -127,7 +127,7 @@ public class GCPMellomlagring implements Mellomlagring {
                 batch.delete(blob.getBlobId());
             }
             batch.submit();
-            LOG.info("Alle blobs i bøtte {} med prefiks {} er blitt slettet", mellomlagringBøtte.navn(), katalog);
+            LOG.trace("Alle blobs i bøtte {} med prefiks {} er blitt slettet", mellomlagringBøtte.navn(), katalog);
         }
     }
 

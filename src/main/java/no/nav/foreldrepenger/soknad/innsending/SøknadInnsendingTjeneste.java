@@ -118,6 +118,16 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
             .build();
         dokumentRepository.lagre(metadata);
 
+        if (ettersendelse.erInnsendingAvUttalelseOmTilbakekreving()) {
+            var uttalelseOmTilbakebetaling = new UtalelseOmTilbakebetaling(ettersendelse.type(), ettersendelse.brukerTekst());
+            var uttalelseDokument = DokumentEntitet.builder()
+                .setDokumentInnhold(getInnhold(uttalelseOmTilbakebetaling), ArkivFilType.JSON)
+                .setForsendelseId(forsendelseId)
+                .setDokumentTypeId(DokumentTypeId.I000119)
+                .build();
+            dokumentRepository.lagre(uttalelseDokument);
+        }
+
         var vedleggDokumenter = vedleggMedInnhold.stream()
             .map(v -> lagDokumentFraVedlegg(v.innhold(), forsendelseId, v.skjemanummer(), v.begrunnelse()))
             .toList();

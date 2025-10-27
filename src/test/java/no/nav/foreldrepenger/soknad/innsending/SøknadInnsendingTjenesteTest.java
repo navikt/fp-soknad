@@ -298,7 +298,7 @@ class SøknadInnsendingTjenesteTest {
         when(innloggetBruker.brukerFraKontekst()).thenReturn(ettersendelse.fnr().value());
 
         // Act
-        søknadInnsendingTjeneste.lagreUttalelseOmTilbakekreving(ettersendelse);
+        søknadInnsendingTjeneste.lagreEttersendelseInnsending(ettersendelse);
 
         // Assert
         var forsendelser = dokumentRepository.hentForsendelse(ettersendelse.fnr().value());
@@ -316,5 +316,48 @@ class SøknadInnsendingTjenesteTest {
         assertThat(uttalelseDokument.getArkivFilType()).isEqualTo(ArkivFilType.JSON);
         var deseralisertUttalelse = SøknadJsonMapper.deseraliserUttalelsePåTilbakebetaling(uttalelseDokument);
         assertThat(deseralisertUttalelse).isEqualTo(new UtalelseOmTilbakebetaling(ettersendelse.type(), ettersendelse.brukerTekst()));
+    }
+
+    @Test
+    void uttalese_om_tilbakebetaling_med_vedlegg_test() {
+        // Arrange
+        var ettersendelse = new EttersendelseDto(
+            null,
+            new Saksnummer("99999"),
+            new Fødselsnummer("11111111"),
+            YtelseType.FORELDREPENGER,
+            new BrukerTekstDto(DokumentTypeId.I000119, "Dette er en uttalelse om tilbakebetaling"),
+            List.of(
+                new VedleggDto(UUID.randomUUID(), DokumentTypeId.I000119, InnsendingType.LASTET_OPP, null, null),
+                new VedleggDto(UUID.randomUUID(), DokumentTypeId.I000119, InnsendingType.LASTET_OPP, null, null)
+            )
+        );
+        when(innloggetBruker.brukerFraKontekst()).thenReturn(ettersendelse.fnr().value());
+        when(mellomlagringTjeneste.lesKryptertVedlegg(any(), any())).thenReturn(Optional.of(new byte[]{1, 2, 3}));
+
+        // Act
+        søknadInnsendingTjeneste.lagreEttersendelseInnsending(ettersendelse);
+
+        // Assert
+        var forsendelser = dokumentRepository.hentForsendelse(ettersendelse.fnr().value());
+        assertThat(forsendelser).hasSize(1);
+        var forsendelse = forsendelser.getFirst();
+        assertThat(forsendelse.getStatus()).isEqualTo(ForsendelseStatus.PENDING);
+        assertThat(forsendelse.getForsendelseMottatt()).isBeforeOrEqualTo(LocalDateTime.now());
+        assertThat(forsendelse.getSaksnummer()).hasValue(ettersendelse.saksnummer().value());
+        assertThat(forsendelse.getJournalpostId()).isEmpty();
+
+        var dokumenter = dokumentRepository.hentDokumenter(forsendelse.getForsendelseId());
+        assertThat(dokumenter).hasSize(3);
+        assertThat(dokumenter).extracting(DokumentEntitet::getArkivFilType).containsExactlyInAnyOrder(ArkivFilType.JSON, ArkivFilType.PDFA, ArkivFilType.PDFA);
+        assertThat(dokumenter).extracting(DokumentEntitet::getDokumentTypeId).containsExactlyInAnyOrder(DokumentTypeId.I000119, DokumentTypeId.I000119,  DokumentTypeId.I000119);
+
+        var uttalelseDokument = dokumenter.stream().filter(DokumentEntitet::erUttalelseOmTilbakebetaling).findFirst().orElseThrow();
+        assertThat(uttalelseDokument.getDokumentTypeId()).isEqualTo(ettersendelse.brukerTekst().dokumentType());
+        assertThat(uttalelseDokument.getArkivFilType()).isEqualTo(ArkivFilType.JSON);
+        var deseralisertUttalelse = SøknadJsonMapper.deseraliserUttalelsePåTilbakebetaling(uttalelseDokument);
+        assertThat(deseralisertUttalelse).isEqualTo(new UtalelseOmTilbakebetaling(ettersendelse.type(), ettersendelse.brukerTekst()));
+
+
     }
 }

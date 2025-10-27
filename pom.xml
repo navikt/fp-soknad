@@ -20,7 +20,7 @@
 
         <felles.version>7.6.9</felles.version>
         <prosesstask.version>5.2.1</prosesstask.version>
-        <fp-kontrakter.version>9.4.4</fp-kontrakter.version>
+        <fp-kontrakter.version>9.4.5</fp-kontrakter.version>
 
         <tika.version>3.2.3</tika.version> <!-- Bedre måter å gjøre det på -->
         <nv.version>1.29</nv.version>
