@@ -274,7 +274,7 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
 
     private VedleggSkjemanummerWrapper getVedleggSkjemanummerWrapper(YtelseMellomlagringType ytelseType, VedleggDto vedleggDto) {
         var innhold = mellomlagringTjeneste.lesKryptertVedlegg(vedleggDto.uuid().toString(), ytelseType).orElseThrow(() -> new IllegalStateException("Fant ikke mellomlagret vedlegg med uuid " + vedleggDto.uuid()));
-        return new VedleggSkjemanummerWrapper(innhold, vedleggDto.skjemanummer(), DokumentTypeId.I000060.equals(vedleggDto.skjemanummer()) ? Optional.of(vedleggDto.beskrivelse()) : Optional.empty());
+        return new VedleggSkjemanummerWrapper(innhold, vedleggDto.skjemanummer(), DokumentTypeId.I000060.equals(vedleggDto.skjemanummer()) ? Optional.ofNullable(vedleggDto.beskrivelse()) : Optional.empty());
     }
 
     private record VedleggSkjemanummerWrapper(byte[] innhold, DokumentTypeId skjemanummer, Optional<String> begrunnelse) {}
