@@ -35,8 +35,7 @@ public class ForeldrepengesoknadApiKlient {
     public ForeldrepengesoknadApiKlient() {
         this.restKlient = RestClient.client();
         this.restConfig = RestConfig.forClient(this.getClass());
-        var endpoint = restConfig.fpContextPath();
-        this.mellomlagringUrl = lagURI(endpoint, MELLOMLAGRING);
+        this.mellomlagringUrl = lagURI(restConfig.endpoint(), MELLOMLAGRING);
     }
 
     public Optional<String> hentMellomlagretSoknad(YtelseMellomlagringType ytelseMellomlagringType) {
