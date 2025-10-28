@@ -5,18 +5,14 @@ import no.nav.foreldrepenger.kontrakter.fordel.BehandlendeFagsystemDto;
 public record VurderFagsystemResultat(SendTil destinasjon, String saksnummer) {
 
     static VurderFagsystemResultat fra(BehandlendeFagsystemDto data) {
-        if (data == null) {
+        if (data == null || !data.isBehandlesIVedtaksløsningen()) {
             return new VurderFagsystemResultat(SendTil.GOSYS, null);
         }
-        var sendesTil = data.isBehandlesIVedtaksløsningen() || data.isSjekkMotInfotrygd()
-            ? SendTil.FPSAK
-            : SendTil.GOSYS;
-        return new VurderFagsystemResultat(sendesTil, data.getSaksnummer().orElseThrow());
+        return new VurderFagsystemResultat(SendTil.FPSAK, data.getSaksnummer().orElseThrow());
     }
 
     public enum SendTil {
         FPSAK,
         GOSYS
     }
-
 }

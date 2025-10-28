@@ -45,7 +45,7 @@ public class FpsakRestKlient implements FpsakTjeneste {
     public VurderFagsystemResultat vurderFagsystem(VurderFagsystemDto vurderFagsystemDto) {
         var request = RestRequest.newPOSTJson(vurderFagsystemDto, fagsystemEndpoint, restConfig);
         var respons = restKlient.send(request, BehandlendeFagsystemDto.class);
-        return VurderFagsystemResultat.fra( respons);
+        return VurderFagsystemResultat.fra(respons);
     }
 
     @Override
