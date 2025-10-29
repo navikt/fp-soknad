@@ -1,12 +1,13 @@
-package no.nav.foreldrepenger.soknad.server;
+package no.nav.foreldrepenger.soknad.server.app;
 
-import java.util.HashMap;
-import java.util.Map;
+import static no.nav.foreldrepenger.soknad.server.app.ApiConfig.getApplicationProperties;
+
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.server.ServerProperties;
+import org.glassfish.jersey.server.ResourceConfig;
 
 import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
 import io.swagger.v3.oas.integration.GenericOpenApiContextBuilder;
@@ -16,23 +17,32 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.servers.Server;
 import jakarta.ws.rs.ApplicationPath;
-import jakarta.ws.rs.core.Application;
 import no.nav.foreldrepenger.konfig.Environment;
-import no.nav.foreldrepenger.soknad.innsending.SøknadRest;
-import no.nav.foreldrepenger.soknad.mellomlagring.MellomlagringRest;
+import no.nav.foreldrepenger.soknad.server.AuthenticationFilter;
+import no.nav.foreldrepenger.soknad.server.JacksonJsonConfig;
 import no.nav.foreldrepenger.soknad.server.error.GeneralRestExceptionMapper;
 import no.nav.foreldrepenger.soknad.server.error.ValidationExceptionMapper;
 import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.rest.ProsessTaskRestTjeneste;
 
 @ApplicationPath(ApiConfig.API_URI)
-public class ApiConfig extends Application {
-
-    public static final String API_URI ="/api";
-
+public class ForvaltningApiConfig extends ResourceConfig {
+    public static final String API_URI ="/forvaltning";
     private static final Environment ENV = Environment.current();
 
-    public ApiConfig() {
+    public ForvaltningApiConfig() {
+        register(AuthenticationFilter.class); // Sikkerhet
+        register(GeneralRestExceptionMapper.class); // Exception handling
+        register(ValidationExceptionMapper.class); // Exception handling
+        register(JacksonJsonConfig.class); // Json
+
+        registerOpenApi();
+        register(OpenApiResource.class);
+        register(ProsessTaskRestTjeneste.class);
+        setProperties(getApplicationProperties());
+    }
+
+    private static void registerOpenApi() {
         var oas = new OpenAPI();
         var info = new Info()
             .title("FPSOKNAD - søknad og ettersendelser")
@@ -43,7 +53,7 @@ public class ApiConfig extends Application {
         var oasConfig = new SwaggerConfiguration()
             .openAPI(oas)
             .prettyPrint(true)
-            .resourceClasses(Set.of(ProsessTaskRestTjeneste.class.getName()));
+            .resourceClasses(registertOpenApiConfigFor().stream().map(Class::getName).collect(Collectors.toSet()));
 
         try {
             new GenericOpenApiContextBuilder<>()
@@ -55,31 +65,10 @@ public class ApiConfig extends Application {
         }
     }
 
-    @Override
-    public Set<Class<?>> getClasses() {
-        // eksponert grensesnitt bak sikkerhet. Nå er vi på max Set.of før varargs-versjonen.
-        return Set.of(
-            // Filter/providers
-            OpenApiResource.class,
-            ProsessTaskRestTjeneste.class,
-            JacksonJsonConfig.class,
-            AuthenticationFilter.class,
-            MultiPartFeature.class,
-            GeneralRestExceptionMapper.class,
-            ValidationExceptionMapper.class,
-            // API
-            SøknadRest.class,
-            MellomlagringRest.class
-        );
+    private static Set<Class<?>> registertOpenApiConfigFor() {
+        return Stream.concat(
+            Set.of(ProsessTaskRestTjeneste.class).stream(),
+            ApiConfig.getApplicationClasses().stream() // Autogenerering av kontrakt frontend
+        ).collect(Collectors.toSet());
     }
-
-    @Override
-    public Map<String, Object> getProperties() {
-        Map<String, Object> properties = new HashMap<>();
-        // Ref Jersey doc
-        properties.put(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
-        properties.put(ServerProperties.PROCESSING_RESPONSE_ERRORS_ENABLED, true);
-        return properties;
-    }
-
 }
