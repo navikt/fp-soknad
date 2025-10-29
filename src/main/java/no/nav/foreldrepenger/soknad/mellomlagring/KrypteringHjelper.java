@@ -24,6 +24,7 @@ public class KrypteringHjelper {
     private final String iv;
 
     private static final String ALGO = "AES/GCM/NoPadding";
+    private static final char[] HEXCODE = "0123456789ABCDEF".toCharArray();
 
     public KrypteringHjelper(String passphrase, String fnr) {
         if (passphrase == null || passphrase.isEmpty() || fnr == null || fnr.isEmpty()) {
@@ -31,6 +32,12 @@ public class KrypteringHjelper {
         }
         key = key(passphrase, fnr);
         iv = fnr;
+    }
+
+    public String uniktMappenavn(String fnr, YtelseMellomlagringType ytelse, boolean vedlegg) {
+        var brukerspesifikkMappe = hexBinary(encrypt(fnr).getBytes());
+        var ytelsesspesifikkMappe = "%s/%s/".formatted(brukerspesifikkMappe, ytelse.name());
+        return vedlegg ? ytelsesspesifikkMappe + "vedlegg/" : ytelsesspesifikkMappe;
     }
 
     public String encrypt(String plainText) {
@@ -80,4 +87,12 @@ public class KrypteringHjelper {
         }
     }
 
+    private static String hexBinary(byte[] data) {
+        var r = new StringBuilder(data.length * 2);
+        for (var b : data) {
+            r.append(HEXCODE[(b >> 4) & 0xF]);
+            r.append(HEXCODE[(b & 0xF)]);
+        }
+        return r.toString();
+    }
 }

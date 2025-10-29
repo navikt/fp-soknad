@@ -17,10 +17,11 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.servers.Server;
 import jakarta.ws.rs.ApplicationPath;
 import no.nav.foreldrepenger.konfig.Environment;
-import no.nav.foreldrepenger.soknad.server.AuthenticationFilter;
 import no.nav.foreldrepenger.soknad.server.JacksonJsonConfig;
 import no.nav.foreldrepenger.soknad.server.error.GeneralRestExceptionMapper;
 import no.nav.foreldrepenger.soknad.server.error.ValidationExceptionMapper;
+import no.nav.foreldrepenger.soknad.server.forvaltning.ForvaltningMellomlagringRest;
+import no.nav.foreldrepenger.soknad.server.sikkerhet.AuthenticationFilter;
 import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.rest.ProsessTaskRestTjeneste;
 
@@ -42,7 +43,10 @@ public class ForvaltningApiConfig extends ResourceConfig {
     }
 
     public static Set<Class<?>> getForvaltningKlasser() {
-        return Set.of(ProsessTaskRestTjeneste.class);
+        return Set.of(
+            ProsessTaskRestTjeneste.class,
+            ForvaltningMellomlagringRest.class
+        );
     }
 
     private void registerOpenApi() {
