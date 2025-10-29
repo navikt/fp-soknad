@@ -97,7 +97,6 @@ spec:
     outbound:
       rules:
         - application: fpdokgen
-        - application: foreldrepengesoknad-api
         - application: clamav
           namespace: nais-system
       external:
