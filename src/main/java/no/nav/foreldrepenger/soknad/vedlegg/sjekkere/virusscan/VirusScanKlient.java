@@ -58,7 +58,7 @@ public class VirusScanKlient {
         }
         var request = HttpRequest.newBuilder()
             .uri(UriBuilder.fromUri(restConfig.endpoint()).path(SCAN_PATH).build())
-            .timeout(Duration.ofSeconds(10))
+            .timeout(Duration.ofSeconds(15))
             .header("Content-Type", MediaType.APPLICATION_OCTET_STREAM)
             .PUT(HttpRequest.BodyPublishers.ofByteArray(bytes))
             .build();
