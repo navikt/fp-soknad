@@ -1,5 +1,9 @@
 package no.nav.foreldrepenger.soknad.innsending;
 
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,6 +108,8 @@ public class SøknadRest {
     @GET
     @Path("/status")
     @Consumes(MediaType.APPLICATION_JSON)
+    @ApiResponse(responseCode = "200",
+        content = @Content(schema = @Schema(implementation = StatusInnsendingTjeneste.ForsendelseStatus.class)))
     public Response status() {
         var fnr = innloggetBruker.brukerFraKontekst();
 

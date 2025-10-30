@@ -26,6 +26,7 @@
         <nv.version>1.29</nv.version>
         <pdfbox.version>3.0.6</pdfbox.version>
         <gcp.storage.version>2.59.0</gcp.storage.version>
+        <openapi-spec-utils.version>2.0.6</openapi-spec-utils.version>
     </properties>
 
     <dependencyManagement>
@@ -66,6 +67,11 @@
                 <type>pom</type>
             </dependency>
             <dependency>
+                <groupId>no.nav.openapi.spec.utils</groupId>
+                <artifactId>openapi-spec-utils</artifactId>
+                <version>${openapi-spec-utils.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.pdfbox</groupId>
                 <artifactId>pdfbox</artifactId>
                 <version>${pdfbox.version}</version>
@@ -82,6 +88,11 @@
         <dependency>
             <groupId>no.nav.foreldrepenger.felles</groupId>
             <artifactId>felles-util</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>no.nav.openapi.spec.utils</groupId>
+            <artifactId>openapi-spec-utils</artifactId>
+            <version>${openapi-spec-utils.version}</version>
         </dependency>
         <dependency>
             <groupId>no.nav.foreldrepenger.felles</groupId>
