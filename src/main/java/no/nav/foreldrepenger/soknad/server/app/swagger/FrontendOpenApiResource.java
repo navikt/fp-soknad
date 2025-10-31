@@ -10,13 +10,15 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import no.nav.foreldrepenger.soknad.server.app.ApiConfig;
 
 @ApplicationScoped
 @Path("/frontend/openapi.{type:json|yaml}")
 public class FrontendOpenApiResource {
     private static final String SWAGGER_ID = "frontend";
     private static final OpenApiContext openApiContext = new OpenApiKonfigurasjon(SWAGGER_ID, null)
-        .readerClass(OpenApiReaderTypeGeneringFrontend.class)
+        .resourceClasses(ApiConfig.getApplicationClasses())
+        .readerClass(OpenApiReaderTypeGeneringFrontend.class) // Fjerner paths
         .buildContext();
 
 

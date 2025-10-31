@@ -14,7 +14,6 @@ import io.swagger.v3.core.util.ObjectMapperFactory;
 import io.swagger.v3.jaxrs2.Reader;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Paths;
-import no.nav.foreldrepenger.soknad.server.app.ApiConfig;
 import no.nav.openapi.spec.utils.openapi.DiscriminatorModelConverter;
 import no.nav.openapi.spec.utils.openapi.EnumVarnamesConverter;
 import no.nav.openapi.spec.utils.openapi.JsonSubTypesModelConverter;
@@ -22,18 +21,15 @@ import no.nav.openapi.spec.utils.openapi.NoJsonSubTypesAnnotationIntrospector;
 import no.nav.openapi.spec.utils.openapi.RefToClassLookup;
 
 /**
- * OpenAPI / Swagger
- * Custom OpenApiReader for å eksludere paths til endepunkt i ApiConfig.
- * Schema for endepunkt i api vil bli tilgjengliggjort, men ikke mulig å kjøre swagger mot de.
- * Schema brukes til å autogenerere typer i frontend
+ * Custom Reader for api som går ut mot typegenereing. Her fjerner vi path, og registerer
+ * ny ModulConverter med egendefinert Objectmapper i henhold til hva frontend forventer.
  */
 public class OpenApiReaderTypeGeneringFrontend extends Reader {
-    private static final Set<Class<?>> API_SKAL_SKAL_INKLUDERES = ApiConfig.getApplicationClasses();
 
     @Override
     public OpenAPI read(Set<Class<?>> resourceClasses) {
         lagCustomModelConvertersForFrontendTypegenerering();
-        var openApi = super.read(API_SKAL_SKAL_INKLUDERES);
+        var openApi = super.read(resourceClasses);
         openApi.setPaths(new Paths());
         return openApi;
     }
