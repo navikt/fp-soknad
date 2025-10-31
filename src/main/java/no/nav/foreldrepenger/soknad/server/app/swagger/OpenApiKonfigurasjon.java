@@ -20,9 +20,9 @@ public class OpenApiKonfigurasjon {
     private final String swaggerId;
     private final SwaggerConfiguration openApiConfig;
 
-    public OpenApiKonfigurasjon(String id) {
+    public OpenApiKonfigurasjon(String id, String pathForvaltning) {
         this.swaggerId = id;
-        this.openApiConfig = lagOpenApiKonfigurasjon();
+        this.openApiConfig = lagOpenApiKonfigurasjon(pathForvaltning);
     }
 
     public OpenApiKonfigurasjon resourceClasses(Set<Class<?>> resourceClasses) {
@@ -35,14 +35,16 @@ public class OpenApiKonfigurasjon {
         return this;
     }
 
-    private SwaggerConfiguration lagOpenApiKonfigurasjon() {
+    private SwaggerConfiguration lagOpenApiKonfigurasjon(String pathForvaltning) {
         OpenAPI oas = new OpenAPI()
             .openapi("3.1.1")
             .info(new Info()
                 .title("FPSOKNAD - søknad og ettersendelser (frontend)")
                 .version(Optional.ofNullable(ENV.imageName()).orElse("1.0"))
-                .description("REST grensesnitt for Frontend."))
-            .addServersItem(new Server().url("/forvaltning/api/frontend"));
+                .description("REST grensesnitt for Frontend."));
+        if (pathForvaltning != null) {
+            oas.addServersItem(new Server().url(ENV.getProperty("context.path", "/fpsoknad") + pathForvaltning));
+        }
         return new SwaggerConfiguration()
             .id(swaggerId)
             .openAPI(oas)

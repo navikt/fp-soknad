@@ -2,6 +2,8 @@ package no.nav.foreldrepenger.soknad.server.app.swagger;
 
 import static no.nav.foreldrepenger.soknad.server.app.ForvaltningApiConfig.getForvaltningKlasser;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import io.swagger.v3.oas.integration.api.OpenApiContext;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.GET;
@@ -10,18 +12,19 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import no.nav.foreldrepenger.soknad.server.app.ForvaltningApiConfig;
 
 @ApplicationScoped
 @Path("/openapi.{type:json|yaml}")
 public class ForvaltningOpenApiResource {
     private static final String SWAGGER_ID = "forvaltning";
-    private static final OpenApiContext openApiContext = new OpenApiKonfigurasjon(SWAGGER_ID)
+    private static final OpenApiContext openApiContext = new OpenApiKonfigurasjon(SWAGGER_ID, ForvaltningApiConfig.API_URI)
         .resourceClasses(getForvaltningKlasser())
         .buildContext();
 
     @GET
     @Produces({MediaType.APPLICATION_JSON, "application/yaml"})
-    public Response getOpenApi(@PathParam("type") String type) throws Exception {
+    public Response getOpenApi(@PathParam("type") String type) throws JsonProcessingException {
         var oas = openApiContext.read();
         if ("yaml".equalsIgnoreCase(type)) {
             return Response.ok(openApiContext.getOutputYamlMapper().writeValueAsString(oas))
