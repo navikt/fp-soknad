@@ -6,6 +6,7 @@
     "dbDiskAutoresize": "false",
     "dbHighAvailability": "false",
     "dbPointInTimeRecovery": "false",
+    "azure-token-generator": true,
     "tmpbucket": "fp-soknad-mellomlagring-dev",
     "dokarkivUrl": "dokarkiv-q2.dev-fss-pub.nais.io",
     "minReplicas": "1",
