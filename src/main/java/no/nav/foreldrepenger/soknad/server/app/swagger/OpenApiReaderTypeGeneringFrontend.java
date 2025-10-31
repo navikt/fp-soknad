@@ -1,8 +1,6 @@
-package no.nav.foreldrepenger.soknad.server.app;
+package no.nav.foreldrepenger.soknad.server.app.swagger;
 
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,7 +14,7 @@ import io.swagger.v3.core.util.ObjectMapperFactory;
 import io.swagger.v3.jaxrs2.Reader;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Paths;
-import jakarta.ws.rs.Path;
+import no.nav.foreldrepenger.soknad.server.app.ApiConfig;
 import no.nav.openapi.spec.utils.openapi.DiscriminatorModelConverter;
 import no.nav.openapi.spec.utils.openapi.EnumVarnamesConverter;
 import no.nav.openapi.spec.utils.openapi.JsonSubTypesModelConverter;
@@ -31,28 +29,12 @@ import no.nav.openapi.spec.utils.openapi.RefToClassLookup;
  */
 public class OpenApiReaderTypeGeneringFrontend extends Reader {
     private static final Set<Class<?>> API_SKAL_SKAL_INKLUDERES = ApiConfig.getApplicationClasses();
-    private static final Set<String> IGNORE_PATHS = API_SKAL_SKAL_INKLUDERES.stream()
-        .map(klasse -> klasse.getAnnotation(Path.class))
-        .map(Path::value)
-        .collect(Collectors.toSet());
 
     @Override
     public OpenAPI read(Set<Class<?>> resourceClasses) {
         lagCustomModelConvertersForFrontendTypegenerering();
-        var forvaltningsApiOgAppliactionsApi = Stream.concat(
-            resourceClasses.stream(),
-            API_SKAL_SKAL_INKLUDERES.stream()
-        ).collect(Collectors.toSet());
-        var openApi = super.read(forvaltningsApiOgAppliactionsApi);
-
-        // Ignorer paths fra IGNORE_PATHS
-        var filtered = new Paths();
-        openApi.getPaths().forEach((path, item) -> {
-            if (IGNORE_PATHS.stream().noneMatch(path::contains)) {
-                filtered.addPathItem(path, item);
-            }
-        });
-        openApi.setPaths(filtered);
+        var openApi = super.read(API_SKAL_SKAL_INKLUDERES);
+        openApi.setPaths(new Paths());
         return openApi;
     }
 
