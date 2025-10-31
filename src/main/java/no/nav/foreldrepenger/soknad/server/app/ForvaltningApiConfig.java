@@ -4,13 +4,11 @@ import static no.nav.foreldrepenger.soknad.server.app.ApiConfig.getApplicationPr
 
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.glassfish.jersey.server.ResourceConfig;
 
+import io.swagger.v3.jaxrs2.integration.JaxrsOpenApiContextBuilder;
 import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
-import io.swagger.v3.oas.integration.GenericOpenApiContextBuilder;
 import io.swagger.v3.oas.integration.OpenApiConfigurationException;
 import io.swagger.v3.oas.integration.SwaggerConfiguration;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -25,9 +23,9 @@ import no.nav.foreldrepenger.soknad.server.error.ValidationExceptionMapper;
 import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.felles.prosesstask.rest.ProsessTaskRestTjeneste;
 
-@ApplicationPath(ApiConfig.API_URI)
+@ApplicationPath(ForvaltningApiConfig.API_URI)
 public class ForvaltningApiConfig extends ResourceConfig {
-    public static final String API_URI ="/forvaltning";
+    public static final String API_URI ="/forvaltning/api";
     private static final Environment ENV = Environment.current();
 
     public ForvaltningApiConfig() {
@@ -37,12 +35,11 @@ public class ForvaltningApiConfig extends ResourceConfig {
         register(JacksonJsonConfig.class); // Json
 
         registerOpenApi();
-        register(OpenApiResource.class);
         register(ProsessTaskRestTjeneste.class);
         setProperties(getApplicationProperties());
     }
 
-    private static void registerOpenApi() {
+    private void registerOpenApi() {
         var oas = new OpenAPI();
         var info = new Info()
             .title("FPSOKNAD - søknad og ettersendelser")
@@ -53,22 +50,19 @@ public class ForvaltningApiConfig extends ResourceConfig {
         var oasConfig = new SwaggerConfiguration()
             .openAPI(oas)
             .prettyPrint(true)
-            .resourceClasses(registertOpenApiConfigFor().stream().map(Class::getName).collect(Collectors.toSet()));
+            .resourceClasses(Set.of(ProsessTaskRestTjeneste.class.getName()))
+            .readerClass(OpenApiReaderTypeGeneringFrontend.class.getName()); // For autogenering av typer i frontend
+
+        var context = new JaxrsOpenApiContextBuilder<>();
+        context.setOpenApiConfiguration(oasConfig);
+        context.setApplication(getApplication());
 
         try {
-            new GenericOpenApiContextBuilder<>()
-                .openApiConfiguration(oasConfig)
-                .buildContext(true)
-                .read();
+            context.buildContext(true);
         } catch (OpenApiConfigurationException e) {
             throw new TekniskException("OPEN-API", e.getMessage(), e);
         }
-    }
 
-    private static Set<Class<?>> registertOpenApiConfigFor() {
-        return Stream.concat(
-            Set.of(ProsessTaskRestTjeneste.class).stream(),
-            ApiConfig.getApplicationClasses().stream() // Autogenerering av kontrakt frontend
-        ).collect(Collectors.toSet());
+        register(OpenApiResource.class);
     }
 }
