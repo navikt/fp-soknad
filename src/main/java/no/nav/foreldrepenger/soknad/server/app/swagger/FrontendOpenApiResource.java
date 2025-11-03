@@ -18,7 +18,7 @@ public class FrontendOpenApiResource {
     private static final String SWAGGER_ID = "frontend";
     private static final OpenApiContext openApiContext = new OpenApiKonfigurasjon(SWAGGER_ID, null)
         .resourceClasses(ApiConfig.getApplicationClasses())
-        .readerClass(OpenApiReaderTypeGeneringFrontend.class) // Fjerner paths
+        .readerClass(OpenApiReaderTypeGeneringFrontend.class)
         .buildContext();
 
 

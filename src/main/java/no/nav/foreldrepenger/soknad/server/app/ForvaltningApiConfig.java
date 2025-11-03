@@ -7,6 +7,7 @@ import java.util.Set;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import jakarta.ws.rs.ApplicationPath;
+import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.foreldrepenger.soknad.server.AuthenticationFilter;
 import no.nav.foreldrepenger.soknad.server.JacksonJsonConfig;
 import no.nav.foreldrepenger.soknad.server.app.swagger.ForvaltningOpenApiResource;
@@ -18,6 +19,7 @@ import no.nav.vedtak.felles.prosesstask.rest.ProsessTaskRestTjeneste;
 @ApplicationPath(ForvaltningApiConfig.API_URI)
 public class ForvaltningApiConfig extends ResourceConfig {
     public static final String API_URI ="/forvaltning/api";
+    private static final Environment ENV = Environment.current();
 
     public ForvaltningApiConfig() {
         register(AuthenticationFilter.class); // Sikkerhet
@@ -25,7 +27,9 @@ public class ForvaltningApiConfig extends ResourceConfig {
         register(ValidationExceptionMapper.class); // Exception handling
         register(JacksonJsonConfig.class); // Json
         register(ForvaltningOpenApiResource.class);
-        register(FrontendOpenApiResource.class);
+        if (!ENV.isProd()) {
+            register(FrontendOpenApiResource.class);
+        }
         registerClasses(getForvaltningKlasser());
         setProperties(getApplicationProperties());
     }
