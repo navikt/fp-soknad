@@ -31,9 +31,9 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import no.nav.foreldrepenger.konfig.Environment;
-import no.nav.foreldrepenger.soknad.server.app.ApiConfig;
-import no.nav.foreldrepenger.soknad.server.app.ForvaltningApiConfig;
-import no.nav.foreldrepenger.soknad.server.app.InternalApiConfig;
+import no.nav.foreldrepenger.soknad.server.konfig.ApiConfig;
+import no.nav.foreldrepenger.soknad.server.konfig.ForvaltningApiConfig;
+import no.nav.foreldrepenger.soknad.server.konfig.InternalApiConfig;
 
 public class JettyServer {
     private static final Logger LOG = LoggerFactory.getLogger(JettyServer.class);
@@ -85,6 +85,7 @@ public class JettyServer {
 
     private static void registerServlet(ServletContextHandler context, int prioritet, String path, Class<?> appClass) {
         var servlet = new ServletHolder(new ServletContainer());
+        servlet.setName(appClass.getName());
         servlet.setInitOrder(prioritet);
         servlet.setInitParameter(APPLICATION, appClass.getName());
         context.addServlet(servlet, path + "/*");

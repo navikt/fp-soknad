@@ -1,4 +1,4 @@
-package no.nav.foreldrepenger.soknad.server.app;
+package no.nav.foreldrepenger.soknad.server.konfig;
 
 
 import org.glassfish.jersey.server.ResourceConfig;

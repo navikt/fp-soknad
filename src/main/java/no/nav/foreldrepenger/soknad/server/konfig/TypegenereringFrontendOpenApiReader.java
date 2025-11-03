@@ -1,4 +1,4 @@
-package no.nav.foreldrepenger.soknad.server.app.swagger;
+package no.nav.foreldrepenger.soknad.server.konfig;
 
 import java.util.Set;
 
@@ -24,7 +24,7 @@ import no.nav.openapi.spec.utils.openapi.RefToClassLookup;
  * Custom Reader for api som går ut mot typegenereing. Her fjerner vi path, og registerer
  * ny ModulConverter med egendefinert Objectmapper i henhold til hva frontend forventer.
  */
-public class OpenApiReaderTypeGeneringFrontend extends Reader {
+public class TypegenereringFrontendOpenApiReader extends Reader {
 
     @Override
     public OpenAPI read(Set<Class<?>> resourceClasses) {
