@@ -21,8 +21,9 @@ import no.nav.openapi.spec.utils.openapi.NoJsonSubTypesAnnotationIntrospector;
 import no.nav.openapi.spec.utils.openapi.RefToClassLookup;
 
 /**
- * Custom Reader for api som går ut mot typegenereing. Her fjerner vi path, og registerer
- * ny ModulConverter med egendefinert Objectmapper i henhold til hva frontend forventer.
+ * Custom Reader for api som går ut mot typegenereing. Utenom vanlig reader så gjør denne:
+ *  1) Her fjerner vi path (vi ønsker ikke mulighet til å kalle endepunktene via swagger)
+ *  2) Registere ModulConverter med egendefinert Objectmapper i henhold til hva frontend forventer
  */
 public class TypegenereringFrontendOpenApiReader extends Reader {
 
