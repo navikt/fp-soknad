@@ -1,6 +1,8 @@
 package no.nav.foreldrepenger.soknad.server.forvaltning;
 
 
+import java.util.function.Function;
+
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -27,7 +29,9 @@ import no.nav.foreldrepenger.soknad.mellomlagring.Mellomlagring;
 import no.nav.foreldrepenger.soknad.mellomlagring.MellomlagringTjeneste;
 import no.nav.foreldrepenger.soknad.mellomlagring.YtelseMellomlagringType;
 import no.nav.vedtak.felles.prosesstask.rest.AbacEmptySupplier;
+import no.nav.vedtak.sikkerhet.abac.AbacDataAttributter;
 import no.nav.vedtak.sikkerhet.abac.BeskyttetRessurs;
+import no.nav.vedtak.sikkerhet.abac.StandardAbacAttributtType;
 import no.nav.vedtak.sikkerhet.abac.TilpassetAbacAttributt;
 import no.nav.vedtak.sikkerhet.abac.beskyttet.ActionType;
 import no.nav.vedtak.sikkerhet.abac.beskyttet.ResourceType;
@@ -59,8 +63,8 @@ public class ForvaltningMellomlagringRest {
         @ApiResponse(responseCode = "200", description = "Mellomlagring returneres"),
         @ApiResponse(responseCode = "204", description = "Finnes ingen mellomlagring"),
     })
-    @BeskyttetRessurs(actionType = ActionType.READ, resourceType = ResourceType.DRIFT, sporingslogg = false)
-    public Response hentMellomlagring(@TilpassetAbacAttributt(supplierClass = AbacEmptySupplier.class)
+    @BeskyttetRessurs(actionType = ActionType.READ, resourceType = ResourceType.FAGSAK, sporingslogg = true)
+    public Response hentMellomlagring(@TilpassetAbacAttributt(supplierClass = FødselsnummerSupplier.class)
                                       @FormParam("fødselsnummer") @Valid @NotNull Fødselsnummer fødselsnummer,
                                       @FormParam("ytelse") YtelseMellomlagringType ytelse) {
         var krypto = new KrypteringHjelper(krypteringsnøkkel, fødselsnummer.value());
@@ -79,7 +83,7 @@ public class ForvaltningMellomlagringRest {
         @ApiResponse(responseCode = "204", description = "Mellomlagring funnet og slettet på bruker"),
         @ApiResponse(responseCode = "404", description = "Finnes ingen mellomlagring på bruker"),
     })
-    @BeskyttetRessurs(actionType = ActionType.UPDATE, resourceType = ResourceType.DRIFT, sporingslogg = false)
+    @BeskyttetRessurs(actionType = ActionType.CREATE, resourceType = ResourceType.DRIFT, sporingslogg = false) // Bytt ActionType.CREATE senere
     public Response slettMellomlagringPåBruker(@TilpassetAbacAttributt(supplierClass = AbacEmptySupplier.class)
                                                @FormParam("fødselsnummer") @Valid @NotNull Fødselsnummer fødselsnummer,
                                                @FormParam("ytelse") YtelseMellomlagringType ytelse) {
@@ -91,5 +95,13 @@ public class ForvaltningMellomlagringRest {
         }
         this.mellomlagring.slett(mappenavn, MellomlagringTjeneste.SØKNAD);
         return Response.noContent().build();
+    }
+
+    public static class FødselsnummerSupplier implements Function<Object, AbacDataAttributter> {
+        @Override
+        public AbacDataAttributter apply(Object obj) {
+            var req = (Fødselsnummer) obj;
+            return AbacDataAttributter.opprett().leggTil(StandardAbacAttributtType.FNR, req.value());
+        }
     }
 }
