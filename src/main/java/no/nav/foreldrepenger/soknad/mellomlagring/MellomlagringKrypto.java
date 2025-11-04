@@ -8,7 +8,6 @@ import no.nav.foreldrepenger.soknad.utils.InnloggetBruker;
 
 @ApplicationScoped
 public class MellomlagringKrypto {
-    private static final char[] HEXCODE = "0123456789ABCDEF".toCharArray();
 
     private String passphrase;
     private InnloggetBruker innloggetBruker;
@@ -18,14 +17,14 @@ public class MellomlagringKrypto {
     }
 
     @Inject
-    public MellomlagringKrypto(@KonfigVerdi(value = "KRYPTERING_PASSWORD") String passphrase,
-                               InnloggetBruker innloggetBruker) {
+    public MellomlagringKrypto(@KonfigVerdi(value = "KRYPTERING_PASSWORD") String passphrase, InnloggetBruker innloggetBruker) {
         this.passphrase = passphrase;
         this.innloggetBruker = innloggetBruker;
     }
 
-    public String mappenavn() {
-        return hexBinary(encrypt(innloggetBruker.brukerFraKontekst()).getBytes());
+    public String mappenavn(YtelseMellomlagringType ytelse, boolean vedlegg) {
+        var fnr = innloggetBruker.brukerFraKontekst();
+        return new KrypteringHjelper(passphrase, fnr).uniktMappenavn(fnr, ytelse, vedlegg);
     }
 
     public String encrypt(String plaintext) {
@@ -43,15 +42,4 @@ public class MellomlagringKrypto {
     public byte[] decryptVedlegg(byte[] encrypted) {
         return new KrypteringHjelper(passphrase, innloggetBruker.brukerFraKontekst()).decryptVedlegg(encrypted);
     }
-
-    public String hexBinary(byte[] data) {
-        var r = new StringBuilder(data.length * 2);
-        for (var b : data) {
-            r.append(HEXCODE[(b >> 4) & 0xF]);
-            r.append(HEXCODE[(b & 0xF)]);
-        }
-        return r.toString();
-    }
-
-
 }

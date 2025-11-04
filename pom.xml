@@ -154,6 +154,11 @@
             <artifactId>openapi-spec-utils</artifactId>
             <version>${openapi-spec-utils.version}</version>
         </dependency>
+        <dependency>
+            <groupId>no.nav.openapi.spec.utils</groupId>
+            <artifactId>openapi-spec-utils</artifactId>
+            <version>${openapi-spec-utils.version}</version>
+        </dependency>
 
         <!-- Hibernate -->
         <dependency>
@@ -228,6 +233,11 @@
         <dependency>
             <groupId>jakarta.enterprise</groupId>
             <artifactId>jakarta.enterprise.cdi-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>no.nav.foreldrepenger.felles</groupId>
+            <artifactId>felles-abac-kontekst</artifactId>
         </dependency>
 
         <!-- Database -->

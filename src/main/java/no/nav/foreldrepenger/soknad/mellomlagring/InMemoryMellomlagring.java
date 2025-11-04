@@ -13,6 +13,17 @@ public class InMemoryMellomlagring implements Mellomlagring {
     private static final Logger LOG = LoggerFactory.getLogger(InMemoryMellomlagring.class);
     private final Map<String, Object> store = new ConcurrentHashMap<>();
 
+
+    private static final InMemoryMellomlagring INSTANCE = new InMemoryMellomlagring();
+
+    private InMemoryMellomlagring() {
+    }
+
+    public static InMemoryMellomlagring getInstance() {
+        return INSTANCE;
+    }
+
+
     @Override
     public void lagre(String katalog, String key, String value) {
         store.put(key(katalog, key), value);

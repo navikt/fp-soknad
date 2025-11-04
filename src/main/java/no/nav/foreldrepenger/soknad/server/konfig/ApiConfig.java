@@ -21,10 +21,10 @@ import jakarta.ws.rs.ApplicationPath;
 import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.foreldrepenger.soknad.innsending.SøknadRest;
 import no.nav.foreldrepenger.soknad.mellomlagring.MellomlagringRest;
-import no.nav.foreldrepenger.soknad.server.AuthenticationFilter;
 import no.nav.foreldrepenger.soknad.server.JacksonJsonConfig;
 import no.nav.foreldrepenger.soknad.server.error.GeneralRestExceptionMapper;
 import no.nav.foreldrepenger.soknad.server.error.ValidationExceptionMapper;
+import no.nav.foreldrepenger.soknad.server.sikkerhet.AuthenticationFilter;
 import no.nav.vedtak.exception.TekniskException;
 
 @ApplicationPath(ApiConfig.API_URI)
