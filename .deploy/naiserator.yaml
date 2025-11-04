@@ -88,6 +88,10 @@ spec:
         - application: foreldrepengesoknad
         - application: svangerskapspengesoknad
         - application: foreldrepengeoversikt
+        {{#if azure-token-generator}}
+        - application: azure-token-generator
+          namespace: nais
+        {{/if}}
         - application: fp-swagger
           namespace: teamforeldrepenger
           cluster: {{environment}}-gcp

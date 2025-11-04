@@ -31,6 +31,9 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import no.nav.foreldrepenger.konfig.Environment;
+import no.nav.foreldrepenger.soknad.server.konfig.ApiConfig;
+import no.nav.foreldrepenger.soknad.server.konfig.ForvaltningApiConfig;
+import no.nav.foreldrepenger.soknad.server.konfig.InternalApiConfig;
 
 public class JettyServer {
     private static final Logger LOG = LoggerFactory.getLogger(JettyServer.class);
@@ -63,6 +66,7 @@ public class JettyServer {
         registerDefaultServlet(ctx);
         registerServlet(ctx, 0, InternalApiConfig.API_URI, InternalApiConfig.class);
         registerServlet(ctx, 1, ApiConfig.API_URI, ApiConfig.class);
+        registerServlet(ctx, 2, ForvaltningApiConfig.API_URI, ForvaltningApiConfig.class);
 
         // Starter tjenester
         ctx.addEventListener(new ServiceStarterListener());
@@ -81,6 +85,7 @@ public class JettyServer {
 
     private static void registerServlet(ServletContextHandler context, int prioritet, String path, Class<?> appClass) {
         var servlet = new ServletHolder(new ServletContainer());
+        servlet.setName(appClass.getName());
         servlet.setInitOrder(prioritet);
         servlet.setInitParameter(APPLICATION, appClass.getName());
         context.addServlet(servlet, path + "/*");
@@ -154,6 +159,7 @@ public class JettyServer {
         handler.addConstraintMapping(pathConstraint(Constraint.ALLOWED, InternalApiConfig.API_URI + "/*"));
         // Slipp gjennom til autentisering i JaxRs / auth-filter
         handler.addConstraintMapping(pathConstraint(Constraint.ALLOWED, ApiConfig.API_URI + "/*"));
+        handler.addConstraintMapping(pathConstraint(Constraint.ALLOWED, ForvaltningApiConfig.API_URI + "/*"));
         // Alt annet av paths og metoder forbudt - 403
         handler.addConstraintMapping(pathConstraint(Constraint.FORBIDDEN, "/*"));
         return handler;
