@@ -15,6 +15,7 @@ import java.util.UUID;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.xml.bind.JAXBElement;
+import no.nav.foreldrepenger.kontrakter.felles.typer.AktørId;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.BrukerRolle;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.EngangsstønadDto;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.AdopsjonDto;
@@ -23,7 +24,6 @@ import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.FødselDto;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.OmsorgsovertakelseDto;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.TerminDto;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.VedleggDto;
-import no.nav.foreldrepenger.soknad.innsending.fordel.AktørId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.jaxb.ESV3JAXBUtil;
 import no.nav.vedtak.felles.xml.soeknad.engangsstoenad.v3.Engangsstønad;
 import no.nav.vedtak.felles.xml.soeknad.engangsstoenad.v3.ObjectFactory;

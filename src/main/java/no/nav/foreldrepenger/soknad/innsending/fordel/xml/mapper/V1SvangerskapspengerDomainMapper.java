@@ -19,13 +19,13 @@ import java.util.UUID;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.xml.bind.JAXBElement;
+import no.nav.foreldrepenger.kontrakter.felles.typer.AktørId;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.BrukerRolle;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.SvangerskapspengesøknadDto;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.svangerskapspenger.ArbeidsforholdDto;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.svangerskapspenger.AvtaltFerieDto;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.svangerskapspenger.TilretteleggingbehovDto;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.VedleggDto;
-import no.nav.foreldrepenger.soknad.innsending.fordel.AktørId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.jaxb.SVPV1JAXBUtil;
 import no.nav.vedtak.felles.xml.soeknad.svangerskapspenger.v1.Arbeidsforhold;
 import no.nav.vedtak.felles.xml.soeknad.svangerskapspenger.v1.Arbeidsgiver;

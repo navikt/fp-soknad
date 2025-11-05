@@ -18,6 +18,7 @@ import java.util.UUID;
 import com.neovisionaries.i18n.CountryCode;
 
 import jakarta.xml.bind.JAXBElement;
+import no.nav.foreldrepenger.kontrakter.felles.typer.AktørId;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.BrukerRolle;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.Målform;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.UtenlandsoppholdsperiodeDto;
@@ -32,7 +33,6 @@ import no.nav.foreldrepenger.kontrakter.fpsoknad.opptjening.NæringDto;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.InnsendingType;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.VedleggDto;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.ÅpenPeriodeDto;
-import no.nav.foreldrepenger.soknad.innsending.fordel.AktørId;
 import no.nav.vedtak.felles.xml.soeknad.felles.v3.Bruker;
 import no.nav.vedtak.felles.xml.soeknad.felles.v3.Medlemskap;
 import no.nav.vedtak.felles.xml.soeknad.felles.v3.OppholdUtlandet;
