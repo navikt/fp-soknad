@@ -21,7 +21,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.foreldrepenger.konfig.KonfigVerdi;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.Fødselsnummer;
+import no.nav.foreldrepenger.kontrakter.felles.typer.Fødselsnummer;
 import no.nav.foreldrepenger.soknad.mellomlagring.GCPMellomlagring;
 import no.nav.foreldrepenger.soknad.mellomlagring.InMemoryMellomlagring;
 import no.nav.foreldrepenger.soknad.mellomlagring.KrypteringHjelper;
