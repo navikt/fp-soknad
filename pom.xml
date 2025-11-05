@@ -20,7 +20,7 @@
 
         <felles.version>7.6.9</felles.version>
         <prosesstask.version>5.2.1</prosesstask.version>
-        <fp-kontrakter.version>9.4.6</fp-kontrakter.version>
+        <fp-kontrakter.version>9.4.7</fp-kontrakter.version>
 
         <openapi-spec-utils.version>2.0.6</openapi-spec-utils.version>
         <tika.version>3.2.3</tika.version> <!-- Bedre måter å gjøre det på -->
@@ -148,11 +148,6 @@
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
             <artifactId>swagger-jaxrs2-jakarta</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>no.nav.openapi.spec.utils</groupId>
-            <artifactId>openapi-spec-utils</artifactId>
-            <version>${openapi-spec-utils.version}</version>
         </dependency>
         <dependency>
             <groupId>no.nav.openapi.spec.utils</groupId>
