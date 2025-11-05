@@ -10,6 +10,8 @@ import java.util.UUID;
 import org.apache.tika.Tika;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
@@ -34,7 +36,7 @@ import no.nav.foreldrepenger.soknad.vedlegg.image2pdf.Image2PDFConverter;
 @RequestScoped
 @Produces(MediaType.APPLICATION_JSON)
 public class MellomlagringRest {
-
+    private static final Logger LOG = LoggerFactory.getLogger(MellomlagringRest.class);
     private MellomlagringTjeneste mellomlagring;
     private Image2PDFConverter converter;
     private VedleggSjekkerTjeneste vedleggSjekkerTjeneste;
@@ -97,6 +99,7 @@ public class MellomlagringRest {
                                  @FormDataParam("vedlegg") FormDataContentDisposition fileMetaData,
                                  @PathParam("ytelse") @Valid YtelseMellomlagringType ytelse,
                                  @QueryParam("uuid") UUID uuid) {
+        LOG.info("Laster opp vedlegg...");
         var fileName = fileMetaData.getFileName(); // e.g. image.png, document.pdf
         var innhold = lesBytesFraInputStream(fileInputStream);
         var contentType = mediaTypeFraInnhold(innhold);
@@ -104,6 +107,7 @@ public class MellomlagringRest {
         vedleggSjekkerTjeneste.sjekkVedlegg(orginalVedlegg);
         var pdfBytes = converter.convert(orginalVedlegg);
         mellomlagring.lagreKryptertVedlegg(pdfBytes, ytelse);
+        LOG.info("Vedlegg lastet opp.");
         return Response.status(Response.Status.CREATED).entity(pdfBytes.uuid()).build();
     }
 
