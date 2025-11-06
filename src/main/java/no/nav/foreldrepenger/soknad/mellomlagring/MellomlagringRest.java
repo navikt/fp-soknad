@@ -1,5 +1,6 @@
 package no.nav.foreldrepenger.soknad.mellomlagring;
 
+import static no.nav.foreldrepenger.soknad.vedlegg.VedleggUtil.megabytes;
 import static no.nav.vedtak.util.InputValideringRegex.FRITEKST;
 
 import java.io.IOException;
@@ -99,15 +100,17 @@ public class MellomlagringRest {
                                  @FormDataParam("vedlegg") FormDataContentDisposition fileMetaData,
                                  @PathParam("ytelse") @Valid YtelseMellomlagringType ytelse,
                                  @QueryParam("uuid") UUID uuid) {
-        LOG.info("Laster opp vedlegg...");
+        var start = System.currentTimeMillis();
         var fileName = fileMetaData.getFileName(); // e.g. image.png, document.pdf
         var innhold = lesBytesFraInputStream(fileInputStream);
         var contentType = mediaTypeFraInnhold(innhold);
         var orginalVedlegg = new Vedlegg(innhold, contentType, fileName, uuid != null ? uuid : UUID.randomUUID());
+        LOG.info("Laster opp vedlegg ({}MB)...", megabytes(orginalVedlegg.bytes().length));
         vedleggSjekkerTjeneste.sjekkVedlegg(orginalVedlegg);
         var pdfBytes = converter.convert(orginalVedlegg);
         mellomlagring.lagreKryptertVedlegg(pdfBytes, ytelse);
-        LOG.info("Vedlegg lastet opp.");
+        var slutt = System.currentTimeMillis();
+        LOG.info("Vedlegg lastet opp og tok totalt {}ms.", slutt - start);
         return Response.status(Response.Status.CREATED).entity(pdfBytes.uuid()).build();
     }
 
