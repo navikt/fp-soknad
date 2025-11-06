@@ -12,7 +12,7 @@ import no.nav.foreldrepenger.soknad.server.JacksonJsonConfig;
 import no.nav.foreldrepenger.soknad.server.error.GeneralRestExceptionMapper;
 import no.nav.foreldrepenger.soknad.server.error.ValidationExceptionMapper;
 import no.nav.foreldrepenger.soknad.server.forvaltning.ForvaltningMellomlagringRest;
-import no.nav.foreldrepenger.soknad.server.konfig.swagger.ForvaltningOpenApiConfig;
+import no.nav.foreldrepenger.soknad.server.konfig.swagger.OpenApiUtils;
 import no.nav.foreldrepenger.soknad.server.sikkerhet.AuthenticationFilter;
 import no.nav.vedtak.felles.prosesstask.rest.ProsessTaskRestTjeneste;
 
@@ -39,7 +39,9 @@ public class ForvaltningApiConfig extends ResourceConfig {
     }
 
     private void registerOpenApi() {
-        ForvaltningOpenApiConfig.registerOpenApi(this);
+        OpenApiUtils.openApiConfigFor("Fpsoknad - søknad og ettersendelser (frontend)", this)
+            .registerClasses(getForvaltningKlasser())
+            .buildOpenApiContext();
         register(OpenApiResource.class);
     }
 }

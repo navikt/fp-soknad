@@ -16,7 +16,7 @@ import no.nav.foreldrepenger.soknad.mellomlagring.MellomlagringRest;
 import no.nav.foreldrepenger.soknad.server.JacksonJsonConfig;
 import no.nav.foreldrepenger.soknad.server.error.GeneralRestExceptionMapper;
 import no.nav.foreldrepenger.soknad.server.error.ValidationExceptionMapper;
-import no.nav.foreldrepenger.soknad.server.konfig.swagger.FrontendTypegenereringOpenApiConfig;
+import no.nav.foreldrepenger.soknad.server.konfig.swagger.OpenApiUtils;
 import no.nav.foreldrepenger.soknad.server.sikkerhet.AuthenticationFilter;
 
 @ApplicationPath(ApiConfig.API_URI)
@@ -33,8 +33,7 @@ public class ApiConfig extends ResourceConfig {
         register(JacksonJsonConfig.class); // Json
         register(MultiPartFeature.class); // Multipart upload mellomlagring
         if (!ENV.isProd()) {
-            FrontendTypegenereringOpenApiConfig.registerOpenApi(this); // Brukes til typegenerering frontend
-            register(OpenApiResource.class);
+            registerOpenApi();
         }
         registerClasses(getApplicationClasses());
         setProperties(getApplicationProperties());
@@ -50,5 +49,13 @@ public class ApiConfig extends ResourceConfig {
         properties.put(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
         properties.put(ServerProperties.PROCESSING_RESPONSE_ERRORS_ENABLED, true);
         return properties;
+    }
+
+    private void registerOpenApi() {
+        OpenApiUtils.openApiConfigFor("Fpsoknad - specifikasjon for typegenerering frontend", this)
+            .readerClassTypegenereingFrontend()
+            .registerClasses(getApplicationClasses())
+            .buildOpenApiContext();
+        register(OpenApiResource.class);
     }
 }

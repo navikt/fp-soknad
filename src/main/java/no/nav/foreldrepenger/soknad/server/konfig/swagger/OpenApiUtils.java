@@ -1,11 +1,13 @@
 package no.nav.foreldrepenger.soknad.server.konfig.swagger;
 
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import io.swagger.v3.jaxrs2.integration.JaxrsAnnotationScanner;
 import io.swagger.v3.jaxrs2.integration.JaxrsOpenApiContextBuilder;
 import io.swagger.v3.oas.integration.OpenApiConfigurationException;
 import io.swagger.v3.oas.integration.SwaggerConfiguration;
-import io.swagger.v3.oas.integration.api.OpenAPIConfiguration;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.servers.Server;
@@ -13,10 +15,18 @@ import jakarta.ws.rs.core.Application;
 import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.vedtak.exception.TekniskException;
 
-abstract class OpenApiContextBuilder {
+public class OpenApiUtils {
     private static final Environment ENV = Environment.current();
 
-    static SwaggerConfiguration buildOpenApiConfig(String tittel, Application application) {
+    private final SwaggerConfiguration swaggerConfiguration;
+    private final Application application;
+
+    private OpenApiUtils(SwaggerConfiguration swaggerConfiguration, Application application) {
+        this.swaggerConfiguration = swaggerConfiguration;
+        this.application = application;
+    }
+
+    public static OpenApiUtils openApiConfigFor(String tittel, Application application) {
         var oas = new OpenAPI()
             .openapi("3.1.1")
             .info(new Info()
@@ -24,19 +34,30 @@ abstract class OpenApiContextBuilder {
                 .version(Optional.ofNullable(ENV.imageName()).orElse("1.0"))
                 .description("REST grensesnitt for Frontend."))
             .addServersItem(new Server().url(ENV.getProperty("context.path", "/fpsoknad")));
-        var oasConfig =  new SwaggerConfiguration()
+        var swaggerConfiguration = new SwaggerConfiguration()
             .id(idFra(application))
             .openAPI(oas)
-            .prettyPrint(true);
-        return oasConfig;
+            .prettyPrint(true)
+            .scannerClass(JaxrsAnnotationScanner.class.getName());
+        return new OpenApiUtils(swaggerConfiguration, application);
     }
 
-    static void buildOpenApiContext(Application application, OpenAPIConfiguration oasConfig) {
+    public OpenApiUtils readerClassTypegenereingFrontend() {
+        swaggerConfiguration.readerClass(TypegenereringFrontendOpenApiReader.class.getName());
+        return this;
+    }
+
+    public OpenApiUtils registerClasses(Set<Class<?>> resourceClasses) {
+        swaggerConfiguration.resourceClasses(resourceClasses.stream().map(Class::getName).collect(Collectors.toSet()));
+        return this;
+    }
+
+    public void buildOpenApiContext() {
         try {
             new JaxrsOpenApiContextBuilder<>()
                 .ctxId(idFra(application))
                 .application(application)
-                .openApiConfiguration(oasConfig)
+                .openApiConfiguration(swaggerConfiguration)
                 .buildContext(true);
         } catch (OpenApiConfigurationException e) {
             throw new TekniskException("OPEN-API", e.getMessage(), e);
