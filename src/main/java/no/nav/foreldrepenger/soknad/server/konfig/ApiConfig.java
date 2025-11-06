@@ -39,7 +39,7 @@ public class ApiConfig extends ResourceConfig {
         setProperties(getApplicationProperties());
     }
 
-    public static Set<Class<?>> getApplicationClasses() {
+    private static Set<Class<?>> getApplicationClasses() {
         return Set.of(SøknadRest.class, MellomlagringRest.class);
     }
 
