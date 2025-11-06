@@ -107,6 +107,8 @@ spec:
         - application: fpdokgen
         - application: clamav
           namespace: nais-system
+        - application: logging
+          namespace: nais-system
       external:
         - host: fpsak-api.{{environment}}-fss-pub.nais.io
         - host: fptilbake.{{environment}}-fss-pub.nais.io

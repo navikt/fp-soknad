@@ -16,13 +16,13 @@ import jakarta.ws.rs.ext.Provider;
 @Provider
 public class ValidationExceptionMapper implements ExceptionMapper<ConstraintViolationException> {
     private static final Logger LOG = LoggerFactory.getLogger(ValidationExceptionMapper.class);
-    private static final Logger SECURE_LOG = LoggerFactory.getLogger("secureLogger");
+    private static final Logger TEAM_LOGGER = LoggerFactory.getLogger("teamLogger");
 
 
     @Override
     public Response toResponse(ConstraintViolationException exception) {
         LOG.warn("Det oppstod en valideringsfeil: {}", constraints(exception));
-        SECURE_LOG.warn("Det oppstod en valideringsfeil: felt {} - input {}", constraints(exception), getInputs(exception));
+        TEAM_LOGGER.warn("Det oppstod en valideringsfeil: felt {} - input {}", constraints(exception), getInputs(exception));
         return Response.status(Response.Status.BAD_REQUEST)
                        .entity("Validation failed: " + exception.getMessage())
                        .build();

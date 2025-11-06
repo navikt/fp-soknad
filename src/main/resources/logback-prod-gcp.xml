@@ -1,3 +1,6 @@
 <included>
     <logger name="no.nav.foreldrepenger" level="INFO" />
+    <logger name="teamLogger" level="INFO" additivity="false">
+        <appender-ref ref="teamLogger" />
+    </logger>
 </included>
