@@ -31,7 +31,7 @@
         "mem": "2048Mi"
     },
     "requests": {
-        "cpu": "125m",
+        "cpu": "80m",
         "mem": "600Mi"
     }
 }
