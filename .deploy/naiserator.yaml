@@ -110,5 +110,6 @@ spec:
       external:
         - host: fpsak-api.{{environment}}-fss-pub.nais.io
         - host: fptilbake.{{environment}}-fss-pub.nais.io
+        - host: fptilgang.{{environment}}-fss-pub.nais.io
         - host: pdl-api.{{environment}}-fss-pub.nais.io
         - host: {{dokarkivUrl}}

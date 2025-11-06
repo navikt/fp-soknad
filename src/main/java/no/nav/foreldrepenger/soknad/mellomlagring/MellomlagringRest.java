@@ -1,5 +1,6 @@
 package no.nav.foreldrepenger.soknad.mellomlagring;
 
+import static no.nav.foreldrepenger.soknad.vedlegg.VedleggUtil.megabytes;
 import static no.nav.vedtak.util.InputValideringRegex.FRITEKST;
 
 import java.io.IOException;
@@ -10,6 +11,8 @@ import java.util.UUID;
 import org.apache.tika.Tika;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
@@ -34,7 +37,7 @@ import no.nav.foreldrepenger.soknad.vedlegg.image2pdf.Image2PDFConverter;
 @RequestScoped
 @Produces(MediaType.APPLICATION_JSON)
 public class MellomlagringRest {
-
+    private static final Logger LOG = LoggerFactory.getLogger(MellomlagringRest.class);
     private MellomlagringTjeneste mellomlagring;
     private Image2PDFConverter converter;
     private VedleggSjekkerTjeneste vedleggSjekkerTjeneste;
@@ -97,13 +100,17 @@ public class MellomlagringRest {
                                  @FormDataParam("vedlegg") FormDataContentDisposition fileMetaData,
                                  @PathParam("ytelse") @Valid YtelseMellomlagringType ytelse,
                                  @QueryParam("uuid") UUID uuid) {
+        var start = System.currentTimeMillis();
         var fileName = fileMetaData.getFileName(); // e.g. image.png, document.pdf
         var innhold = lesBytesFraInputStream(fileInputStream);
         var contentType = mediaTypeFraInnhold(innhold);
         var orginalVedlegg = new Vedlegg(innhold, contentType, fileName, uuid != null ? uuid : UUID.randomUUID());
+        LOG.info("Laster opp vedlegg ({}MB)...", megabytes(orginalVedlegg.bytes().length));
         vedleggSjekkerTjeneste.sjekkVedlegg(orginalVedlegg);
         var pdfBytes = converter.convert(orginalVedlegg);
         mellomlagring.lagreKryptertVedlegg(pdfBytes, ytelse);
+        var slutt = System.currentTimeMillis();
+        LOG.info("Vedlegg lastet opp og tok totalt {}ms.", slutt - start);
         return Response.status(Response.Status.CREATED).entity(pdfBytes.uuid()).build();
     }
 

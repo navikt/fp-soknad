@@ -5,8 +5,8 @@
 
     <parent>
         <groupId>no.nav.foreldrepenger.felles</groupId>
-        <artifactId>fp-bom</artifactId>
-        <version>4.1.0</version>
+        <artifactId>fp-parent-app</artifactId>
+        <version>5.0.2</version>
     </parent>
 
     <groupId>no.nav.foreldrepenger.soknad</groupId>
@@ -20,7 +20,7 @@
 
         <felles.version>7.6.9</felles.version>
         <prosesstask.version>5.2.1</prosesstask.version>
-        <fp-kontrakter.version>9.4.7</fp-kontrakter.version>
+        <fp-kontrakter.version>9.4.8</fp-kontrakter.version>
 
         <openapi-spec-utils.version>2.0.6</openapi-spec-utils.version>
         <tika.version>3.2.3</tika.version> <!-- Bedre måter å gjøre det på -->
@@ -31,13 +31,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>no.nav.foreldrepenger.felles</groupId>
-                <artifactId>fp-bom</artifactId>
-                <version>4.1.0</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
             <dependency>
                 <groupId>com.google.cloud</groupId>
                 <artifactId>google-cloud-storage-bom</artifactId>
@@ -115,7 +108,7 @@
         </dependency>
         <dependency>
             <groupId>no.nav.foreldrepenger.kontrakter</groupId>
-            <artifactId>fp-soknad-v1</artifactId>
+            <artifactId>fp-soknad</artifactId>
         </dependency>
         <dependency>
             <groupId>no.nav.foreldrepenger.felles.integrasjon</groupId>
@@ -274,16 +267,6 @@
             <artifactId>felles-testutilities</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-            <scope>test</scope>
-        </dependency>
         <!-- Testcontainer og sec update -->
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -298,7 +281,7 @@
         </dependency>
         <dependency>
             <groupId>no.nav.foreldrepenger.kontrakter</groupId>
-            <artifactId>fp-soknad-v1</artifactId>
+            <artifactId>fp-soknad</artifactId>
             <version>${fp-kontrakter.version}</version>
             <type>test-jar</type>
             <scope>test</scope>

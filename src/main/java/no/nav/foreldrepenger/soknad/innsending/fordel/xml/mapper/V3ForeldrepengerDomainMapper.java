@@ -22,6 +22,10 @@ import java.util.UUID;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.xml.bind.JAXBElement;
+import no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType;
+import no.nav.foreldrepenger.kontrakter.felles.kodeverk.MorsAktivitet;
+import no.nav.foreldrepenger.kontrakter.felles.kodeverk.Overføringsårsak;
+import no.nav.foreldrepenger.kontrakter.felles.typer.AktørId;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.ForeldrepengesøknadDto;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.AdopsjonDto;
@@ -32,12 +36,9 @@ import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.TerminDto;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.annenpart.AnnenForelderDto;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.annenpart.NorskForelderDto;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.annenpart.UtenlandskForelderDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.KontoType;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.MorsAktivitet;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.OppholdsPeriodeDto;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.Oppholdsårsak;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.OverføringsPeriodeDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.Overføringsårsak;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.UtsettelsesPeriodeDto;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.UtsettelsesÅrsak;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.UttaksPeriodeDto;
@@ -45,7 +46,6 @@ import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.Uttak
 import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.Uttaksplanperiode;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.VedleggDto;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.ÅpenPeriodeDto;
-import no.nav.foreldrepenger.soknad.innsending.fordel.AktørId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.pdl.Personoppslag;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.jaxb.FPV3JAXBUtil;
 import no.nav.vedtak.felles.xml.soeknad.endringssoeknad.v3.Endringssoeknad;
@@ -331,7 +331,7 @@ public class V3ForeldrepengerDomainMapper  {
 
     private static Uttaksperiodetyper uttaksperiodeTypeFra(KontoType type) {
         var periodeType = new Uttaksperiodetyper();
-        periodeType.setKode(type.getKode());
+        periodeType.setKode(type.name());
         periodeType.setKodeverk(periodeType.getKodeverk());
         return periodeType;
     }

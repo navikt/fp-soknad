@@ -41,9 +41,9 @@ public class Image2PDFConverter {
         }
 
         if (supportedMediaTypes.contains(mediaType)) {
-            long start = System.currentTimeMillis();
+            var start = System.currentTimeMillis();
             var pdfBytes = konverterBildeTilPdf(vedlegg.bytes(), mediaType);
-            long slutt = System.currentTimeMillis();
+            var slutt = System.currentTimeMillis();
             LOG.info("Konvertering av {} til PDF tok {}ms", mediaType, slutt - start);
             return new Vedlegg(pdfBytes, APPLICATION_PDF, vedlegg.filnavn(), vedlegg.uuid());
         }

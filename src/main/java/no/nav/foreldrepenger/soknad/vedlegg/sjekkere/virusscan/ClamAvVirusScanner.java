@@ -1,5 +1,10 @@
 package no.nav.foreldrepenger.soknad.vedlegg.sjekkere.virusscan;
 
+import static no.nav.foreldrepenger.soknad.vedlegg.VedleggUtil.megabytes;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import no.nav.foreldrepenger.soknad.vedlegg.Vedlegg;
@@ -7,7 +12,7 @@ import no.nav.foreldrepenger.soknad.vedlegg.sjekkere.VedleggSjekker;
 
 @ApplicationScoped
 public class ClamAvVirusScanner implements VedleggSjekker {
-
+    private static final Logger LOG = LoggerFactory.getLogger(ClamAvVirusScanner.class);
     private VirusScanKlient connection;
 
     public ClamAvVirusScanner() {
@@ -21,7 +26,10 @@ public class ClamAvVirusScanner implements VedleggSjekker {
 
     @Override
     public void sjekk(Vedlegg vedlegg) {
+        var start = System.currentTimeMillis();
         connection.scan(vedlegg.bytes(), vedlegg.uuid());
+        var slutt = System.currentTimeMillis();
+        LOG.info("Scan av virus tok {}ms for vedlegg av størrelsen {}MB", start - slutt, megabytes(vedlegg.bytes().length));
     }
 
     @Override
