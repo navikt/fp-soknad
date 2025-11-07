@@ -22,7 +22,7 @@ import no.nav.foreldrepenger.soknad.server.sikkerhet.AuthenticationFilter;
 @ApplicationPath(ApiConfig.API_URI)
 public class ApiConfig extends ResourceConfig {
 
-    public static final String API_URI ="/api";
+    public static final String API_URI = "/api";
     private static final Environment ENV = Environment.current();
 
     public ApiConfig() {

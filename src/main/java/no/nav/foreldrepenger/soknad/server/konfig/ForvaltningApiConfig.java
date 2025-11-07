@@ -18,7 +18,7 @@ import no.nav.vedtak.felles.prosesstask.rest.ProsessTaskRestTjeneste;
 
 @ApplicationPath(ForvaltningApiConfig.API_URI)
 public class ForvaltningApiConfig extends ResourceConfig {
-    public static final String API_URI ="/forvaltning/api";
+    public static final String API_URI = "/forvaltning/api";
 
     public ForvaltningApiConfig() {
         register(ForvaltningAuthorizationFilter.class); // Sikkerhet
