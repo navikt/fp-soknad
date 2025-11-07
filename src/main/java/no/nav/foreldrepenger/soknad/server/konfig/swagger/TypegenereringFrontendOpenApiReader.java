@@ -1,4 +1,4 @@
-package no.nav.foreldrepenger.soknad.server.konfig;
+package no.nav.foreldrepenger.soknad.server.konfig.swagger;
 
 import java.util.Set;
 
