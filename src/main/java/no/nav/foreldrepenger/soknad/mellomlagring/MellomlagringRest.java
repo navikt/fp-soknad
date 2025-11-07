@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.tika.Tika;
+import org.eclipse.jetty.io.EofException;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.slf4j.Logger;
@@ -30,6 +31,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import no.nav.foreldrepenger.soknad.vedlegg.Vedlegg;
 import no.nav.foreldrepenger.soknad.vedlegg.VedleggSjekkerTjeneste;
+import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningException;
 import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningUnreadableException;
 import no.nav.foreldrepenger.soknad.vedlegg.image2pdf.Image2PDFConverter;
 
@@ -132,6 +134,8 @@ public class MellomlagringRest {
     private static byte[] lesBytesFraInputStream(InputStream fileInputStream) {
         try {
             return fileInputStream.readAllBytes();
+        } catch (EofException e) {
+            throw new VedleggOpplastningException("Opplastning avbrutt av klient", null, e);
         } catch (IOException e) {
             throw new VedleggOpplastningUnreadableException("Klarte ikke lese innsending", null, e);
         }
