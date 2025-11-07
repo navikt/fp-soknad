@@ -4,7 +4,8 @@ public enum FeilKode {
 
     IKKE_TILGANG("Ikke tilgang"),
     DUPLIKAT_FORSENDELSE("Duplikat forespørsel"),
-    VEDLEGG_OPPLASTNING("Opplasting av vedlegg feilet"),
+    MELLOMLAGRING("Mellomlagring av søknad eller vedlegg feilet"),
+    MELLOMLAGRING_VEDLEGG_OPPLASTNING("Opplasting av vedlegg feilet"),
     KRYPTERING_MELLOMLAGRING("Kryptering eller dekryptering av mellomlagring feilet");
 
 

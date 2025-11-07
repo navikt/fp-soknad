@@ -5,6 +5,8 @@ import org.eclipse.jetty.io.EofException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.cloud.storage.StorageException;
+
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
@@ -27,11 +29,15 @@ public class GeneralRestExceptionMapper implements ExceptionMapper<Throwable> {
         }
         if (exception instanceof VedleggVirusscanTimeoutException e) {
             LOG.info("Virusscan tok lenger tid enn satt timeout. Clavmav cacher og scan vil gå fortere neste gang.", e);
-            return status(HttpStatus.SERVICE_UNAVAILABLE_503, FeilKode.VEDLEGG_OPPLASTNING, e.getMessage());
+            return status(HttpStatus.SERVICE_UNAVAILABLE_503, FeilKode.MELLOMLAGRING_VEDLEGG_OPPLASTNING, e.getMessage());
         }
         if (exception instanceof VedleggOpplastningException e) {
             LOG.info("Vedlegg opplastning feilet: {}", e.getFormatertMessage());
-            return status(HttpStatus.BAD_REQUEST_400, FeilKode.VEDLEGG_OPPLASTNING, e.getFormatertMessage());
+            return status(HttpStatus.BAD_REQUEST_400, FeilKode.MELLOMLAGRING_VEDLEGG_OPPLASTNING, e.getFormatertMessage());
+        }
+        if (exception instanceof StorageException e) {
+            LOG.warn("Mellomlagring feilet ({})", e.getCode(), e);
+            return status(HttpStatus.INTERNAL_SERVER_ERROR_500, FeilKode.MELLOMLAGRING, e.getMessage());
         }
         if (exception instanceof KrypteringMellomlagringException e) {
             LOG.error("Feil ved kryptering av mellomlagret data: {}", e.getMessage(), e);
@@ -43,11 +49,11 @@ public class GeneralRestExceptionMapper implements ExceptionMapper<Throwable> {
         }
         if (exception instanceof EofException e) {
             LOG.info("Klient har avbrutt forespørsel (Early EOF).", e);
-            return status(HttpStatus.BAD_REQUEST_400, FeilKode.VEDLEGG_OPPLASTNING, e.getMessage());
+            return status(HttpStatus.BAD_REQUEST_400, FeilKode.MELLOMLAGRING_VEDLEGG_OPPLASTNING, e.getMessage());
         }
         LOG.warn("Fikk uventet feil: {}", exception.getMessage(), exception);
         SECURE_LOG.info("Fikk uventet feil for bruker: {}", KontekstHolder.getKontekst().getUid(), exception);
-        return Response.status(500).build();
+        return Response.status(HttpStatus.INTERNAL_SERVER_ERROR_500).build();
     }
 
     private static Response status(int httpstatus, FeilKode feilKode, String formatertMessage) {
