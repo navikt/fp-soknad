@@ -1,6 +1,7 @@
 package no.nav.foreldrepenger.soknad.server.error;
 
 import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.io.EofException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,6 +11,7 @@ import jakarta.ws.rs.ext.Provider;
 import no.nav.foreldrepenger.soknad.innsending.DuplikatInnsendingException;
 import no.nav.foreldrepenger.soknad.mellomlagring.error.KrypteringMellomlagringException;
 import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningException;
+import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggVirusscanTimeoutException;
 import no.nav.vedtak.exception.ManglerTilgangException;
 import no.nav.vedtak.sikkerhet.kontekst.KontekstHolder;
 
@@ -23,6 +25,10 @@ public class GeneralRestExceptionMapper implements ExceptionMapper<Throwable> {
         if (exception instanceof ManglerTilgangException e) {
             return status(HttpStatus.FORBIDDEN_403, FeilKode.IKKE_TILGANG, e.getMessage());
         }
+        if (exception instanceof VedleggVirusscanTimeoutException e) {
+            LOG.warn("Virusscan tok lenger tid enn satt timeout. Hvis bruker prøver igjen treffer hen cache og det vil gå fortere. Ignorer.", e);
+            return status(HttpStatus.SERVICE_UNAVAILABLE_503, FeilKode.VEDLEGG_OPPLASTNING, e.getMessage());
+        }
         if (exception instanceof VedleggOpplastningException e) {
             LOG.info("Vedlegg opplastning feilet: {}", e.getFormatertMessage());
             return status(HttpStatus.BAD_REQUEST_400, FeilKode.VEDLEGG_OPPLASTNING, e.getFormatertMessage());
@@ -34,6 +40,10 @@ public class GeneralRestExceptionMapper implements ExceptionMapper<Throwable> {
         if (exception instanceof DuplikatInnsendingException e) {
             LOG.info(e.getMessage());
             return status(HttpStatus.CONFLICT_409, FeilKode.DUPLIKAT_FORSENDELSE, e.getMessage());
+        }
+        if (exception instanceof EofException e) {
+            LOG.info("Klient har avbrutt forespørsel (Early EOF).", e);
+            return status(HttpStatus.BAD_REQUEST_400, FeilKode.VEDLEGG_OPPLASTNING, e.getMessage());
         }
         LOG.warn("Fikk uventet feil: {}", exception.getMessage(), exception);
         SECURE_LOG.info("Fikk uventet feil for bruker: {}", KontekstHolder.getKontekst().getUid(), exception);

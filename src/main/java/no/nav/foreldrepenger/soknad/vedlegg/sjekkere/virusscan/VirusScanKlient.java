@@ -8,9 +8,9 @@ import java.net.HttpURLConnection;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpTimeoutException;
 import java.time.Duration;
 import java.util.List;
-import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +19,9 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.UriBuilder;
 import no.nav.foreldrepenger.konfig.Environment;
+import no.nav.foreldrepenger.soknad.vedlegg.Vedlegg;
 import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningVirusException;
+import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggVirusscanTimeoutException;
 import no.nav.vedtak.exception.IntegrasjonException;
 import no.nav.vedtak.exception.ManglerTilgangException;
 import no.nav.vedtak.felles.integrasjon.rest.RestClientConfig;
@@ -46,38 +48,37 @@ public class VirusScanKlient {
 
     public VirusScanKlient() {
         this.httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(15))
             .proxy(HttpClient.Builder.NO_PROXY)
             .build();
         this.restConfig = RestConfig.forClient(VirusScanKlient.class);
     }
 
-    public void scan(byte[] bytes, UUID uuid) {
-        if (bytes == null || ENV.isLocal()) {
+    public void scan(Vedlegg vedlegg) {
+        if (vedlegg.bytes() == null || ENV.isLocal()) {
             return;
         }
         var request = HttpRequest.newBuilder()
             .uri(UriBuilder.fromUri(restConfig.endpoint()).path(SCAN_PATH).build())
-            .timeout(Duration.ofSeconds(20))
+            .timeout(Duration.ofSeconds(30))
             .header("Content-Type", MediaType.APPLICATION_OCTET_STREAM)
-            .PUT(HttpRequest.BodyPublishers.ofByteArray(bytes))
+            .PUT(HttpRequest.BodyPublishers.ofByteArray(vedlegg.bytes()))
             .build();
-        var scanResults = sendAndHandle(request);
+        var scanResults = sendAndHandle(request, vedlegg);
         if (scanResults.size() != 1) {
             LOG.warn("Uventet respons med lengde {}, forventet lengde er 1", scanResults.size());
-            throw new VedleggOpplastningVirusException(uuid.toString());
+            throw new VedleggOpplastningVirusException(vedlegg.uuid());
         }
         var scanResult = scanResults.getFirst();
         LOG.trace("Fikk scan result {}", scanResult);
         if (OK.equals(scanResult.getResult())) {
-            LOG.trace("Ingen virus i {}", uuid);
+            LOG.trace("Ingen virus i {}", vedlegg.uuid());
             return;
         }
         LOG.warn("Fant virus!, status {}", scanResult.getResult());
-        throw new VedleggOpplastningVirusException(uuid.toString());
+        throw new VedleggOpplastningVirusException(vedlegg.uuid());
     }
 
-    private List<ScanResult> sendAndHandle(HttpRequest request) {
+    private List<ScanResult> sendAndHandle(HttpRequest request, Vedlegg vedlegg) {
         try {
             var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             int status = response.statusCode();
@@ -91,6 +92,8 @@ public class VirusScanKlient {
                 throw new ManglerTilgangException("F-468816", "Feilet mot clamav");
             }
             throw new IntegrasjonException("F-468817", String.format("Uventet respons %s fra clamav", status), status);
+        } catch (HttpTimeoutException e) {
+            throw new VedleggVirusscanTimeoutException(vedlegg, e);
         } catch (IOException e) {
             throw new IntegrasjonException("F-157391", "Uventet IO-exception mot endepunkt", e);
         } catch (InterruptedException e) {
