@@ -6,6 +6,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.time.OffsetDateTime;
 import java.util.Optional;
+import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +17,9 @@ import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageException;
 import com.google.cloud.storage.StorageOptions;
+import com.google.cloud.storage.StorageRetryStrategy;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import no.nav.foreldrepenger.konfig.Environment;
@@ -26,22 +29,21 @@ public class GCPMellomlagring implements Mellomlagring {
 
     private static final Logger LOG = LoggerFactory.getLogger(GCPMellomlagring.class);
     private static final Environment ENV = Environment.current();
+    private static final Random RANDOM = new Random();
 
     private final Bøtte mellomlagringBøtte;
     private final Storage storage;
 
     public GCPMellomlagring() {
         var retrySettings = ServiceOptions.getDefaultRetrySettings().toBuilder()
-            .setInitialRetryDelay(Duration.ofMillis(400))
-            .setMaxRetryDelay(Duration.ofMillis(900))
-            .setRetryDelayMultiplier(1.5)
-            .setMaxAttempts(5)
-            .setTotalTimeout(Duration.ofMillis(5_000))
+            .setMaxRetryDelay(Duration.ofSeconds(5))
+            .setMaxAttempts(4)
+            .setTotalTimeout(Duration.ofSeconds(15))
             .build();
 
-        this.storage = StorageOptions
-            .newBuilder()
+        this.storage = StorageOptions.newBuilder()
             .setRetrySettings(retrySettings)
+            .setStorageRetryStrategy(StorageRetryStrategy.getDefaultStorageRetryStrategy())
             .build()
             .getService();
         this.mellomlagringBøtte = new Bøtte(ENV.getProperty("GCP_BUCKET_NAME"));
@@ -53,7 +55,23 @@ public class GCPMellomlagring implements Mellomlagring {
             .setContentType(APPLICATION_JSON)
             .setCustomTimeOffsetDateTime(OffsetDateTime.now())
             .build();
-        storage.create(blob, value.getBytes(UTF_8));
+
+        try {
+            storage.create(blob, value.getBytes(UTF_8));
+        } catch (StorageException e) {
+            if (e.getCode() == 429) {
+                // Håndtering av 'exceeded the rate limit for object mutation' fra GCP, siden vi oppdatere samme objekt ofte.
+                LOG.info("Rate limit for mutering av objekt nådd. Venter litt før en prøver på nytt ...");
+                try {
+                    Thread.sleep(500L + RANDOM.nextInt(500)); // small jitter
+                } catch (InterruptedException ex) {
+                    throw new RuntimeException(ex);
+                }
+                storage.create(blob, value.getBytes(UTF_8));
+            } else {
+                throw e;
+            }
+        }
     }
 
     @Override
