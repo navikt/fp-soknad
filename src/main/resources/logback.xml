@@ -51,7 +51,6 @@
     </appender>
 
     <logger name="no.nav" level="${log.level.no.nav:-INFO}"/>
-
     <logger name="ch.qos.logback" level="${log.level.ch.qos.logback:-WARN}"/>
     <logger name="org.apache" level="${log.level.org.apache:-ERROR}"/>
     <logger name="org.jboss.weld" level="${log.level.org.jboss.weld:-WARN}"/>
@@ -61,5 +60,4 @@
     <root level="${log.level.root:-INFO}">
         <appender-ref ref="stdoutConsoleLogger"/>
     </root>
-
 </configuration>

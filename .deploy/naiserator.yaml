@@ -85,6 +85,9 @@ spec:
       destinations:
         - id: loki
         - id: elastic
+        - id: secure_logs
+  secureLogs:
+    enabled: true
   accessPolicy:
     inbound:
       rules:
@@ -106,6 +109,8 @@ spec:
       rules:
         - application: fpdokgen
         - application: clamav
+          namespace: nais-system
+        - application: logging
           namespace: nais-system
       external:
         - host: fpsak-api.{{environment}}-fss-pub.nais.io
