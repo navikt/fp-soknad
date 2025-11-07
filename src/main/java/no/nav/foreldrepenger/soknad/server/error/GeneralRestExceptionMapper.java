@@ -29,11 +29,11 @@ public class GeneralRestExceptionMapper implements ExceptionMapper<Throwable> {
         }
         if (exception instanceof VedleggVirusscanTimeoutException e) {
             LOG.info("Virusscan tok lenger tid enn satt timeout. Clavmav cacher og scan vil gå fortere neste gang.", e);
-            return status(HttpStatus.SERVICE_UNAVAILABLE_503, FeilKode.MELLOMLAGRING_VEDLEGG_OPPLASTNING, e.getMessage());
+            return status(HttpStatus.SERVICE_UNAVAILABLE_503, FeilKode.MELLOMLAGRING_VEDLEGG, e.getMessage());
         }
         if (exception instanceof VedleggOpplastningException e) {
             LOG.info("Vedlegg opplastning feilet: {}", e.getFormatertMessage());
-            return status(HttpStatus.BAD_REQUEST_400, FeilKode.MELLOMLAGRING_VEDLEGG_OPPLASTNING, e.getFormatertMessage());
+            return status(HttpStatus.BAD_REQUEST_400, FeilKode.MELLOMLAGRING_VEDLEGG, e.getFormatertMessage());
         }
         if (exception instanceof StorageException e) {
             LOG.warn("Mellomlagring feilet ({})", e.getCode(), e);
@@ -49,7 +49,7 @@ public class GeneralRestExceptionMapper implements ExceptionMapper<Throwable> {
         }
         if (exception instanceof EofException e) {
             LOG.info("Klient har avbrutt forespørsel (Early EOF).", e);
-            return status(HttpStatus.BAD_REQUEST_400, FeilKode.MELLOMLAGRING_VEDLEGG_OPPLASTNING, e.getMessage());
+            return status(HttpStatus.BAD_REQUEST_400, FeilKode.MELLOMLAGRING_VEDLEGG, e.getMessage());
         }
         LOG.warn("Fikk uventet feil: {}", exception.getMessage(), exception);
         SECURE_LOG.info("Fikk uventet feil for bruker: {}", KontekstHolder.getKontekst().getUid(), exception);
