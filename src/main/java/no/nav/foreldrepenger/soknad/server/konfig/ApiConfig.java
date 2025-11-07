@@ -26,7 +26,6 @@ public class ApiConfig extends ResourceConfig {
     private static final Environment ENV = Environment.current();
 
     public ApiConfig() {
-        setApplicationName(ApiConfig.class.getSimpleName());
         register(AuthenticationFilter.class); // Sikkerhet
         register(GeneralRestExceptionMapper.class); // Exception handling
         register(ValidationExceptionMapper.class); // Exception handling

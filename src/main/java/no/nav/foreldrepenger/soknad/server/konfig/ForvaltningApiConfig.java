@@ -13,7 +13,7 @@ import no.nav.foreldrepenger.soknad.server.error.GeneralRestExceptionMapper;
 import no.nav.foreldrepenger.soknad.server.error.ValidationExceptionMapper;
 import no.nav.foreldrepenger.soknad.server.forvaltning.ForvaltningMellomlagringRest;
 import no.nav.foreldrepenger.soknad.server.konfig.swagger.OpenApiUtils;
-import no.nav.foreldrepenger.soknad.server.sikkerhet.AuthenticationFilter;
+import no.nav.foreldrepenger.soknad.server.sikkerhet.ForvaltningAuthorizationFilter;
 import no.nav.vedtak.felles.prosesstask.rest.ProsessTaskRestTjeneste;
 
 @ApplicationPath(ForvaltningApiConfig.API_URI)
@@ -21,8 +21,7 @@ public class ForvaltningApiConfig extends ResourceConfig {
     public static final String API_URI ="/forvaltning/api";
 
     public ForvaltningApiConfig() {
-        setApplicationName(ForvaltningApiConfig.class.getSimpleName());
-        register(AuthenticationFilter.class); // Sikkerhet
+        register(ForvaltningAuthorizationFilter.class); // Sikkerhet
         register(GeneralRestExceptionMapper.class); // Exception handling
         register(ValidationExceptionMapper.class); // Exception handling
         register(JacksonJsonConfig.class); // Json
