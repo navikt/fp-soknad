@@ -29,7 +29,7 @@ public class ClamAvVirusScanner implements VedleggSjekker {
         var start = System.currentTimeMillis();
         connection.scan(vedlegg.bytes(), vedlegg.uuid());
         var slutt = System.currentTimeMillis();
-        LOG.info("Scan av virus tok {}ms for vedlegg av størrelsen {}MB", start - slutt, megabytes(vedlegg.bytes().length));
+        LOG.info("Scan av virus tok {}ms for vedlegg av størrelsen {}MB", slutt - start, megabytes(vedlegg.bytes().length));
     }
 
     @Override
