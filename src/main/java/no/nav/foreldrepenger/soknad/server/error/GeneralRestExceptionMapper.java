@@ -16,7 +16,7 @@ import no.nav.vedtak.sikkerhet.kontekst.KontekstHolder;
 @Provider
 public class GeneralRestExceptionMapper implements ExceptionMapper<Throwable> {
     private static final Logger LOG = LoggerFactory.getLogger(GeneralRestExceptionMapper.class);
-    private static final Logger TEAM_LOGGER = LoggerFactory.getLogger("teamLogger");
+    private static final Logger SECURE_LOG = LoggerFactory.getLogger("secureLogger");
 
     @Override
     public Response toResponse(Throwable exception) {
@@ -36,7 +36,7 @@ public class GeneralRestExceptionMapper implements ExceptionMapper<Throwable> {
             return status(HttpStatus.CONFLICT_409, FeilKode.DUPLIKAT_FORSENDELSE, e.getMessage());
         }
         LOG.warn("Fikk uventet feil: {}", exception.getMessage(), exception);
-        TEAM_LOGGER.info("Fikk uventet feil for bruker: {}", KontekstHolder.getKontekst().getUid(), exception);
+        SECURE_LOG.info("Fikk uventet feil for bruker: {}", KontekstHolder.getKontekst().getUid(), exception);
         return Response.status(500).build();
     }
 
