@@ -26,7 +26,7 @@ public class GeneralRestExceptionMapper implements ExceptionMapper<Throwable> {
             return status(HttpStatus.FORBIDDEN_403, FeilKode.IKKE_TILGANG, e.getMessage());
         }
         if (exception instanceof VedleggVirusscanTimeoutException e) {
-            LOG.warn("Virusscan tok lenger tid enn satt timeout. Hvis bruker prøver igjen treffer hen cache og det vil gå fortere. Ignorer.", e);
+            LOG.info("Virusscan tok lenger tid enn satt timeout. Clavmav cacher og scan vil gå fortere neste gang.", e);
             return status(HttpStatus.SERVICE_UNAVAILABLE_503, FeilKode.VEDLEGG_OPPLASTNING, e.getMessage());
         }
         if (exception instanceof VedleggOpplastningException e) {
