@@ -10,7 +10,7 @@ import no.nav.foreldrepenger.soknad.server.PrometheusRestService;
 @ApplicationPath(InternalApiConfig.API_URI)
 public class InternalApiConfig extends ResourceConfig {
 
-    public static final String API_URI ="/internal";
+    public static final String API_URI = "/internal";
 
     public InternalApiConfig() {
         register(HealtCheckRest.class);
