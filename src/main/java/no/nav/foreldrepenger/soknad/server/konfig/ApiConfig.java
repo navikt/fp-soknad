@@ -26,10 +26,7 @@ public class ApiConfig extends ResourceConfig {
     private static final Environment ENV = Environment.current();
 
     public ApiConfig() {
-        register(AuthenticationFilter.class); // Sikkerhet
-        register(GeneralRestExceptionMapper.class); // Exception handling
-        register(ValidationExceptionMapper.class); // Exception handling
-        register(JacksonJsonConfig.class); // Json
+        registerClasses(getFellesConfigClasses());
         register(MultiPartFeature.class); // Multipart upload mellomlagring
         if (!ENV.isProd()) {
             registerOpenApi();
@@ -40,6 +37,15 @@ public class ApiConfig extends ResourceConfig {
 
     private static Set<Class<?>> getApplicationClasses() {
         return Set.of(SøknadRest.class, MellomlagringRest.class);
+    }
+
+    static Set<Class<?>> getFellesConfigClasses() {
+        return  Set.of(
+            AuthenticationFilter.class, // Autentisering
+            GeneralRestExceptionMapper.class, // Exception handling
+            ValidationExceptionMapper.class, // Exception handling
+            JacksonJsonConfig.class // Json
+        );
     }
 
     static Map<String, Object> getApplicationProperties() {
