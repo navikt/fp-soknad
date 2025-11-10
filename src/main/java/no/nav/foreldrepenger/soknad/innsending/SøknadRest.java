@@ -12,6 +12,7 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.EndringssøknadForeldrepengerDto;
@@ -19,6 +20,7 @@ import no.nav.foreldrepenger.kontrakter.fpsoknad.EngangsstønadDto;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.ForeldrepengesøknadDto;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.SvangerskapspengesøknadDto;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.ettersendelse.EttersendelseDto;
+import no.nav.foreldrepenger.soknad.innsending.error.ForsendelseIkkeFunnetException;
 import no.nav.foreldrepenger.soknad.utils.InnloggetBruker;
 
 @Path("/soknad")
@@ -103,15 +105,13 @@ public class SøknadRest {
 
     @GET
     @Path("/status")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response status() {
+    @Produces(MediaType.APPLICATION_JSON)
+    public StatusInnsendingTjeneste.ForsendelseStatus status() {
         var fnr = innloggetBruker.brukerFraKontekst();
-
         var status = statusInnsendingTjeneste.status(fnr);
         if (status.isEmpty()) {
-            return Response.status(404).build();
+            throw new ForsendelseIkkeFunnetException("Forsendelsesstatus ikke funnet på søker.");
         }
-
-        return Response.ok(status).build();
+        return status.orElseThrow();
     }
 }

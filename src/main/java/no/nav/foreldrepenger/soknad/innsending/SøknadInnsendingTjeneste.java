@@ -28,6 +28,7 @@ import no.nav.foreldrepenger.kontrakter.fpsoknad.ettersendelse.YtelseType;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.DokumentTypeId;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.InnsendingType;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.VedleggDto;
+import no.nav.foreldrepenger.soknad.innsending.error.DuplikatInnsendingException;
 import no.nav.foreldrepenger.soknad.innsending.fordel.BehandleEttersendelseTask;
 import no.nav.foreldrepenger.soknad.innsending.fordel.BehandleSøknadTask;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;

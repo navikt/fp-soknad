@@ -1,12 +1,12 @@
 package no.nav.foreldrepenger.soknad.innsending;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
-
 import java.util.Comparator;
 import java.util.Optional;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 
 @ApplicationScoped
 public class StatusInnsendingTjeneste {
@@ -44,8 +44,6 @@ public class StatusInnsendingTjeneste {
             case FPSAK -> saksnummer.isPresent() ? ForsendelseStatus.Status.ENDELIG : ForsendelseStatus.Status.MIDLERTIDIG;
         };
     }
-
-
 
     public record ForsendelseStatus(Status status, String saksnummer) {
         enum Status {

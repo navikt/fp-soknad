@@ -10,7 +10,8 @@ import com.google.cloud.storage.StorageException;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
-import no.nav.foreldrepenger.soknad.innsending.DuplikatInnsendingException;
+import no.nav.foreldrepenger.soknad.innsending.error.DuplikatInnsendingException;
+import no.nav.foreldrepenger.soknad.innsending.error.ForsendelseIkkeFunnetException;
 import no.nav.foreldrepenger.soknad.mellomlagring.error.KrypteringMellomlagringException;
 import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningException;
 import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggVirusscanTimeoutException;
@@ -46,6 +47,10 @@ public class GeneralRestExceptionMapper implements ExceptionMapper<Throwable> {
         if (exception instanceof DuplikatInnsendingException e) {
             LOG.info(e.getMessage());
             return status(HttpStatus.CONFLICT_409, FeilKode.DUPLIKAT_FORSENDELSE, e.getMessage());
+        }
+        if (exception instanceof ForsendelseIkkeFunnetException e) {
+            LOG.info(e.getMessage());
+            return status(HttpStatus.GONE_410, FeilKode.FORSENDELSE_FINNES_IKKE, e.getMessage());
         }
         if (exception instanceof EofException e) {
             LOG.info("Klient har avbrutt forespørsel (Early EOF).", e);
