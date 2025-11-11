@@ -1,12 +1,12 @@
 package no.nav.foreldrepenger.soknad.innsending;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
-import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
-
 import java.util.Comparator;
 import java.util.Optional;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
+import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 
 @ApplicationScoped
 public class StatusInnsendingTjeneste {
@@ -20,16 +20,16 @@ public class StatusInnsendingTjeneste {
         this.dokumentRepository = dokumentRepository;
     }
 
-    public Optional<ForsendelseStatus> status(String fnr) {
+    public ForsendelseStatus status(String fnr) {
         var forsendelseListe = dokumentRepository.hentForsendelse(fnr);
         if (forsendelseListe.isEmpty()) {
-            return Optional.empty();
+            return new ForsendelseStatus(ForsendelseStatus.Status.FORSENDELSE_FINNES_IKKE, null);
         }
 
-        var forsendelse = forsendelseListe.stream()
-                .max(Comparator.comparing(ForsendelseEntitet::getForsendelseMottatt))
-                .orElseThrow();
-        return Optional.of(mapForsendelse(forsendelse));
+        return forsendelseListe.stream()
+            .max(Comparator.comparing(ForsendelseEntitet::getForsendelseMottatt))
+            .map(StatusInnsendingTjeneste::mapForsendelse)
+            .orElseThrow();
     }
 
     private static ForsendelseStatus mapForsendelse(ForsendelseEntitet forsendelse) {
@@ -45,11 +45,9 @@ public class StatusInnsendingTjeneste {
         };
     }
 
-
-
     public record ForsendelseStatus(Status status, String saksnummer) {
         enum Status {
-            PENDING, MIDLERTIDIG, ENDELIG
+            PENDING, MIDLERTIDIG, ENDELIG, FORSENDELSE_FINNES_IKKE
         }
     }
 }
