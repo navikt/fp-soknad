@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.validation.constraints.NotNull;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 
@@ -45,7 +46,7 @@ public class StatusInnsendingTjeneste {
         };
     }
 
-    public record ForsendelseStatus(Status status, String saksnummer) {
+    public record ForsendelseStatus(@NotNull Status status, String saksnummer) {
         enum Status {
             PENDING, MIDLERTIDIG, ENDELIG, FORSENDELSE_FINNES_IKKE
         }
