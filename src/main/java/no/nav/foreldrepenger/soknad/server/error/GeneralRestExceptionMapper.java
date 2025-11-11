@@ -13,6 +13,7 @@ import jakarta.ws.rs.ext.Provider;
 import no.nav.foreldrepenger.soknad.innsending.DuplikatInnsendingException;
 import no.nav.foreldrepenger.soknad.mellomlagring.error.KrypteringMellomlagringException;
 import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningException;
+import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningPasswordProtectedException;
 import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggVirusscanTimeoutException;
 import no.nav.vedtak.exception.ManglerTilgangException;
 import no.nav.vedtak.sikkerhet.kontekst.KontekstHolder;
@@ -29,7 +30,11 @@ public class GeneralRestExceptionMapper implements ExceptionMapper<Throwable> {
         }
         if (exception instanceof VedleggVirusscanTimeoutException e) {
             LOG.info("Virusscan tok lenger tid enn satt timeout. Clavmav cacher og scan vil gå fortere neste gang.", e);
-            return status(HttpStatus.SERVICE_UNAVAILABLE_503, FeilKode.MELLOMLAGRING_VEDLEGG, e.getMessage());
+            return status(HttpStatus.SERVICE_UNAVAILABLE_503, FeilKode.MELLOMLAGRING_VEDLEGG_VIRUSSCAN_TIMEOUT, e.getMessage());
+        }
+        if (exception instanceof VedleggOpplastningPasswordProtectedException e) {
+            LOG.info("Opplastet vedlegg er passordbeskyttet og kan ikke mottas!");
+            return status(HttpStatus.BAD_REQUEST_400, FeilKode.MELLOMLAGRING_VEDLEGG_PASSORD_BESKYTTET, e.getMessage());
         }
         if (exception instanceof VedleggOpplastningException e) {
             LOG.info("Vedlegg opplastning feilet: {}", e.getFormatertMessage());

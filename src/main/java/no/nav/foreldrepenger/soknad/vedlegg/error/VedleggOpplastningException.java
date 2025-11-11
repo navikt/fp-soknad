@@ -18,8 +18,8 @@ public class VedleggOpplastningException extends RuntimeException {
 
     public String getFormatertMessage() {
         if (mediaType == null) {
-            return String.format("Opplastning av vedlegg feilet: %s", getMessage());
+            return getMessage();
         }
-        return String.format("Opplastning av vedlegg feilet: %s, mediaType=%s", getMessage(), mediaType);
+        return String.format("Melding: %s, mediaType=%s", getMessage(), mediaType);
     }
 }
