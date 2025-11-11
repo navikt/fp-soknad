@@ -63,7 +63,7 @@ public class GCPMellomlagring implements Mellomlagring {
                 // Håndtering av 'exceeded the rate limit for object mutation' fra GCP, siden vi oppdatere samme objekt ofte.
                 LOG.info("Rate limit for mutering av objekt nådd. Venter litt før en prøver på nytt ...");
                 try {
-                    Thread.sleep(500L + RANDOM.nextInt(500)); // small jitter
+                    Thread.sleep(1_000L + RANDOM.nextInt(500)); // small jitter
                 } catch (InterruptedException ex) {
                     throw new RuntimeException(ex);
                 }

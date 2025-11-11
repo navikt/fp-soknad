@@ -58,8 +58,12 @@ public class DokgenRestKlient {
             case SvangerskapspengesøknadDto _ -> "søknad-svangerskapspenger";
             case EngangsstønadDto _ -> "søknad-engangsstønad";
         };
-        var språk = "nb"; // Hardkodet, men kan bruke søknadDto.getSpråk().toLowerCase() for å støtte flere språk
-        return String.format("/template/%s/template_%s", templateNavn, språk);
+        var språkvalg = switch (søknadDto.språkkode()) {
+            case NB -> "nb";
+            case NN -> "nn";
+            case EN, E -> "en";
+        };
+        return String.format("/template/%s/template_%s", templateNavn, språkvalg);
     }
 
     public byte[] genererUttalelseOmTilbakekrevingPDF(ForsendelseEntitet metadata, UtalelseOmTilbakebetaling svar) {
