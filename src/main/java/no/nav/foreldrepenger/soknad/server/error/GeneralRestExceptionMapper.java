@@ -41,7 +41,11 @@ public class GeneralRestExceptionMapper implements ExceptionMapper<Throwable> {
             return status(HttpStatus.BAD_REQUEST_400, FeilKode.MELLOMLAGRING_VEDLEGG, e.getFormatertMessage());
         }
         if (exception instanceof StorageException e) {
-            LOG.warn("Mellomlagring feilet ({})", e.getCode(), e);
+            if (e.getCode() == HttpStatus.TOO_MANY_REQUESTS_429) {
+                LOG.info("For mange opplastnigner til samme objekt i gcp...");
+            } else {
+                LOG.warn("Mellomlagring feilet ({})", e.getCode(), e);
+            }
             return status(HttpStatus.INTERNAL_SERVER_ERROR_500, FeilKode.MELLOMLAGRING, e.getMessage());
         }
         if (exception instanceof KrypteringMellomlagringException e) {

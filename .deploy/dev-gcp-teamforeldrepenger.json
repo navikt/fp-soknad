@@ -11,7 +11,7 @@
     "dokarkivUrl": "dokarkiv-q2.dev-fss-pub.nais.io",
     "minReplicas": "1",
     "maxReplicas": "1",
-    "ingress": "https://fpsoknad.ekstern.dev.nav.no",
+    "ingress": "https://fpsoknad.intern.dev.nav.no",
     "groups": [
         {
             "uuid": "27e77109-fef2-48ce-a174-269074490353",
