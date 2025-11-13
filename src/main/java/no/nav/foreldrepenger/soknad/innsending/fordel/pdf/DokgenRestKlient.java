@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.UriBuilder;
+import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.EngangsstønadDto;
 import no.nav.foreldrepenger.kontrakter.fpsoknad.ForeldrepengesøknadDto;
@@ -29,6 +30,7 @@ import no.nav.vedtak.felles.integrasjon.rest.TokenFlow;
 public class DokgenRestKlient {
 
     private static final Logger LOG = LoggerFactory.getLogger(DokgenRestKlient.class);
+    private static final Environment ENV = Environment.current();
     private final RestClient restClient;
     private final RestConfig restConfig;
 
@@ -58,8 +60,15 @@ public class DokgenRestKlient {
             case SvangerskapspengesøknadDto _ -> "søknad-svangerskapspenger";
             case EngangsstønadDto _ -> "søknad-engangsstønad";
         };
-        var språk = "nb"; // Hardkodet, men kan bruke søknadDto.getSpråk().toLowerCase() for å støtte flere språk
-        return String.format("/template/%s/template_%s", templateNavn, språk);
+        var språkvalg = switch (søknadDto.språkkode()) {
+            case NB -> "nb";
+            case NN -> "nn";
+            case EN, E -> "en";
+        };
+        if (ENV.isProd()) {
+            språkvalg = "nb";
+        }
+        return String.format("/template/%s/template_%s", templateNavn, språkvalg);
     }
 
     public byte[] genererUttalelseOmTilbakekrevingPDF(ForsendelseEntitet metadata, UtalelseOmTilbakebetaling svar) {
