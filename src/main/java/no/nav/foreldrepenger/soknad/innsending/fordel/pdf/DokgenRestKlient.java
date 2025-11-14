@@ -65,9 +65,6 @@ public class DokgenRestKlient {
             case NN -> "nn";
             case EN, E -> "en";
         };
-        if (ENV.isProd()) {
-            språkvalg = "nb";
-        }
         return String.format("/template/%s/template_%s", templateNavn, språkvalg);
     }
 
