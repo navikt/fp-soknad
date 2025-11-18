@@ -6,7 +6,7 @@
     <parent>
         <groupId>no.nav.foreldrepenger.felles</groupId>
         <artifactId>fp-parent-app</artifactId>
-        <version>5.0.2</version>
+        <version>5.0.3</version>
     </parent>
 
     <groupId>no.nav.foreldrepenger.soknad</groupId>
@@ -20,7 +20,7 @@
 
         <felles.version>7.6.9</felles.version>
         <prosesstask.version>5.2.1</prosesstask.version>
-        <fp-kontrakter.version>9.4.10</fp-kontrakter.version>
+        <fp-kontrakter.version>9.4.12</fp-kontrakter.version>
 
         <openapi-spec-utils.version>2.0.6</openapi-spec-utils.version>
         <tika.version>3.2.3</tika.version> <!-- Bedre måter å gjøre det på -->
