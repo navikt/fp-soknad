@@ -1,6 +1,8 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -82,23 +84,62 @@ class VLKlargjørerTaskTest {
         task.doTask(prosessTaskData);
 
         var captorFpsak = ArgumentCaptor.forClass(JournalpostMottakDto.class);
-        var captorFptilbake = ArgumentCaptor.forClass(JournalpostMottakDto.class);
         verify(fpsakTjeneste, times(1)).sendOgKnyttJournalpost(captorFpsak.capture());
-        verify(fptilbakeTjeneste, times(1)).send(captorFptilbake.capture());
+        verify(fptilbakeTjeneste, never()).send(any());
         var journalpostMottakDtoFpsak = captorFpsak.getValue();
+        assertThat(journalpostMottakDtoFpsak.getForsendelseId()).hasValue(forsendelseId);
+        assertThat(journalpostMottakDtoFpsak.getSaksnummer()).isEqualTo(metadata.getSaksnummer().orElseThrow());
+        assertThat(journalpostMottakDtoFpsak.getJournalpostId()).isEqualTo(metadata.getJournalpostId().orElseThrow());
+        assertThat(journalpostMottakDtoFpsak.getBehandlingstemaOffisiellKode()).isEqualTo(behandlingTema.getOffisiellKode());
+        assertThat(journalpostMottakDtoFpsak.getDokumentTypeIdOffisiellKode()).hasValue(søknadXML.getDokumentTypeId().getKode());assertThat(journalpostMottakDtoFpsak.getPayloadXml()).hasValue(søknadXML.getKlartekstDokument());
+
+
+        var captor = ArgumentCaptor.forClass(ProsessTaskData.class);
+        verify(taskTjeneste, times(1)).lagre(captor.capture());
+        var slettForsendelseTask = captor.getValue();
+        assertThat(slettForsendelseTask.taskType().value()).isEqualTo("fordeling.slettForsendelse");
+        assertThat(slettForsendelseTask.getPropertyValue(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY)).isEqualTo(forsendelseId.toString());
+        assertThat(slettForsendelseTask.getNesteKjøringEtter()).isAfter(LocalDateTime.now().plusHours(1));
+    }
+
+    @Test
+    void verifiser_forsendelse_sendes_til_fptilbake_ved_uttalelse_om_tilbakekreving_og_sletting_av_forsendelse() {
+        var forsendelseId = UUID.randomUUID();
+        var metadata = ForsendelseEntitet.builder()
+            .setFødselsnummer("123456789")
+            .setSaksnummer("123")
+            .setForsendelseId(forsendelseId)
+            .setStatus(ForsendelseStatus.FPSAK)
+            .setJournalpostId("9999")
+            .setForsendelseMottatt(LocalDateTime.now())
+            .build();
+        dokumentRepository.lagre(metadata);
+
+        var uttalelseTilbakekreving = DokumentEntitet.builder()
+            .setDokumentInnhold(new byte[]{1,2,3,4}, ArkivFilType.JSON)
+            .setForsendelseId(forsendelseId)
+            .setDokumentTypeId(DokumentTypeId.I000114)
+            .build();
+        dokumentRepository.lagre(uttalelseTilbakekreving);
+
+        var behandlingTema = BehandlingTema.FORELDREPENGER_ENDRING;
+        var prosessTaskData = ProsessTaskData.forProsessTask(BehandleSøknadTask.class);
+        prosessTaskData.setProperty(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
+        prosessTaskData.setProperty(BehandleSøknadTask.SAKSNUMMER_PROPERTY, metadata.getSaksnummer().orElseThrow());
+        prosessTaskData.setProperty(BehandleSøknadTask.DOKUMENT_TYPE_ID_PROPERTY, DokumentTypeId.I000114.getKode());
+        prosessTaskData.setProperty(BehandleSøknadTask.BEHANDLING_TEMA_PROPERTY, behandlingTema.getOffisiellKode());
+
+        task.doTask(prosessTaskData);
+
+        var captorFptilbake = ArgumentCaptor.forClass(JournalpostMottakDto.class);
+        verify(fpsakTjeneste, never()).sendOgKnyttJournalpost(any());
+        verify(fptilbakeTjeneste, times(1)).send(captorFptilbake.capture());
         var journalpostMottakDtoFptilbake = captorFptilbake.getValue();
-        assertThat(journalpostMottakDtoFpsak.getSaksnummer())
-            .isEqualTo(journalpostMottakDtoFptilbake.getSaksnummer())
-            .isEqualTo(metadata.getSaksnummer().orElseThrow());
-        assertThat(journalpostMottakDtoFpsak.getJournalpostId())
-            .isEqualTo(journalpostMottakDtoFptilbake.getJournalpostId())
-            .isEqualTo(metadata.getJournalpostId().orElseThrow());
-        assertThat(journalpostMottakDtoFpsak.getBehandlingstemaOffisiellKode())
-            .isEqualTo(journalpostMottakDtoFptilbake.getBehandlingstemaOffisiellKode())
-            .isEqualTo(behandlingTema.getOffisiellKode());
-        assertThat(journalpostMottakDtoFpsak.getPayloadXml())
-            .isEqualTo(journalpostMottakDtoFptilbake.getPayloadXml())
-            .hasValue(søknadXML.getKlartekstDokument());
+        assertThat(journalpostMottakDtoFptilbake.getForsendelseId()).hasValue(forsendelseId);
+        assertThat(journalpostMottakDtoFptilbake.getSaksnummer()).isEqualTo(metadata.getSaksnummer().orElseThrow());
+        assertThat(journalpostMottakDtoFptilbake.getJournalpostId()).isEqualTo(metadata.getJournalpostId().orElseThrow());
+        assertThat(journalpostMottakDtoFptilbake.getBehandlingstemaOffisiellKode()).isEqualTo(behandlingTema.getOffisiellKode());
+        assertThat(journalpostMottakDtoFptilbake.getDokumentTypeIdOffisiellKode()).hasValue(uttalelseTilbakekreving.getDokumentTypeId().getKode());
 
         var captor = ArgumentCaptor.forClass(ProsessTaskData.class);
         verify(taskTjeneste, times(1)).lagre(captor.capture());
