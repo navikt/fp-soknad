@@ -115,7 +115,7 @@ public class JettyServer {
 
     public static DataSource dataSource() {
         var config = new HikariConfig();
-        config.setJdbcUrl(ENV.getProperty("NAIS_DATABASE_FPSOKNAD_FPSOKNAD_JDBC_URL"));
+        config.setJdbcUrl(ENV.getProperty("DB_JDBC_URL"));
         config.setConnectionTimeout(TimeUnit.SECONDS.toMillis(2));
         config.setMinimumIdle(1);
         config.setMaximumPoolSize(12);

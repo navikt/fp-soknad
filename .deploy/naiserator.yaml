@@ -54,6 +54,7 @@ spec:
       - type: POSTGRES_17
         databases:
           - name: fpsoknad
+            envVarPrefix: DB
         tier: {{dbTier}}
         diskAutoresize: {{dbDiskAutoresize}}
         highAvailability: {{dbHighAvailability}}
