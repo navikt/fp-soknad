@@ -8,7 +8,6 @@ import jakarta.servlet.annotation.WebListener;
 /**
  * Starter interne applikasjontjenester
  */
-@WebListener
 public class ServiceStarterListener implements ServletContextListener {
 
     @Override
