@@ -49,4 +49,3 @@ updates:
           - "no.nav.*"
         exclude-patterns:
           - "no.nav.folketrygdloven.*"
-          - "no.nav.foreldrepenger.*"
