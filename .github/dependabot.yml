@@ -19,19 +19,29 @@ updates:
     registries:
       - maven-github
     schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+    allow:
+      - dependency-name: "no.nav.foreldrepenger.*"
+    groups:
+      fp-interne-deps:
+        patterns:
+          - "no.nav.foreldrepenger.*"
+  - package-ecosystem: maven
+    directory: "/"
+    registries:
+      - maven-github
+    schedule:
       interval: weekly
     cooldown:
       default-days: 7
     open-pull-requests-limit: 20
     allow:
       - dependency-type: "all"
+    ignore:
+      - dependency-name: "no.nav.foreldrepenger.*"
     groups:
-      prod-deps:
-        dependency-type: "production"
-        exclude-patterns:
-          - "no.nav.*"
-      dev-deps:
-        dependency-type: "development"
+      eksterne-deps:
         exclude-patterns:
           - "no.nav.*"
       interne-deps:
@@ -39,3 +49,4 @@ updates:
           - "no.nav.*"
         exclude-patterns:
           - "no.nav.folketrygdloven.*"
+          - "no.nav.foreldrepenger.*"
