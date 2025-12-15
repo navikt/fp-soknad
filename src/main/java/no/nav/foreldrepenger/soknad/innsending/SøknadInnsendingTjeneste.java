@@ -73,6 +73,9 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
         if (erForsendelseAlleredeMottatt(søknad)) {
             throw new DuplikatInnsendingException("Duplikat forsendelse av søknad mottatt for bruker, avbryter lagring og behandling");
         }
+        if (innholderDuplikateVedlegg(søknad.vedlegg())) {
+            throw new DuplikateVedleggException("Duplikate vedlegg oppdaget i søknad. Kan ikke fortsette.");
+        }
 
         var forsendelseId = UUID.randomUUID();
         var metadata = ForsendelseEntitet.builder()
@@ -219,6 +222,16 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
             .filter(DokumentEntitet::erSøknad)
             .findFirst();
         return eksisterendeSøknad.filter(dokumentEntitet -> Arrays.equals(dokumentEntitet.getByteArrayDokument(), getInnhold(søknad))).isPresent();
+    }
+
+    private static boolean innholderDuplikateVedlegg(List<VedleggDto> vedlegg) {
+        if (vedlegg == null || vedlegg.isEmpty()) {
+            return false;
+        }
+
+        var antallVedlegg = vedlegg.size();
+        var antallUnikeVedlegg = (int) vedlegg.stream().map(VedleggDto::uuid).distinct().count();
+        return antallVedlegg != antallUnikeVedlegg;
     }
 
     private static LocalDateTime forsendelsesTidspunkt(LocalDateTime forsendelsesTidspunkt) {

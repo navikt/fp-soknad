@@ -4,6 +4,7 @@ import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.FELLESP
 import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.FORELDREPENGER_FØR_FØDSEL;
 import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.MØDREKVOTE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -359,5 +360,34 @@ class SøknadInnsendingTjenesteTest {
         assertThat(deseralisertUttalelse).isEqualTo(new UtalelseOmTilbakebetaling(ettersendelse.type(), ettersendelse.brukerTekst()));
 
 
+    }
+
+    @Test
+    void hvis_søknad_innehiolder_duplikate_vedlegg_skal_vi_hive_exception() {
+        // Arrange
+        var familehendelseDato = LocalDateTime.now().minusWeeks(1).toLocalDate();
+        var fnr = new Fødselsnummer("1234567890");
+        var vedlegg1 = new VedleggDto(UUID.randomUUID(), DokumentTypeId.I000141, InnsendingType.LASTET_OPP, null, new Dokumenterer(Dokumenterer.DokumentererType.BARN, null, null));
+        var søknad = (ForeldrepengesøknadDto) new ForeldrepengerBuilder()
+            .medRolle(BrukerRolle.MOR)
+            .medSøkerinfo(new SøkerDto(fnr, new SøkerDto.Navn("Per", null, null), null))
+            .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
+            .medUttaksplan(
+                List.of(
+                    UttakplanPeriodeBuilder.uttak(FORELDREPENGER_FØR_FØDSEL, familehendelseDato.minusWeeks(3), familehendelseDato.minusDays(1)).build(),
+                    UttakplanPeriodeBuilder.uttak(MØDREKVOTE, familehendelseDato, familehendelseDato.plusWeeks(15).minusDays(1)).build(),
+                    UttakplanPeriodeBuilder.uttak(FELLESPERIODE, familehendelseDato.plusWeeks(15), familehendelseDato.plusWeeks(31).minusDays(1)).build()
+                )
+            )
+            .medDekningsgrad(Dekningsgrad.HUNDRE)
+            .medUtenlandsopphold(List.of())
+            .medAnnenForelder(AnnenforelderBuilder.norskMedRettighetNorge(new Fødselsnummer("0987654321")).build())
+            .medVedlegg(List.of(vedlegg1, vedlegg1)) // Duplikat vedlegg
+            .build();
+        when(innloggetBruker.brukerFraKontekst()).thenReturn(fnr.value());
+
+        // Act/Assert
+        assertThatThrownBy(() -> søknadInnsendingTjeneste.lagreSøknadInnsending(søknad))
+            .isInstanceOf(DuplikateVedleggException.class);
     }
 }
