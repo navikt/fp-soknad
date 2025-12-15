@@ -3,6 +3,7 @@ package no.nav.foreldrepenger.soknad.server.error;
 public enum FeilKode {
     IKKE_TILGANG,
     DUPLIKAT_FORSENDELSE,
+    DUPLIKAT_VEDLEGG,
     MELLOMLAGRING,
     MELLOMLAGRING_VEDLEGG,
     MELLOMLAGRING_VEDLEGG_VIRUSSCAN_TIMEOUT,

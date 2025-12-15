@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -46,6 +49,7 @@ import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 
 @ApplicationScoped
 public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
+    private static final Logger SECURE_LOG = LoggerFactory.getLogger("secureLogger");
     private static final ObjectMapper MAPPER = DefaultJsonMapper.getObjectMapper();
     private static final Environment ENV = Environment.current();
 
@@ -70,8 +74,12 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
 
     @Override
     public void lagreSøknadInnsending(SøknadDto søknad) {
+        SECURE_LOG.info("Mottatt søknad av typen {}", søknad);
         if (erForsendelseAlleredeMottatt(søknad)) {
             throw new DuplikatInnsendingException("Duplikat forsendelse av søknad mottatt for bruker, avbryter lagring og behandling");
+        }
+        if (innholderDuplikateVedlegg(søknad)) {
+            throw new DuplikateVedleggException("Noe er feil med innsendingInnsendingen inneholder duplikate vedlegg.");
         }
 
         var forsendelseId = UUID.randomUUID();
@@ -219,6 +227,17 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
             .filter(DokumentEntitet::erSøknad)
             .findFirst();
         return eksisterendeSøknad.filter(dokumentEntitet -> Arrays.equals(dokumentEntitet.getByteArrayDokument(), getInnhold(søknad))).isPresent();
+    }
+
+    private static boolean innholderDuplikateVedlegg(SøknadDto søknad) {
+        var vedlegg = søknad.vedlegg();
+        if (vedlegg == null || vedlegg.isEmpty()) {
+            return false;
+        }
+
+        var antallVedlegg = vedlegg.size();
+        var antallUnikeVedlegg = (int) vedlegg.stream().map(VedleggDto::uuid).distinct().count();
+        return antallVedlegg != antallUnikeVedlegg;
     }
 
     private static LocalDateTime forsendelsesTidspunkt(LocalDateTime forsendelsesTidspunkt) {
