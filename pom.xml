@@ -20,7 +20,7 @@
 
         <felles.version>7.6.11</felles.version>
         <prosesstask.version>5.2.1</prosesstask.version>
-        <fp-kontrakter.version>9.4.17</fp-kontrakter.version>
+        <fp-kontrakter.version>9.4.20</fp-kontrakter.version>
 
         <openapi-spec-utils.version>2.0.6</openapi-spec-utils.version>
         <tika.version>3.2.3</tika.version> <!-- Bedre måter å gjøre det på -->
