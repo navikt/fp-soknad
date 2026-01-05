@@ -6,7 +6,7 @@
     <parent>
         <groupId>no.nav.foreldrepenger.felles</groupId>
         <artifactId>fp-parent-app</artifactId>
-        <version>5.1.1</version>
+        <version>5.2.0</version>
     </parent>
 
     <groupId>no.nav.foreldrepenger.soknad</groupId>
@@ -20,13 +20,13 @@
 
         <felles.version>7.6.11</felles.version>
         <prosesstask.version>5.2.1</prosesstask.version>
-        <fp-kontrakter.version>9.4.17</fp-kontrakter.version>
+        <fp-kontrakter.version>9.4.21</fp-kontrakter.version>
 
         <openapi-spec-utils.version>2.0.6</openapi-spec-utils.version>
         <tika.version>3.2.3</tika.version> <!-- Bedre måter å gjøre det på -->
         <nv.version>1.29</nv.version>
         <pdfbox.version>3.0.6</pdfbox.version>
-        <gcp.storage.version>2.60.0</gcp.storage.version>
+        <gcp.storage.version>2.61.0</gcp.storage.version>
     </properties>
 
     <dependencyManagement>
@@ -292,18 +292,6 @@
     <build>
         <finalName>app</finalName>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <properties>
-                        <configurationParameters>
-                            junit.jupiter.execution.parallel.enabled = true
-                            junit.jupiter.execution.parallel.mode.default = concurrent
-                        </configurationParameters>
-                    </properties>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
