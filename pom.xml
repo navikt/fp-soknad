@@ -108,10 +108,6 @@
         </dependency>
         <dependency>
             <groupId>no.nav.foreldrepenger.kontrakter</groupId>
-            <artifactId>fp-kontrakt-felles</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>no.nav.foreldrepenger.kontrakter</groupId>
             <artifactId>fp-soknad</artifactId>
         </dependency>
         <dependency>
