@@ -7,12 +7,12 @@ import java.util.stream.Stream;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.pdl.Personoppslag;
+import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.DokumentTypeId;
 import no.nav.vedtak.felles.integrasjon.dokarkiv.DokArkiv;
 import no.nav.vedtak.felles.integrasjon.dokarkiv.dto.AvsenderMottaker;
 import no.nav.vedtak.felles.integrasjon.dokarkiv.dto.Bruker;

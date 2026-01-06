@@ -6,11 +6,6 @@ import java.time.LocalDateTime;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import no.nav.foreldrepenger.kontrakter.felles.typer.AktørId;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.EndringssøknadForeldrepengerDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.EngangsstønadDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.ForeldrepengesøknadDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.SvangerskapspengesøknadDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.SøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
@@ -20,6 +15,11 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.utils.SøknadJsonMapper;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V1SvangerskapspengerDomainMapper;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3EngangsstønadDomainMapper;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3ForeldrepengerDomainMapper;
+import no.nav.foreldrepenger.soknad.kontrakt.EndringssøknadForeldrepengerDto;
+import no.nav.foreldrepenger.soknad.kontrakt.EngangsstønadDto;
+import no.nav.foreldrepenger.soknad.kontrakt.ForeldrepengesøknadDto;
+import no.nav.foreldrepenger.soknad.kontrakt.SvangerskapspengesøknadDto;
+import no.nav.foreldrepenger.soknad.kontrakt.SøknadDto;
 
 @ApplicationScoped
 public class StrukturertDokumentMapperXML {

@@ -26,28 +26,28 @@ import no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType;
 import no.nav.foreldrepenger.kontrakter.felles.kodeverk.MorsAktivitet;
 import no.nav.foreldrepenger.kontrakter.felles.kodeverk.Overføringsårsak;
 import no.nav.foreldrepenger.kontrakter.felles.typer.AktørId;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.EndringssøknadForeldrepengerDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.ForeldrepengesøknadDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.AdopsjonDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.BarnDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.FødselDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.OmsorgsovertakelseDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.barn.TerminDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.annenpart.AnnenForelderDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.annenpart.NorskForelderDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.annenpart.UtenlandskForelderDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.OppholdsPeriodeDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.Oppholdsårsak;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.OverføringsPeriodeDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.UtsettelsesPeriodeDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.UtsettelsesÅrsak;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.UttaksPeriodeDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.UttaksplanDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.uttaksplan.Uttaksplanperiode;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.VedleggDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.ÅpenPeriodeDto;
 import no.nav.foreldrepenger.soknad.innsending.fordel.pdl.Personoppslag;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.jaxb.FPV3JAXBUtil;
+import no.nav.foreldrepenger.soknad.kontrakt.EndringssøknadForeldrepengerDto;
+import no.nav.foreldrepenger.soknad.kontrakt.ForeldrepengesøknadDto;
+import no.nav.foreldrepenger.soknad.kontrakt.barn.AdopsjonDto;
+import no.nav.foreldrepenger.soknad.kontrakt.barn.BarnDto;
+import no.nav.foreldrepenger.soknad.kontrakt.barn.FødselDto;
+import no.nav.foreldrepenger.soknad.kontrakt.barn.OmsorgsovertakelseDto;
+import no.nav.foreldrepenger.soknad.kontrakt.barn.TerminDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.annenpart.AnnenForelderDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.annenpart.NorskForelderDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.annenpart.UtenlandskForelderDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.OppholdsPeriodeDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.Oppholdsårsak;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.OverføringsPeriodeDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UtsettelsesPeriodeDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UtsettelsesÅrsak;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttaksPeriodeDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttaksplanDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.Uttaksplanperiode;
+import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.VedleggDto;
+import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.ÅpenPeriodeDto;
 import no.nav.vedtak.felles.xml.soeknad.endringssoeknad.v3.Endringssoeknad;
 import no.nav.vedtak.felles.xml.soeknad.felles.v3.Adopsjon;
 import no.nav.vedtak.felles.xml.soeknad.felles.v3.AnnenForelder;
@@ -166,19 +166,19 @@ public class V3ForeldrepengerDomainMapper  {
         return omYtelse;
     }
 
-    private static Dekningsgrad dekningsgradFra(no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.Dekningsgrad dekningsgrad) {
+    private static Dekningsgrad dekningsgradFra(no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.Dekningsgrad dekningsgrad) {
         return Optional.ofNullable(dekningsgrad)
                 .map(V3ForeldrepengerDomainMapper::tilDekningsgrad)
                 .orElse(null);
     }
 
-    private static Dekningsgrad tilDekningsgrad(no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.Dekningsgrad d) {
+    private static Dekningsgrad tilDekningsgrad(no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.Dekningsgrad d) {
         var dekningsgrad = new Dekningsgrad();
         dekningsgrad.setDekningsgrad(tilDekningsgrader(d));
         return dekningsgrad;
     }
 
-    private static Dekningsgrader tilDekningsgrader(no.nav.foreldrepenger.kontrakter.fpsoknad.foreldrepenger.Dekningsgrad d) {
+    private static Dekningsgrader tilDekningsgrader(no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.Dekningsgrad d) {
         var dekningsgrader = new Dekningsgrader();
         dekningsgrader.setKode(d.verdi());
         return dekningsgrader;

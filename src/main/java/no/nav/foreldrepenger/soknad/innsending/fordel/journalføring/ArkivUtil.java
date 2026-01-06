@@ -9,8 +9,8 @@ import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.Behandling
 
 import java.util.Map;
 
-import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
+import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.DokumentTypeId;
 
 
 public final class ArkivUtil {

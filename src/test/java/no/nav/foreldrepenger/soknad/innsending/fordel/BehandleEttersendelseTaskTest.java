@@ -19,7 +19,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import jakarta.persistence.EntityManager;
 import no.nav.foreldrepenger.kontrakter.fordel.FagsakInfomasjonDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.database.JpaExtension;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
@@ -32,6 +31,7 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.ArkivTjenes
 import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.OpprettetJournalpost;
 import no.nav.foreldrepenger.soknad.innsending.fordel.pdf.DokgenRestKlient;
 import no.nav.foreldrepenger.soknad.innsending.fordel.pdf.PdfTjeneste;
+import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.DokumentTypeId;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 
