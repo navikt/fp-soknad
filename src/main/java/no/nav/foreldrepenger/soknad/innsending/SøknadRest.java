@@ -15,11 +15,11 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.EndringssøknadForeldrepengerDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.EngangsstønadDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.ForeldrepengesøknadDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.SvangerskapspengesøknadDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.ettersendelse.EttersendelseDto;
+import no.nav.foreldrepenger.soknad.kontrakt.EndringssøknadForeldrepengerDto;
+import no.nav.foreldrepenger.soknad.kontrakt.EngangsstønadDto;
+import no.nav.foreldrepenger.soknad.kontrakt.ForeldrepengesøknadDto;
+import no.nav.foreldrepenger.soknad.kontrakt.SvangerskapspengesøknadDto;
+import no.nav.foreldrepenger.soknad.kontrakt.ettersendelse.EttersendelseDto;
 import no.nav.foreldrepenger.soknad.utils.InnloggetBruker;
 
 @Path("/soknad")

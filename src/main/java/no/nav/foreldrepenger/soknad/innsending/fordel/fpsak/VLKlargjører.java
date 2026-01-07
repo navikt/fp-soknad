@@ -6,9 +6,9 @@ import java.util.UUID;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import no.nav.foreldrepenger.kontrakter.fordel.JournalpostMottakDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
 import no.nav.foreldrepenger.soknad.innsending.fordel.fptilbake.FtilbakeTjeneste;
+import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.DokumentTypeId;
 
 @ApplicationScoped
 public class VLKlargjører {

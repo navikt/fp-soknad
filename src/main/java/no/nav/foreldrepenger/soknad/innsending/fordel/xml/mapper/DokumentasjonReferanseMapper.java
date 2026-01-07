@@ -3,11 +3,11 @@ package no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper;
 import java.util.List;
 import java.util.UUID;
 
-import no.nav.foreldrepenger.kontrakter.fpsoknad.svangerskapspenger.ArbeidsforholdDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.Dokumenterer;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.InnsendingType;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.VedleggDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.vedlegg.ÅpenPeriodeDto;
+import no.nav.foreldrepenger.soknad.kontrakt.svangerskapspenger.ArbeidsforholdDto;
+import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.Dokumenterer;
+import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.InnsendingType;
+import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.VedleggDto;
+import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.ÅpenPeriodeDto;
 
 
 public class DokumentasjonReferanseMapper {

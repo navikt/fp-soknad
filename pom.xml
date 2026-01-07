@@ -21,6 +21,7 @@
         <felles.version>7.6.12</felles.version>
         <prosesstask.version>5.2.2</prosesstask.version>
         <fp-kontrakter.version>9.4.21</fp-kontrakter.version>
+        <soknad-kontrakt.version>2.3.5-SNAPSHOT</soknad-kontrakt.version> <!-- TODO: Bytt versjon ved release av kontrakt -->
 
         <openapi-spec-utils.version>2.0.6</openapi-spec-utils.version>
         <tika.version>3.2.3</tika.version> <!-- Bedre måter å gjøre det på -->
@@ -108,7 +109,12 @@
         </dependency>
         <dependency>
             <groupId>no.nav.foreldrepenger.kontrakter</groupId>
-            <artifactId>fp-soknad</artifactId>
+            <artifactId>fp-kontrakt-felles</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>no.nav.foreldrepenger.soknad</groupId>
+            <artifactId>kontrakter</artifactId>
+            <version>${soknad-kontrakt.version}</version>
         </dependency>
         <dependency>
             <groupId>no.nav.foreldrepenger.felles.integrasjon</groupId>
@@ -280,9 +286,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>no.nav.foreldrepenger.kontrakter</groupId>
-            <artifactId>fp-soknad</artifactId>
-            <version>${fp-kontrakter.version}</version>
+            <groupId>no.nav.foreldrepenger.soknad</groupId>
+            <artifactId>kontrakter</artifactId>
+            <version>${soknad-kontrakt.version}</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>

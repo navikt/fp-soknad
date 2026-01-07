@@ -4,13 +4,13 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import no.nav.foreldrepenger.kontrakter.fpsoknad.EndringssøknadForeldrepengerDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.EngangsstønadDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.ForeldrepengesøknadDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.SvangerskapspengesøknadDto;
-import no.nav.foreldrepenger.kontrakter.fpsoknad.SøknadDto;
 import no.nav.foreldrepenger.soknad.innsending.UtalelseOmTilbakebetaling;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
+import no.nav.foreldrepenger.soknad.kontrakt.EndringssøknadForeldrepengerDto;
+import no.nav.foreldrepenger.soknad.kontrakt.EngangsstønadDto;
+import no.nav.foreldrepenger.soknad.kontrakt.ForeldrepengesøknadDto;
+import no.nav.foreldrepenger.soknad.kontrakt.SvangerskapspengesøknadDto;
+import no.nav.foreldrepenger.soknad.kontrakt.SøknadDto;
 import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 
