@@ -11,6 +11,7 @@ on:
       - '.java-version'
       - 'LICENCE'
       - 'CODEOWNERS'
+      - 'kontrakter/**'
 
 jobs:
   build-app:
