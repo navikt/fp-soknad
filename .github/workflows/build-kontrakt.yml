@@ -16,7 +16,7 @@ jobs:
       packages: write
       id-token: write
       pull-requests: read
-    uses: navikt/fp-gha-workflows/.github/workflows/build-feature.yml@working-dir
+    uses: navikt/fp-gha-workflows/.github/workflows/build-feature.yml@main
     with:
       java-version: '25'
       working-directory: ./kontrakter # Sett working directory til kontrakter-mappen
