@@ -23,7 +23,7 @@
         <fp-kontrakter.version>9.4.21</fp-kontrakter.version>
         <soknad-kontrakt.version>1.0.0</soknad-kontrakt.version>
 
-        <openapi-spec-utils.version>2.0.6</openapi-spec-utils.version>
+        <openapi-spec-utils.version>2.1.0</openapi-spec-utils.version>
         <tika.version>3.2.3</tika.version> <!-- Bedre måter å gjøre det på -->
         <nv.version>1.29</nv.version>
         <pdfbox.version>3.0.6</pdfbox.version>
