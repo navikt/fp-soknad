@@ -21,7 +21,7 @@
         <felles.version>7.6.12</felles.version>
         <prosesstask.version>5.2.2</prosesstask.version>
         <fp-kontrakter.version>9.4.21</fp-kontrakter.version>
-        <soknad-kontrakt.version>1.0.0</soknad-kontrakt.version>
+        <soknad-kontrakt.version>1.0.2</soknad-kontrakt.version>
 
         <openapi-spec-utils.version>2.0.6</openapi-spec-utils.version>
         <tika.version>3.2.3</tika.version> <!-- Bedre måter å gjøre det på -->

@@ -269,7 +269,6 @@ public class V3ForeldrepengerDomainMapper  {
         gradering.setFom(g.fom());
         gradering.setTom(g.tom());
         gradering.setType(uttaksperiodeTypeFra(g.konto()));
-        gradering.setOenskerSamtidigUttak(g.ønskerSamtidigUttak());
         gradering.setMorsAktivitetIPerioden(morsAktivitetFra(g.morsAktivitetIPerioden()));
         gradering.setOenskerFlerbarnsdager(g.ønskerFlerbarnsdager());
         gradering.setArbeidtidProsent(graderingDTO.stillingsprosent());
@@ -279,11 +278,7 @@ public class V3ForeldrepengerDomainMapper  {
         Optional.ofNullable(graderingDTO.erFrilanser()).ifPresent(gradering::setErFrilanser);
         Optional.ofNullable(graderingDTO.erSelvstendig()).ifPresent(gradering::setErSelvstNæringsdrivende);
         gradering.getVedlegg().addAll(lukketPeriodeVedleggFra(vedleggreferanser));
-
-        if (Boolean.TRUE.equals(g.ønskerSamtidigUttak())) {
-            gradering.setSamtidigUttakProsent(g.samtidigUttakProsent());
-        }
-
+        setSamtidigUttaksprosent(gradering, g.ønskerSamtidigUttak(), g.samtidigUttakProsent());
         return gradering;
     }
 
@@ -291,13 +286,19 @@ public class V3ForeldrepengerDomainMapper  {
         var uttaksperiode = new Uttaksperiode();
         uttaksperiode.setFom(u.fom());
         uttaksperiode.setTom(u.tom());
-        uttaksperiode.setSamtidigUttakProsent(u.samtidigUttakProsent());
         uttaksperiode.setOenskerFlerbarnsdager(u.ønskerFlerbarnsdager());
         uttaksperiode.setType(uttaksperiodeTypeFra(u.konto()));
-        uttaksperiode.setOenskerSamtidigUttak(u.ønskerSamtidigUttak());
+        setSamtidigUttaksprosent(uttaksperiode, u.ønskerSamtidigUttak(), u.samtidigUttakProsent());
         uttaksperiode.setMorsAktivitetIPerioden(morsAktivitetFra(u.morsAktivitetIPerioden()));
         uttaksperiode.getVedlegg().addAll(lukketPeriodeVedleggFra(vedleggreferanser));
         return uttaksperiode;
+    }
+
+    private static void setSamtidigUttaksprosent(Uttaksperiode uttaksperiode, Boolean ønskerSamtidigUttak, Double samtidigUttakProsent) {
+        uttaksperiode.setOenskerSamtidigUttak(ønskerSamtidigUttak);
+        if (Boolean.TRUE.equals(ønskerSamtidigUttak)) {
+            uttaksperiode.setSamtidigUttakProsent(samtidigUttakProsent);
+        }
     }
 
     private static Arbeidsgiver arbeidsgiverFra(List<String> arbeidsgiver) {
