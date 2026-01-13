@@ -2,7 +2,6 @@
     <logger name="no.nav.foreldrepenger" level="INFO" />
     <logger name="no.nav.vedtak.felles.integrasjon.rest" level="INFO" />
     <logger name="secureLogger" level="INFO" additivity="false">
-        <appender-ref ref="secureLogger"/>
         <appender-ref ref="teamLogger"/>
     </logger>
 </included>
