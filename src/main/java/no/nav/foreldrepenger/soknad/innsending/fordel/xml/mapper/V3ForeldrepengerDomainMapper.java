@@ -19,6 +19,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.neovisionaries.i18n.CountryCode;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.xml.bind.JAXBElement;
@@ -444,9 +446,15 @@ public class V3ForeldrepengerDomainMapper  {
         return annenForelderUtenNorskIdent;
     }
 
-    private AnnenForelderMedNorskIdent norskForelder(NorskForelderDto norskForelder) {
+    private AnnenForelder norskForelder(NorskForelderDto norskForelder) {
+        var aktørId = personoppslag.finnAktørId(norskForelder.fnr());
+        if (aktørId.isEmpty()) {
+            //Oppgitt fnr som ikke er i bruk
+            return utenlandskForelder(new UtenlandskForelderDto(norskForelder.fnr(), norskForelder.fornavn(), norskForelder.etternavn(),
+                CountryCode.NO, norskForelder.rettigheter()));
+        }
         var annenForelderMedNorskIdent = new AnnenForelderMedNorskIdent();
-        annenForelderMedNorskIdent.setAktoerId(personoppslag.aktørId(norskForelder.fnr()).value());
+        annenForelderMedNorskIdent.setAktoerId(aktørId.get().value());
         return annenForelderMedNorskIdent;
     }
 
