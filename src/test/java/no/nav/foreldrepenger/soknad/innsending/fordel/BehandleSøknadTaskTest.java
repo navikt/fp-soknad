@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -125,7 +126,7 @@ class BehandleSøknadTaskTest {
         var saksnummer = "123456";
         when(fpsakTjeneste.vurderFagsystem(any())).thenReturn(new VurderFagsystemResultat(VurderFagsystemResultat.SendTil.FPSAK, saksnummer));
         when(dokgenRestKlient.genererPdf(any(), any())).thenReturn(new byte[]{1, 2, 3});
-        when(personoppslag.aktørId((Fødselsnummer) any())).thenReturn(new AktørId("123"));
+        when(personoppslag.finnAktørId(any())).thenReturn(Optional.of(new AktørId("123")));
         when(personoppslag.aktørId((String) any())).thenReturn(new AktørId("123"));
         when(arkivtjeneste.forsøkEndeligJournalføring(any(), any(), any(), any(), any(), any())).thenReturn(new OpprettetJournalpost("123", true));
 
@@ -176,7 +177,7 @@ class BehandleSøknadTaskTest {
         lagreForsendelseOgSøknad(endringssøknad, forsendelseId);
 
         when(dokgenRestKlient.genererPdf(any(), any())).thenReturn(new byte[]{1, 2, 3});
-        when(personoppslag.aktørId((Fødselsnummer) any())).thenReturn(new AktørId("123"));
+        when(personoppslag.finnAktørId(any())).thenReturn(Optional.of(new AktørId("123")));
         when(personoppslag.aktørId((String) any())).thenReturn(new AktørId("123"));
         when(arkivtjeneste.forsøkEndeligJournalføring(any(), any(), any(), any(), any(), any())).thenReturn(new OpprettetJournalpost("123", true));
 

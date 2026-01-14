@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import no.nav.foreldrepenger.kontrakter.felles.typer.Fødselsnummer;
 import no.nav.foreldrepenger.kontrakter.fordel.VurderFagsystemDto;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.BehandlingTema;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
@@ -104,7 +105,8 @@ public class DestinasjonsRuter {
         }
 
         hentFørsteUttaksdagFP(søknadDto).ifPresent(dto::setStartDatoForeldrepengerInntektsmelding); // Rar navn på feltet... men gjelder søknad også
-        hentAnnenForelderId(søknadDto).ifPresent(annenPart -> dto.setAnnenPart(personoppslag.aktørId(annenPart).value()));
+        hentAnnenForelderId(søknadDto).flatMap(annenPart -> personoppslag.finnAktørId(new Fødselsnummer(annenPart)))
+                .ifPresent(annenPart -> dto.setAnnenPart(annenPart.value()));
         return dto;
     }
 
@@ -112,8 +114,7 @@ public class DestinasjonsRuter {
         return switch (søknadDto) {
             case ForeldrepengesøknadDto fp -> norskAnnenForelderIdent(fp.annenForelder());
             case EndringssøknadForeldrepengerDto fp -> norskAnnenForelderIdent(fp.annenForelder());
-            case EngangsstønadDto _ -> Optional.empty();
-            case SvangerskapspengesøknadDto _ -> Optional.empty();
+            case EngangsstønadDto _, SvangerskapspengesøknadDto _ -> Optional.empty();
         };
     }
 

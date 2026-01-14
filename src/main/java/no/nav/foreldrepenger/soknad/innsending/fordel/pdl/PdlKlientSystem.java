@@ -37,4 +37,19 @@ public class PdlKlientSystem extends AbstractPersonKlient implements Personoppsl
             return aktørId;
         });
     }
+
+    @Override
+    public Optional<AktørId> finnAktørId(Fødselsnummer fnr) {
+        var cached = FNR_AKTØR.get(fnr.value());
+        if (cached != null) {
+            return Optional.of(cached);
+        }
+        var result = hentAktørIdForPersonIdent(fnr.value(), true);
+        if (result.isPresent()) {
+            var aktørId = new AktørId(result.get());
+            FNR_AKTØR.put(fnr.value(), aktørId);
+            return Optional.of(aktørId);
+        }
+        return Optional.empty();
+    }
 }
