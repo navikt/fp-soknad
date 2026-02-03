@@ -18,7 +18,7 @@
 
     <properties>
         <nv.version>1.29</nv.version>
-        <fp-kontrakter.version>9.4.23</fp-kontrakter.version>
+        <fp-kontrakter.version>9.4.26</fp-kontrakter.version>
         <felles.version>7.6.14</felles.version>
     </properties>
 
