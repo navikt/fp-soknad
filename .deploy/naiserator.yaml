@@ -51,14 +51,14 @@ spec:
         lifecycleCondition:
           daysSinceCustomTime: 7
     sqlInstances:
-      - type: POSTGRES_17
+      - type: {{db.dbVersion}}
         databases:
           - name: fpsoknad
             envVarPrefix: DB
-        tier: {{dbTier}}
-        diskAutoresize: {{dbDiskAutoresize}}
-        highAvailability: {{dbHighAvailability}}
-        pointInTimeRecovery: {{dbPointInTimeRecovery}}
+        tier: {{db.dbTier}}
+        diskAutoresize: {{db.dbDiskAutoresize}}
+        highAvailability: {{db.dbHighAvailability}}
+        pointInTimeRecovery: {{db.dbPointInTimeRecovery}}
         collation: nb_NO.UTF8
   tokenx:
     enabled: true

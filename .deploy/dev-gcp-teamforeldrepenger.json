@@ -2,10 +2,6 @@
     "namespace": "teamforeldrepenger",
     "environment": "dev",
     "kafkaPool": "nav-dev",
-    "dbTier": "db-f1-micro",
-    "dbDiskAutoresize": "false",
-    "dbHighAvailability": "false",
-    "dbPointInTimeRecovery": "false",
     "azure-token-generator": true,
     "tmpbucket": "fp-soknad-mellomlagring-dev",
     "dokarkivUrl": "dokarkiv-q2.dev-fss-pub.nais.io",
@@ -26,6 +22,13 @@
             "kommentar": "drift"
         }
     ],
+    "db": {
+        "dbVersion": "POSTGRES_18",
+        "dbTier": "db-f1-micro",
+        "dbDiskAutoresize": "false",
+        "dbHighAvailability": "false",
+        "dbPointInTimeRecovery": "false"
+    },
     "limits": {
         "cpu": "2",
         "mem": "2048Mi"
