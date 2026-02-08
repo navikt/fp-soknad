@@ -228,7 +228,7 @@ class BehandleSøknadTaskTest {
         dokumentRepository.lagre(metadata);
 
         var søknadDokument = DokumentEntitet.builder()
-            .setDokumentInnhold(DefaultJsonMapper.getObjectMapper().writeValueAsBytes(søknad), ArkivFilType.JSON)
+            .setDokumentInnhold(DefaultJsonMapper.getJsonMapper().writeValueAsBytes(søknad), ArkivFilType.JSON)
             .setForsendelseId(forsendelseId)
             .setDokumentTypeId(DokumentTypeId.I000005)
             .build();

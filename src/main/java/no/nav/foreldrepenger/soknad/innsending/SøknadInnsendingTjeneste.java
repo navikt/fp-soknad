@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -46,7 +46,7 @@ import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 
 @ApplicationScoped
 public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
-    private static final ObjectMapper MAPPER = DefaultJsonMapper.getObjectMapper();
+    private static final JsonMapper MAPPER = DefaultJsonMapper.getJsonMapper();
     private static final Environment ENV = Environment.current();
 
     private MellomlagringTjeneste mellomlagringTjeneste;
