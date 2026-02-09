@@ -7,7 +7,7 @@
     <parent>
         <groupId>no.nav.foreldrepenger.felles</groupId>
         <artifactId>fp-parent-lib</artifactId>
-        <version>5.2.1</version>
+        <version>5.2.3</version>
     </parent>
 
     <groupId>no.nav.foreldrepenger.soknad</groupId>
@@ -19,7 +19,7 @@
     <properties>
         <nv.version>1.29</nv.version>
         <fp-kontrakter.version>9.4.26</fp-kontrakter.version>
-        <felles.version>7.6.14</felles.version>
+        <felles.version>7.6.15</felles.version>
     </properties>
 
     <dependencies>

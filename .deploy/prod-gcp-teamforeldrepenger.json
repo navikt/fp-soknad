@@ -2,10 +2,6 @@
     "namespace": "teamforeldrepenger",
     "environment": "prod",
     "kafkaPool": "nav-prod",
-    "dbTier": "db-custom-1-3840",
-    "dbDiskAutoresize": "true",
-    "dbHighAvailability": "true",
-    "dbPointInTimeRecovery": "true",
     "tmpbucket": "fp-soknad-mellomlagring-prod",
     "dokarkivUrl": "dokarkiv.prod-fss-pub.nais.io",
     "minReplicas": "2",
@@ -24,6 +20,13 @@
             "kommentar": "drift"
         }
     ],
+    "db": {
+        "dbVersion": "POSTGRES_17",
+        "dbTier": "db-custom-1-3840",
+        "dbDiskAutoresize": "true",
+        "dbHighAvailability": "true",
+        "dbPointInTimeRecovery": "true"
+    },
     "limits": {
         "cpu": "2",
         "mem": "2048Mi"
