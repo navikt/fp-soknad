@@ -2,7 +2,7 @@ package no.nav.foreldrepenger.soknad.innsending.fordel.utils;
 
 import java.io.IOException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import no.nav.foreldrepenger.soknad.innsending.UtalelseOmTilbakebetaling;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
@@ -17,7 +17,7 @@ import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 
 public class SøknadJsonMapper {
 
-    private static final ObjectMapper MAPPER = DefaultJsonMapper.getObjectMapper();
+    private static final JsonMapper MAPPER = DefaultJsonMapper.getJsonMapper();
 
     private SøknadJsonMapper() {
         // static

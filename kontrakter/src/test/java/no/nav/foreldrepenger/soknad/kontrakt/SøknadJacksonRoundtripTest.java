@@ -13,7 +13,7 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.neovisionaries.i18n.CountryCode;
 
 import no.nav.foreldrepenger.kontrakter.felles.typer.Fødselsnummer;
@@ -39,7 +39,7 @@ import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 
 public class SøknadJacksonRoundtripTest {
 
-    private static final ObjectMapper MAPPER = DefaultJsonMapper.getObjectMapper();
+    private static final JsonMapper MAPPER = DefaultJsonMapper.getJsonMapper();
 
     @Test
     void engangsstønad_utenlandsopphold_jackson_roundtrip_test() {
