@@ -20,7 +20,7 @@
 
         <felles.version>7.6.15</felles.version>
         <prosesstask.version>5.2.3</prosesstask.version>
-        <fp-kontrakter.version>9.4.26</fp-kontrakter.version>
+        <fp-kontrakter.version>9.4.28</fp-kontrakter.version>
         <soknad-kontrakt.version>1.0.2</soknad-kontrakt.version>
 
         <openapi-spec-utils.version>2.1.0</openapi-spec-utils.version>
