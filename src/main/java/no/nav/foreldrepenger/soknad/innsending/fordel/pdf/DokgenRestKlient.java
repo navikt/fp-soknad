@@ -1,11 +1,7 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.pdf;
 
-import java.time.LocalDateTime;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.UriBuilder;
@@ -67,22 +63,12 @@ public class DokgenRestKlient {
     }
 
     public byte[] genererUttalelseOmTilbakekrevingPDF(ForsendelseEntitet metadata, UtalelseOmTilbakebetaling svar) {
-        var body = new UttalelseDtoDokgen(
-            metadata.getForsendelseMottatt(),
-            metadata.getSaksnummer().orElseThrow(),
-            metadata.getBrukersFnr(),
-            svar.type().name().toLowerCase(),
-            svar.brukertekst().tekst()
-        );
-        var endpoint = UriBuilder.fromUri(restConfig.endpoint()).path("/template/selvbetjening-tilsvar-tilbakebetalingvarsel/template_nb/create-pdf-variation").build();
+        var body = new DokgenUttalelseDto(metadata.getForsendelseMottatt(), metadata.getSaksnummer().orElseThrow(), metadata.getBrukersFnr(),
+            svar.type().name().toLowerCase(), svar.brukertekst().tekst());
+        var endpoint = UriBuilder.fromUri(restConfig.endpoint())
+            .path("/template/selvbetjening-tilsvar-tilbakebetalingvarsel/template_nb/create-pdf-variation")
+            .build();
         var request = RestRequest.newPOSTJson(body, endpoint, restConfig);
         return restClient.sendReturnByteArray(request);
     }
-
-    record UttalelseDtoDokgen(LocalDateTime innsendtDato, String saksnummer, String fnr, String ytelse, String tilsvar) {
-    }
-
-    record DokgenSøknadDto(LocalDateTime mottattdato,  @JsonUnwrapped SøknadDto søknad) {
-    }
-
 }

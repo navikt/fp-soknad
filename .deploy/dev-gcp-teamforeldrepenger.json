@@ -1,5 +1,4 @@
 {
-    "namespace": "teamforeldrepenger",
     "environment": "dev",
     "kafkaPool": "nav-dev",
     "azure-token-generator": true,
