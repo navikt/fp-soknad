@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import no.nav.foreldrepenger.soknad.innsending.fordel.pdf.DokgenRestKlient;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,8 +47,8 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.fpsak.FpsakTjeneste;
 import no.nav.foreldrepenger.soknad.innsending.fordel.fpsak.VurderFagsystemResultat;
 import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.ArkivTjeneste;
 import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.OpprettetJournalpost;
-import no.nav.foreldrepenger.soknad.innsending.fordel.pdf.DokgenRestKlient;
 import no.nav.foreldrepenger.soknad.innsending.fordel.pdf.PdfTjeneste;
+import no.nav.foreldrepenger.soknad.innsending.fordel.pdf.v1.NyFpDokgenRestKlient;
 import no.nav.foreldrepenger.soknad.innsending.fordel.pdl.Personoppslag;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.StrukturertDokumentMapperXML;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V1SvangerskapspengerDomainMapper;
@@ -83,6 +85,8 @@ class BehandleSøknadTaskTest {
     @Mock
     private Personoppslag personoppslag;
     @Mock
+    private NyFpDokgenRestKlient nyDokgenRestKlient;
+    @Mock
     private DokgenRestKlient dokgenRestKlient;
     @Mock
     private FpsakTjeneste fpsakTjeneste;
@@ -93,8 +97,9 @@ class BehandleSøknadTaskTest {
     @BeforeEach
     void setUp(EntityManager entityManager) {
         dokumentRepository = new DokumentRepository(entityManager);
-        var xmlMapper = new StrukturertDokumentMapperXML(new V3ForeldrepengerDomainMapper(personoppslag), new V1SvangerskapspengerDomainMapper(), new V3EngangsstønadDomainMapper(), personoppslag, dokumentRepository);
-        var pdfTjeneste = new PdfTjeneste(dokgenRestKlient, dokumentRepository);
+        var xmlMapper = new StrukturertDokumentMapperXML(new V3ForeldrepengerDomainMapper(personoppslag), new V1SvangerskapspengerDomainMapper(),
+            new V3EngangsstønadDomainMapper(), personoppslag, dokumentRepository);
+        var pdfTjeneste = new PdfTjeneste(nyDokgenRestKlient, dokgenRestKlient, dokumentRepository);
         var destinasjonsRuter = new DestinasjonsRuter(fpsakTjeneste, personoppslag);
         task = new BehandleSøknadTask(dokumentRepository, destinasjonsRuter, arkivtjeneste, taskTjeneste, xmlMapper, pdfTjeneste);
     }
@@ -103,17 +108,14 @@ class BehandleSøknadTaskTest {
     void innsending_av_foreldrepenger_destinasjon_fpsak_med_saksnummer() throws JsonProcessingException {
         // Arrange
         var familehendelseDato = LocalDateTime.now().minusWeeks(1).toLocalDate();
-        var søknad = (ForeldrepengesøknadDto) new ForeldrepengerBuilder()
-            .medRolle(BrukerRolle.MOR)
+        var søknad = (ForeldrepengesøknadDto) new ForeldrepengerBuilder().medRolle(BrukerRolle.MOR)
             .medSøkerinfo(new SøkerDto(new Fødselsnummer("1234567890"), new SøkerDto.Navn("Per", null, "etternavn"), null))
             .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
-            .medUttaksplan(
-                List.of(
-                    UttakplanPeriodeBuilder.uttak(FORELDREPENGER_FØR_FØDSEL, familehendelseDato.minusWeeks(3), familehendelseDato.minusDays(1)).build(),
-                    UttakplanPeriodeBuilder.uttak(MØDREKVOTE, familehendelseDato, familehendelseDato.plusWeeks(15).minusDays(1)).build(),
-                    UttakplanPeriodeBuilder.uttak(FELLESPERIODE, familehendelseDato.plusWeeks(15), familehendelseDato.plusWeeks(31).minusDays(1)).build()
-                )
-            )
+            .medUttaksplan(List.of(
+                UttakplanPeriodeBuilder.uttak(FORELDREPENGER_FØR_FØDSEL, familehendelseDato.minusWeeks(3), familehendelseDato.minusDays(1)).build(),
+                UttakplanPeriodeBuilder.uttak(MØDREKVOTE, familehendelseDato, familehendelseDato.plusWeeks(15).minusDays(1)).build(),
+                UttakplanPeriodeBuilder.uttak(FELLESPERIODE, familehendelseDato.plusWeeks(15), familehendelseDato.plusWeeks(31).minusDays(1))
+                    .build()))
             .medDekningsgrad(Dekningsgrad.HUNDRE)
             .medUtenlandsopphold(List.of())
             .medAnnenForelder(AnnenforelderBuilder.norskMedRettighetNorge(new Fødselsnummer("0987654321")).build())
@@ -125,6 +127,7 @@ class BehandleSøknadTaskTest {
 
         var saksnummer = "123456";
         when(fpsakTjeneste.vurderFagsystem(any())).thenReturn(new VurderFagsystemResultat(VurderFagsystemResultat.SendTil.FPSAK, saksnummer));
+        when(nyDokgenRestKlient.genererPdf(any())).thenReturn(new byte[]{1, 2, 3});
         when(dokgenRestKlient.genererPdf(any(), any())).thenReturn(new byte[]{1, 2, 3});
         when(personoppslag.finnAktørId(any())).thenReturn(Optional.of(new AktørId("123")));
         when(personoppslag.aktørId((String) any())).thenReturn(new AktørId("123"));
@@ -146,9 +149,7 @@ class BehandleSøknadTaskTest {
         assertThat(dokumenter).extracting(DokumentEntitet::getArkivFilType)
             .containsExactlyInAnyOrder(ArkivFilType.JSON, ArkivFilType.PDFA, ArkivFilType.PDFA, ArkivFilType.XML);
 
-        var dokumenterSomSkalTilJournalføring = dokumenter.stream()
-            .filter(d -> !d.getArkivFilType().equals(ArkivFilType.JSON))
-            .toList();
+        var dokumenterSomSkalTilJournalføring = dokumenter.stream().filter(d -> !d.getArkivFilType().equals(ArkivFilType.JSON)).toList();
         verify(arkivtjeneste, times(1)).forsøkEndeligJournalføring(any(), eq(dokumenterSomSkalTilJournalføring), any(), any(), any(), any());
 
         validerProsesstaskOpprettet(forsendelseId, saksnummer);
@@ -159,23 +160,21 @@ class BehandleSøknadTaskTest {
         // Arrange
         var familehendelseDato = LocalDateTime.now().minusWeeks(1).toLocalDate();
         var saksnummer = new Saksnummer("111111");
-        var endringssøknad = new EndringssøknadBuilder(saksnummer)
-            .medRolle(BrukerRolle.MOR)
+        var endringssøknad = new EndringssøknadBuilder(saksnummer).medRolle(BrukerRolle.MOR)
             .medSøkerinfo(new SøkerDto(new Fødselsnummer("1234567890"), new SøkerDto.Navn("Per", null, "etternavn"), null))
             .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
-            .medUttaksplan(
-                List.of(
-                    UttakplanPeriodeBuilder.uttak(FORELDREPENGER_FØR_FØDSEL, familehendelseDato.minusWeeks(3), familehendelseDato.minusDays(1)).build(),
-                    UttakplanPeriodeBuilder.gradert(MØDREKVOTE, familehendelseDato, familehendelseDato.plusWeeks(15).minusDays(1), 43.2).build(),
-                    UttakplanPeriodeBuilder.friUtsettelse(familehendelseDato.plusWeeks(15), familehendelseDato.plusWeeks(20).minusDays(1)).build(),
-                    UttakplanPeriodeBuilder.overføring(Overføringsårsak.SYKDOM_ANNEN_FORELDER, FEDREKVOTE, familehendelseDato.plusWeeks(20), familehendelseDato.plusWeeks(31).minusDays(1)).build()
-                )
-            )
+            .medUttaksplan(List.of(
+                UttakplanPeriodeBuilder.uttak(FORELDREPENGER_FØR_FØDSEL, familehendelseDato.minusWeeks(3), familehendelseDato.minusDays(1)).build(),
+                UttakplanPeriodeBuilder.gradert(MØDREKVOTE, familehendelseDato, familehendelseDato.plusWeeks(15).minusDays(1), 43.2).build(),
+                UttakplanPeriodeBuilder.friUtsettelse(familehendelseDato.plusWeeks(15), familehendelseDato.plusWeeks(20).minusDays(1)).build(),
+                UttakplanPeriodeBuilder.overføring(Overføringsårsak.SYKDOM_ANNEN_FORELDER, FEDREKVOTE, familehendelseDato.plusWeeks(20),
+                    familehendelseDato.plusWeeks(31).minusDays(1)).build()))
             .medAnnenForelder(AnnenforelderBuilder.norskMedRettighetNorge(new Fødselsnummer("0987654321")).build())
             .build();
         var forsendelseId = UUID.randomUUID();
         lagreForsendelseOgSøknad(endringssøknad, forsendelseId);
 
+        when(nyDokgenRestKlient.genererPdf(any())).thenReturn(new byte[]{1, 2, 3});
         when(dokgenRestKlient.genererPdf(any(), any())).thenReturn(new byte[]{1, 2, 3});
         when(personoppslag.finnAktørId(any())).thenReturn(Optional.of(new AktørId("123")));
         when(personoppslag.aktørId((String) any())).thenReturn(new AktørId("123"));
@@ -197,9 +196,7 @@ class BehandleSøknadTaskTest {
         assertThat(dokumenter).extracting(DokumentEntitet::getArkivFilType)
             .containsExactlyInAnyOrder(ArkivFilType.JSON, ArkivFilType.PDFA, ArkivFilType.XML);
 
-        var dokumenterSomSkalTilJournalføring = dokumenter.stream()
-            .filter(d -> !d.getArkivFilType().equals(ArkivFilType.JSON))
-            .toList();
+        var dokumenterSomSkalTilJournalføring = dokumenter.stream().filter(d -> !d.getArkivFilType().equals(ArkivFilType.JSON)).toList();
         verify(arkivtjeneste, times(1)).forsøkEndeligJournalføring(any(), eq(dokumenterSomSkalTilJournalføring), any(), any(), any(), any());
         verify(fpsakTjeneste, never()).vurderFagsystem(any());
 
@@ -213,7 +210,8 @@ class BehandleSøknadTaskTest {
         assertThat(vlklargjørtask.taskType().value()).isEqualTo("fordeling.klargjoering");
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY)).isEqualTo(forsendelseId.toString());
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.SAKSNUMMER_PROPERTY)).isEqualTo(saksnummer);
-        assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.BEHANDLING_TEMA_PROPERTY)).isEqualTo(BehandlingTema.FORELDREPENGER_FØDSEL.getOffisiellKode());
+        assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.BEHANDLING_TEMA_PROPERTY)).isEqualTo(
+            BehandlingTema.FORELDREPENGER_FØDSEL.getOffisiellKode());
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.DOKUMENT_TYPE_ID_PROPERTY)).isEqualTo(DokumentTypeId.I000005.getKode());
     }
 

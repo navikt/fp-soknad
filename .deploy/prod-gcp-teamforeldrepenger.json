@@ -1,5 +1,4 @@
 {
-    "namespace": "teamforeldrepenger",
     "environment": "prod",
     "kafkaPool": "nav-prod",
     "tmpbucket": "fp-soknad-mellomlagring-prod",
