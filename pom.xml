@@ -338,4 +338,12 @@
             <url>https://maven.pkg.github.com/navikt/fp-soknad</url>
         </repository>
     </distributionManagement>
+
+    <repositories>
+        <repository>
+            <id>github</id>
+            <name>GitHub Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/navikt/fp-soknad/</url>
+        </repository>
+    </repositories>
 </project>
