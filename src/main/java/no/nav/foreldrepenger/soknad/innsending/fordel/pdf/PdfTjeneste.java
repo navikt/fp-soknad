@@ -1,13 +1,11 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.pdf;
 
-import no.nav.foreldrepenger.konfig.Environment;
-import no.nav.vedtak.exception.TekniskException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.foreldrepenger.soknad.innsending.UtalelseOmTilbakebetaling;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
@@ -33,7 +31,7 @@ public class PdfTjeneste {
     private DokgenRestKlient gammelDokgenKlient;
     private DokumentRepository dokumentRepository;
 
-    public PdfTjeneste() {
+    PdfTjeneste() {
         // CDI
     }
 
@@ -59,32 +57,20 @@ public class PdfTjeneste {
     }
 
     private byte[] genererPdf(ForsendelseEntitet metadata, SøknadDto søknadDto) {
+        byte[] pdf;
         try {
-            byte[] pdf;
-            if (Boolean.TRUE.equals(ENV.getRequiredProperty("TOGGLE_BRUK_NY_DOKGEN", Boolean.class))) {
-                try {
-                    LOG.info("Genererer pdf ved bruk av ny dokgen.");
-                    pdf = nyDokgenRestKlient.genererPdf(mapTilDokgenRequest(metadata, søknadDto));
-                    var oldpdf = gammelDokgenKlient.genererPdf(metadata, søknadDto);
-                    if ((pdf.length != oldpdf.length && Math.abs(pdf.length - oldpdf.length) > 10) || pdf.length == 0) {
-                        LOG.warn("PDF-lengde fra ny og gammel dokgen er ulik. Ny dokgen lengde: {}, Gammel dokgen lengde: {}",
-                            pdf.length,
-                            oldpdf.length);
-                        return oldpdf;
-                    }
-                } catch (Exception e) {
-                    LOG.warn("Kall til ny dokgen feilet, prøver å generere pdf med gammel dokgen. Feilmelding: {}", e.getMessage());
-                    pdf = gammelDokgenKlient.genererPdf(metadata, søknadDto);
-                }
-            } else {
-                LOG.info("Genererer pdf ved bruk av gammel dokgen.");
+            LOG.info("Genererer PDF ved bruk av ny dokgen.");
+            pdf = nyDokgenRestKlient.genererPdf(mapTilDokgenRequest(metadata, søknadDto));
+        } catch (Exception exception) {
+            if (ENV.isDev() || ENV.isProd()) {
+                LOG.error("Kall til ny dokgen feilet, prøver å generere PDF med gammel dokgen. Feilmelding: {}", exception.getMessage(), exception);
                 pdf = gammelDokgenKlient.genererPdf(metadata, søknadDto);
+            } else {
+                throw exception;
             }
-            LOG.info("Søknad PDF med ble generert.");
-            return pdf;
-        } catch (Exception e) {
-            throw new TekniskException("FPSØKNAD_1", "Klarte ikke å generere pdf for søknad med id %s", e);
         }
+        LOG.info("Søknad PDF ble generert.");
+        return pdf;
     }
 
     private NyDokgenRequest mapTilDokgenRequest(ForsendelseEntitet metadata, SøknadDto søknadDto) {
@@ -127,32 +113,20 @@ public class PdfTjeneste {
     }
 
     private byte[] genererPdf(ForsendelseEntitet metadata, UtalelseOmTilbakebetaling svar) {
+        byte[] pdf;
         try {
-            byte[] pdf;
-            if (Boolean.TRUE.equals(ENV.getRequiredProperty("TOGGLE_BRUK_NY_DOKGEN", Boolean.class))) {
-                try {
-                    LOG.info("Genererer pdf ved bruk av ny dokgen.");
-                    pdf = nyDokgenRestKlient.genererPdf(mapTilDokgenRequest(metadata, svar));
-                    var oldpdf = gammelDokgenKlient.genererUttalelseOmTilbakekrevingPDF(metadata, svar);
-                    if ((pdf.length != oldpdf.length && Math.abs(pdf.length - oldpdf.length) > 10) || pdf.length == 0) {
-                        LOG.warn("PDF-lengde fra ny og gammel dokgen er ulik. Ny dokgen lengde: {}, Gammel dokgen lengde: {}",
-                            pdf.length,
-                            oldpdf.length);
-                        return oldpdf;
-                    }
-                } catch (Exception e) {
-                    LOG.warn("Kall til ny dokgen feilet, prøver å generere pdf med gammel dokgen. Feilmelding: {}", e.getMessage());
-                    pdf = gammelDokgenKlient.genererUttalelseOmTilbakekrevingPDF(metadata, svar);
-                }
-            } else {
-                LOG.info("Genererer pdf ved bruk av gammel dokgen.");
+            LOG.info("Genererer PDF ved bruk av ny dokgen.");
+            pdf = nyDokgenRestKlient.genererPdf(mapTilDokgenRequest(metadata, svar));
+        } catch (Exception exception) {
+            if (ENV.isDev() || ENV.isProd()) {
+                LOG.warn("Kall til ny dokgen feilet, prøver å generere pdf med gammel dokgen. Feilmelding: {}", exception.getMessage());
                 pdf = gammelDokgenKlient.genererUttalelseOmTilbakekrevingPDF(metadata, svar);
+            } else {
+                throw exception;
             }
-            LOG.info("Søknad PDF med ble generert.");
-            return pdf;
-        } catch (Exception e) {
-            throw new TekniskException("FPSØKNAD_1", "Klarte ikke å generere pdf for søknad med id %s", e);
         }
+        LOG.info("Uttalelse PDF ble generert.");
+        return pdf;
     }
 
     private static NyDokgenRequest mapTilDokgenRequest(ForsendelseEntitet metadata, UtalelseOmTilbakebetaling svar) {
