@@ -128,7 +128,6 @@ class BehandleSøknadTaskTest {
         var saksnummer = "123456";
         when(fpsakTjeneste.vurderFagsystem(any())).thenReturn(new VurderFagsystemResultat(VurderFagsystemResultat.SendTil.FPSAK, saksnummer));
         when(nyDokgenRestKlient.genererPdf(any())).thenReturn(new byte[]{1, 2, 3});
-        when(dokgenRestKlient.genererPdf(any(), any())).thenReturn(new byte[]{1, 2, 3});
         when(personoppslag.finnAktørId(any())).thenReturn(Optional.of(new AktørId("123")));
         when(personoppslag.aktørId((String) any())).thenReturn(new AktørId("123"));
         when(arkivtjeneste.forsøkEndeligJournalføring(any(), any(), any(), any(), any(), any())).thenReturn(new OpprettetJournalpost("123", true));
@@ -175,7 +174,6 @@ class BehandleSøknadTaskTest {
         lagreForsendelseOgSøknad(endringssøknad, forsendelseId);
 
         when(nyDokgenRestKlient.genererPdf(any())).thenReturn(new byte[]{1, 2, 3});
-        when(dokgenRestKlient.genererPdf(any(), any())).thenReturn(new byte[]{1, 2, 3});
         when(personoppslag.finnAktørId(any())).thenReturn(Optional.of(new AktørId("123")));
         when(personoppslag.aktørId((String) any())).thenReturn(new AktørId("123"));
         when(arkivtjeneste.forsøkEndeligJournalføring(any(), any(), any(), any(), any(), any())).thenReturn(new OpprettetJournalpost("123", true));

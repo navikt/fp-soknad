@@ -13,7 +13,7 @@ import no.nav.vedtak.felles.integrasjon.rest.RestRequest;
 import no.nav.vedtak.felles.integrasjon.rest.TokenFlow;
 
 @ApplicationScoped
-@RestClientConfig(tokenConfig = TokenFlow.AZUREAD_CC, endpointProperty = "ny.fpdokgen.url", endpointDefault = "http://fp-dokgen", scopesProperty = "ny.fpdokgen.scopes", scopesDefault = "api://prod-gcp.teamforeldrepenger.fp-dokgen/.default")
+@RestClientConfig(tokenConfig = TokenFlow.AZUREAD_CC, endpointProperty = "fpdokgen.base.url", endpointDefault = "http://fp-dokgen", scopesProperty = "fpdokgen.scopes", scopesDefault = "api://prod-gcp.teamforeldrepenger.fp-dokgen/.default")
 public class NyFpDokgenRestKlient {
 
     private static final Logger LOG = LoggerFactory.getLogger(NyFpDokgenRestKlient.class);
