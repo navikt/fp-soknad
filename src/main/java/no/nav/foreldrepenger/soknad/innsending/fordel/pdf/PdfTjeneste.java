@@ -1,13 +1,11 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.pdf;
 
-import no.nav.foreldrepenger.konfig.Environment;
-import no.nav.vedtak.exception.TekniskException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.foreldrepenger.soknad.innsending.UtalelseOmTilbakebetaling;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
