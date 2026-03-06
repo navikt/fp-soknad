@@ -62,7 +62,7 @@ public class PdfTjeneste {
             LOG.info("Genererer PDF ved bruk av ny dokgen.");
             pdf = nyDokgenRestKlient.genererPdf(mapTilDokgenRequest(metadata, søknadDto));
         } catch (Exception exception) {
-            if (ENV.isDev() || ENV.isProd()) {
+            if (ENV.isProd()) {
                 LOG.error("Kall til ny dokgen feilet, prøver å generere PDF med gammel dokgen. Feilmelding: {}", exception.getMessage(), exception);
                 pdf = gammelDokgenKlient.genererPdf(metadata, søknadDto);
             } else {
@@ -118,7 +118,7 @@ public class PdfTjeneste {
             LOG.info("Genererer PDF ved bruk av ny dokgen.");
             pdf = nyDokgenRestKlient.genererPdf(mapTilDokgenRequest(metadata, svar));
         } catch (Exception exception) {
-            if (ENV.isDev() || ENV.isProd()) {
+            if (ENV.isProd()) {
                 LOG.warn("Kall til ny dokgen feilet, prøver å generere pdf med gammel dokgen. Feilmelding: {}", exception.getMessage());
                 pdf = gammelDokgenKlient.genererUttalelseOmTilbakekrevingPDF(metadata, svar);
             } else {
