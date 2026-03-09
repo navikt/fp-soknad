@@ -14,9 +14,9 @@ import no.nav.vedtak.felles.integrasjon.rest.TokenFlow;
 
 @ApplicationScoped
 @RestClientConfig(tokenConfig = TokenFlow.AZUREAD_CC, endpointProperty = "fpdokgen.base.url", endpointDefault = "http://fp-dokgen", scopesProperty = "fpdokgen.scopes", scopesDefault = "api://prod-gcp.teamforeldrepenger.fp-dokgen/.default")
-public class NyFpDokgenRestKlient {
+public class FpDokgenRestKlient {
 
-    private static final Logger LOG = LoggerFactory.getLogger(NyFpDokgenRestKlient.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FpDokgenRestKlient.class);
 
     protected static final String API_PATH = "/api";
     private static final String V1_GENERER_PDF_PATH = "/v1/dokument/generer/pdf";
@@ -25,16 +25,16 @@ public class NyFpDokgenRestKlient {
     private final RestClient restClient;
     private final RestConfig restConfig;
 
-    public NyFpDokgenRestKlient() {
+    public FpDokgenRestKlient() {
         this(RestClient.client());
     }
 
-    public NyFpDokgenRestKlient(RestClient restClient) {
+    public FpDokgenRestKlient(RestClient restClient) {
         this.restClient = restClient;
-        this.restConfig = RestConfig.forClient(NyFpDokgenRestKlient.class);
+        this.restConfig = RestConfig.forClient(FpDokgenRestKlient.class);
     }
 
-    public byte[] genererPdf(NyDokgenRequest requestDto) {
+    public byte[] genererPdf(FpDokgenRequest requestDto) {
         LOG.info("Genererer PDF for dokument: {}", requestDto.malNavn());
         var endpoint = UriBuilder.fromUri(restConfig.endpoint()).path(API_PATH).path(V1_GENERER_PDF_PATH).build();
         var request = RestRequest.newPOSTJson(requestDto, endpoint, restConfig).header(HttpHeaders.ACCEPT, APPLICATION_PDF);

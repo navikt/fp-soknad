@@ -2,7 +2,7 @@ package no.nav.foreldrepenger.soknad.innsending.fordel.pdf.v1;
 
 import jakarta.validation.constraints.NotNull;
 
-public record NyDokgenRequest(
+public record FpDokgenRequest(
     @NotNull String malNavn,
     Språk språk,
     @NotNull CssStyling cssStyling,

@@ -5,14 +5,13 @@ import org.slf4j.LoggerFactory;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.foreldrepenger.soknad.innsending.UtalelseOmTilbakebetaling;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
-import no.nav.foreldrepenger.soknad.innsending.fordel.pdf.v1.NyDokgenRequest;
-import no.nav.foreldrepenger.soknad.innsending.fordel.pdf.v1.NyFpDokgenRestKlient;
+import no.nav.foreldrepenger.soknad.innsending.fordel.pdf.v1.FpDokgenRequest;
+import no.nav.foreldrepenger.soknad.innsending.fordel.pdf.v1.FpDokgenRestKlient;
 import no.nav.foreldrepenger.soknad.innsending.fordel.utils.SøknadJsonMapper;
 import no.nav.foreldrepenger.soknad.kontrakt.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.soknad.kontrakt.EngangsstønadDto;
@@ -26,9 +25,7 @@ import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 public class PdfTjeneste {
     private static final Logger LOG = LoggerFactory.getLogger(PdfTjeneste.class);
 
-    private static final Environment ENV = Environment.current();
-    private NyFpDokgenRestKlient nyDokgenRestKlient;
-    private DokgenRestKlient gammelDokgenKlient;
+    private FpDokgenRestKlient fpDokgenRestKlient;
     private DokumentRepository dokumentRepository;
 
     PdfTjeneste() {
@@ -36,16 +33,16 @@ public class PdfTjeneste {
     }
 
     @Inject
-    public PdfTjeneste(NyFpDokgenRestKlient nyDokgenRestKlient, DokgenRestKlient gammelDokgenKlient, DokumentRepository dokumentRepository) {
-        this.nyDokgenRestKlient = nyDokgenRestKlient;
-        this.gammelDokgenKlient = gammelDokgenKlient;
+    public PdfTjeneste(FpDokgenRestKlient fpDokgenRestKlient, DokumentRepository dokumentRepository) {
+        this.fpDokgenRestKlient = fpDokgenRestKlient;
         this.dokumentRepository = dokumentRepository;
     }
 
     public DokumentEntitet lagPDFFraSøknad(ForsendelseEntitet metadata, DokumentEntitet søknad) {
         var søknadDto = SøknadJsonMapper.deseraliserSøknad(søknad);
 
-        var pdfInnhold = genererPdf(metadata, søknadDto);
+        var pdfInnhold = fpDokgenRestKlient.genererPdf(mapTilDokgenRequest(metadata, søknadDto));
+        LOG.trace("Søknad PDF ble generert.");
 
         var pdfDokument = DokumentEntitet.builder()
             .setDokumentTypeId(søknad.getDokumentTypeId())
@@ -56,27 +53,10 @@ public class PdfTjeneste {
         return pdfDokument;
     }
 
-    private byte[] genererPdf(ForsendelseEntitet metadata, SøknadDto søknadDto) {
-        byte[] pdf;
-        try {
-            LOG.info("Genererer PDF ved bruk av ny dokgen.");
-            pdf = nyDokgenRestKlient.genererPdf(mapTilDokgenRequest(metadata, søknadDto));
-        } catch (Exception exception) {
-            if (ENV.isProd()) {
-                LOG.error("Kall til ny dokgen feilet, prøver å generere PDF med gammel dokgen. Feilmelding: {}", exception.getMessage(), exception);
-                pdf = gammelDokgenKlient.genererPdf(metadata, søknadDto);
-            } else {
-                throw exception;
-            }
-        }
-        LOG.info("Søknad PDF ble generert.");
-        return pdf;
-    }
-
-    private NyDokgenRequest mapTilDokgenRequest(ForsendelseEntitet metadata, SøknadDto søknadDto) {
+    private FpDokgenRequest mapTilDokgenRequest(ForsendelseEntitet metadata, SøknadDto søknadDto) {
         var dokgenDto = new DokgenSøknadDto(metadata.getForsendelseMottatt(), søknadDto);
 
-        return new NyDokgenRequest(utledTemplate(søknadDto), utledSpråk(søknadDto.språkkode()), NyDokgenRequest.CssStyling.PDF,
+        return new FpDokgenRequest(utledTemplate(søknadDto), utledSpråk(søknadDto.språkkode()), FpDokgenRequest.CssStyling.PDF,
             DefaultJsonMapper.toJson(dokgenDto));
     }
 
@@ -89,11 +69,11 @@ public class PdfTjeneste {
         };
     }
 
-    private NyDokgenRequest.Språk utledSpråk(Målform språkkode) {
+    private FpDokgenRequest.Språk utledSpråk(Målform språkkode) {
         return switch (språkkode) {
-            case NB -> NyDokgenRequest.Språk.BOKMÅL;
-            case NN -> NyDokgenRequest.Språk.NYNORSK;
-            case EN, E -> NyDokgenRequest.Språk.ENGELSK;
+            case NB -> FpDokgenRequest.Språk.BOKMÅL;
+            case NN -> FpDokgenRequest.Språk.NYNORSK;
+            case EN, E -> FpDokgenRequest.Språk.ENGELSK;
         };
     }
 
@@ -101,7 +81,8 @@ public class PdfTjeneste {
         var utalelseOmTilbakebetaling = SøknadJsonMapper.deseraliserUttalelsePåTilbakebetaling(dokument);
         LOG.info("Genererer PDF for uttalelse om tilbakekreving for sak: {}", metadata.getSaksnummer().orElse("Ukjent"));
 
-        var pdfInnhold = genererPdf(metadata, utalelseOmTilbakebetaling);
+        LOG.info("Uttalelse PDF ble generert.");
+        var pdfInnhold = fpDokgenRestKlient.genererPdf(mapTilDokgenRequest(metadata, utalelseOmTilbakebetaling));
 
         var pdfDokument = DokumentEntitet.builder()
             .setDokumentTypeId(dokument.getDokumentTypeId())
@@ -112,27 +93,10 @@ public class PdfTjeneste {
         return pdfDokument;
     }
 
-    private byte[] genererPdf(ForsendelseEntitet metadata, UtalelseOmTilbakebetaling svar) {
-        byte[] pdf;
-        try {
-            LOG.info("Genererer PDF ved bruk av ny dokgen.");
-            pdf = nyDokgenRestKlient.genererPdf(mapTilDokgenRequest(metadata, svar));
-        } catch (Exception exception) {
-            if (ENV.isProd()) {
-                LOG.warn("Kall til ny dokgen feilet, prøver å generere pdf med gammel dokgen. Feilmelding: {}", exception.getMessage());
-                pdf = gammelDokgenKlient.genererUttalelseOmTilbakekrevingPDF(metadata, svar);
-            } else {
-                throw exception;
-            }
-        }
-        LOG.info("Uttalelse PDF ble generert.");
-        return pdf;
-    }
-
-    private static NyDokgenRequest mapTilDokgenRequest(ForsendelseEntitet metadata, UtalelseOmTilbakebetaling svar) {
+    private static FpDokgenRequest mapTilDokgenRequest(ForsendelseEntitet metadata, UtalelseOmTilbakebetaling svar) {
         var dokgenDto = new DokgenUttalelseDto(metadata.getForsendelseMottatt(), metadata.getSaksnummer().orElseThrow(), metadata.getBrukersFnr(),
             svar.type().name().toLowerCase(), svar.brukertekst().tekst());
-        return new NyDokgenRequest("selvbetjening-tilsvar-tilbakebetalingvarsel", NyDokgenRequest.Språk.BOKMÅL, NyDokgenRequest.CssStyling.PDF,
+        return new FpDokgenRequest("selvbetjening-tilsvar-tilbakebetalingvarsel", FpDokgenRequest.Språk.BOKMÅL, FpDokgenRequest.CssStyling.PDF,
             DefaultJsonMapper.toJson(dokgenDto));
     }
 }

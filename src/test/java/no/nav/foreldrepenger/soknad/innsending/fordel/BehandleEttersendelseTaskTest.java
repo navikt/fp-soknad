@@ -10,8 +10,6 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import no.nav.foreldrepenger.soknad.innsending.fordel.pdf.DokgenRestKlient;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,7 +30,7 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.fpsak.FpsakTjeneste;
 import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.ArkivTjeneste;
 import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.OpprettetJournalpost;
 import no.nav.foreldrepenger.soknad.innsending.fordel.pdf.PdfTjeneste;
-import no.nav.foreldrepenger.soknad.innsending.fordel.pdf.v1.NyFpDokgenRestKlient;
+import no.nav.foreldrepenger.soknad.innsending.fordel.pdf.v1.FpDokgenRestKlient;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.DokumentTypeId;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
@@ -47,9 +45,7 @@ class BehandleEttersendelseTaskTest {
     @Mock
     private ProsessTaskTjeneste taskTjeneste;
     @Mock
-    private NyFpDokgenRestKlient nyDokgenRestKlient;
-    @Mock
-    private DokgenRestKlient dokgenRestKlient;
+    private FpDokgenRestKlient fpDokgenRestKlient;
     @Mock
     private FpsakTjeneste fpsakTjeneste;
 
@@ -59,7 +55,7 @@ class BehandleEttersendelseTaskTest {
     @BeforeEach
     void setUp(EntityManager entityManager) {
         dokumentRepository = new DokumentRepository(entityManager);
-        var pdfTjeneste = new PdfTjeneste(nyDokgenRestKlient, dokgenRestKlient, dokumentRepository);
+        var pdfTjeneste = new PdfTjeneste(fpDokgenRestKlient, dokumentRepository);
         task = new BehandleEttersendelseTask(dokumentRepository, fpsakTjeneste, arkivtjeneste, taskTjeneste, pdfTjeneste);
     }
 
