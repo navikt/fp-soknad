@@ -19,8 +19,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import no.nav.foreldrepenger.soknad.innsending.fordel.pdf.DokgenRestKlient;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -48,7 +46,7 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.fpsak.VurderFagsystemResul
 import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.ArkivTjeneste;
 import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.OpprettetJournalpost;
 import no.nav.foreldrepenger.soknad.innsending.fordel.pdf.PdfTjeneste;
-import no.nav.foreldrepenger.soknad.innsending.fordel.pdf.v1.NyFpDokgenRestKlient;
+import no.nav.foreldrepenger.soknad.innsending.fordel.pdf.v1.FpDokgenRestKlient;
 import no.nav.foreldrepenger.soknad.innsending.fordel.pdl.Personoppslag;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.StrukturertDokumentMapperXML;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V1SvangerskapspengerDomainMapper;
@@ -85,9 +83,7 @@ class BehandleSøknadTaskTest {
     @Mock
     private Personoppslag personoppslag;
     @Mock
-    private NyFpDokgenRestKlient nyDokgenRestKlient;
-    @Mock
-    private DokgenRestKlient dokgenRestKlient;
+    private FpDokgenRestKlient fpDokgenRestKlient;
     @Mock
     private FpsakTjeneste fpsakTjeneste;
 
@@ -99,7 +95,7 @@ class BehandleSøknadTaskTest {
         dokumentRepository = new DokumentRepository(entityManager);
         var xmlMapper = new StrukturertDokumentMapperXML(new V3ForeldrepengerDomainMapper(personoppslag), new V1SvangerskapspengerDomainMapper(),
             new V3EngangsstønadDomainMapper(), personoppslag, dokumentRepository);
-        var pdfTjeneste = new PdfTjeneste(nyDokgenRestKlient, dokgenRestKlient, dokumentRepository);
+        var pdfTjeneste = new PdfTjeneste(fpDokgenRestKlient, dokumentRepository);
         var destinasjonsRuter = new DestinasjonsRuter(fpsakTjeneste, personoppslag);
         task = new BehandleSøknadTask(dokumentRepository, destinasjonsRuter, arkivtjeneste, taskTjeneste, xmlMapper, pdfTjeneste);
     }
@@ -127,7 +123,7 @@ class BehandleSøknadTaskTest {
 
         var saksnummer = "123456";
         when(fpsakTjeneste.vurderFagsystem(any())).thenReturn(new VurderFagsystemResultat(VurderFagsystemResultat.SendTil.FPSAK, saksnummer));
-        when(nyDokgenRestKlient.genererPdf(any())).thenReturn(new byte[]{1, 2, 3});
+        when(fpDokgenRestKlient.genererPdf(any())).thenReturn(new byte[]{1, 2, 3});
         when(personoppslag.finnAktørId(any())).thenReturn(Optional.of(new AktørId("123")));
         when(personoppslag.aktørId((String) any())).thenReturn(new AktørId("123"));
         when(arkivtjeneste.forsøkEndeligJournalføring(any(), any(), any(), any(), any(), any())).thenReturn(new OpprettetJournalpost("123", true));
@@ -173,7 +169,7 @@ class BehandleSøknadTaskTest {
         var forsendelseId = UUID.randomUUID();
         lagreForsendelseOgSøknad(endringssøknad, forsendelseId);
 
-        when(nyDokgenRestKlient.genererPdf(any())).thenReturn(new byte[]{1, 2, 3});
+        when(fpDokgenRestKlient.genererPdf(any())).thenReturn(new byte[]{1, 2, 3});
         when(personoppslag.finnAktørId(any())).thenReturn(Optional.of(new AktørId("123")));
         when(personoppslag.aktørId((String) any())).thenReturn(new AktørId("123"));
         when(arkivtjeneste.forsøkEndeligJournalføring(any(), any(), any(), any(), any(), any())).thenReturn(new OpprettetJournalpost("123", true));
