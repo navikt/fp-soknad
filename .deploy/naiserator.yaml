@@ -105,7 +105,6 @@ spec:
               - swagger
     outbound:
       rules:
-        - application: fpdokgen
         - application: fp-dokgen
         - application: clamav
           namespace: nais-system
