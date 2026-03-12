@@ -1,5 +1,7 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.pdf.v1;
 
+import no.nav.vedtak.felles.integrasjon.rest.FpApplication;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +15,7 @@ import no.nav.vedtak.felles.integrasjon.rest.RestRequest;
 import no.nav.vedtak.felles.integrasjon.rest.TokenFlow;
 
 @ApplicationScoped
-@RestClientConfig(tokenConfig = TokenFlow.AZUREAD_CC, endpointProperty = "fpdokgen.base.url", endpointDefault = "http://fp-dokgen", scopesProperty = "fpdokgen.scopes", scopesDefault = "api://prod-gcp.teamforeldrepenger.fp-dokgen/.default")
+@RestClientConfig(tokenConfig = TokenFlow.AZUREAD_CC, application = FpApplication.FPDOKGEN)
 public class FpDokgenRestKlient {
 
     private static final Logger LOG = LoggerFactory.getLogger(FpDokgenRestKlient.class);
@@ -36,7 +38,7 @@ public class FpDokgenRestKlient {
 
     public byte[] genererPdf(FpDokgenRequest requestDto) {
         LOG.info("Genererer PDF for dokument: {}", requestDto.malNavn());
-        var endpoint = UriBuilder.fromUri(restConfig.endpoint()).path(API_PATH).path(V1_GENERER_PDF_PATH).build();
+        var endpoint = UriBuilder.fromUri(restConfig.fpContextPath()).path(API_PATH).path(V1_GENERER_PDF_PATH).build();
         var request = RestRequest.newPOSTJson(requestDto, endpoint, restConfig).header(HttpHeaders.ACCEPT, APPLICATION_PDF);
         return restClient.sendReturnByteArray(request);
     }
