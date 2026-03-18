@@ -13,11 +13,11 @@ import jakarta.ws.rs.ApplicationPath;
 import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.foreldrepenger.soknad.innsending.SøknadRest;
 import no.nav.foreldrepenger.soknad.mellomlagring.MellomlagringRest;
-import no.nav.foreldrepenger.soknad.server.JacksonJsonConfig;
 import no.nav.foreldrepenger.soknad.server.error.GeneralRestExceptionMapper;
 import no.nav.foreldrepenger.soknad.server.error.ValidationExceptionMapper;
 import no.nav.foreldrepenger.soknad.server.konfig.swagger.OpenApiUtils;
-import no.nav.foreldrepenger.soknad.server.sikkerhet.AuthenticationFilter;
+import no.nav.vedtak.server.rest.AuthenticationFilter;
+import no.nav.vedtak.server.rest.jackson.Jackson2MapperFeature;
 
 @ApplicationPath(ApiConfig.API_URI)
 public class ApiConfig extends ResourceConfig {
@@ -26,6 +26,8 @@ public class ApiConfig extends ResourceConfig {
     private static final Environment ENV = Environment.current();
 
     public ApiConfig() {
+        register(Jackson2MapperFeature.class); // Jackson konfigurasjon
+        register(AuthenticationFilter.class); // Autentisering
         registerClasses(getFellesConfigClasses());
         register(MultiPartFeature.class); // Multipart upload mellomlagring
         if (!ENV.isProd()) {
@@ -41,10 +43,8 @@ public class ApiConfig extends ResourceConfig {
 
     static Set<Class<?>> getFellesConfigClasses() {
         return  Set.of(
-            AuthenticationFilter.class, // Autentisering
             GeneralRestExceptionMapper.class, // Exception handling
-            ValidationExceptionMapper.class, // Exception handling
-            JacksonJsonConfig.class // Json
+            ValidationExceptionMapper.class // Exception handling
         );
     }
 
