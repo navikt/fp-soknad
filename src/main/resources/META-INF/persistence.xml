@@ -39,7 +39,7 @@
             <!-- gjør det mulig å gjennbruke en sequence generator på tvers av entiteter -->
             <property name="hibernate.jpa.compliance.global_id_generators" value="true" />
 
-            <property name="hibernate.type.json_format_mapper" value="no.nav.foreldrepenger.soknad.server.JacksonJsonConfig" />
+            <property name="hibernate.type.json_format_mapper" value="no.nav.foreldrepenger.soknad.server.JacksonFormatMapper" />
 
         </properties>
     </persistence-unit>

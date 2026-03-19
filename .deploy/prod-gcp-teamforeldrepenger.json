@@ -27,11 +27,10 @@
         "dbPointInTimeRecovery": "true"
     },
     "limits": {
-        "cpu": "2",
-        "mem": "2048Mi"
+        "mem": "1000Mi"
     },
     "requests": {
-        "cpu": "150m",
+        "cpu": "200m",
         "mem": "800Mi"
     }
 }

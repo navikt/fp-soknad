@@ -1,7 +1,6 @@
 package no.nav.foreldrepenger.soknad.server.konfig;
 
 import static no.nav.foreldrepenger.soknad.server.konfig.ApiConfig.getApplicationProperties;
-import static no.nav.foreldrepenger.soknad.server.konfig.ApiConfig.getFellesConfigClasses;
 
 import java.util.Set;
 
@@ -9,18 +8,22 @@ import org.glassfish.jersey.server.ResourceConfig;
 
 import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
 import jakarta.ws.rs.ApplicationPath;
+import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.foreldrepenger.soknad.server.forvaltning.ForvaltningMellomlagringRest;
-import no.nav.foreldrepenger.soknad.server.konfig.swagger.OpenApiUtils;
-import no.nav.foreldrepenger.soknad.server.sikkerhet.ForvaltningAuthorizationFilter;
 import no.nav.vedtak.felles.prosesstask.rest.ProsessTaskRestTjeneste;
+import no.nav.vedtak.openapi.OpenApiUtils;
+import no.nav.vedtak.server.rest.ForvaltningAuthorizationFilter;
+import no.nav.vedtak.server.rest.FpRestJackson2Feature;
 
 @ApplicationPath(ForvaltningApiConfig.API_URI)
 public class ForvaltningApiConfig extends ResourceConfig {
     public static final String API_URI = "/forvaltning/api";
 
+    private static final Environment ENV = Environment.current();
+
     public ForvaltningApiConfig() {
+        register(FpRestJackson2Feature.class);
         register(ForvaltningAuthorizationFilter.class); // Autorisering – drift
-        registerClasses(getFellesConfigClasses());
         registerOpenApi();
         registerClasses(getForvaltningKlasser());
         setProperties(getApplicationProperties());
@@ -34,9 +37,9 @@ public class ForvaltningApiConfig extends ResourceConfig {
     }
 
     private void registerOpenApi() {
-        OpenApiUtils.openApiConfigFor("Fpsoknad - søknad og ettersendelser (frontend)", this)
-            .registerClasses(getForvaltningKlasser())
-            .buildOpenApiContext();
+        var contextPath = ENV.getProperty("context.path", "/fpsoknad");
+        OpenApiUtils.setupOpenApi("Fpsoknad Forvaltning - søknad og ettersendelser",
+            contextPath, getForvaltningKlasser(), this);
         register(OpenApiResource.class);
     }
 }
