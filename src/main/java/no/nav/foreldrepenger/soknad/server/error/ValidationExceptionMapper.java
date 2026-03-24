@@ -24,7 +24,7 @@ public class ValidationExceptionMapper implements ExceptionMapper<ConstraintViol
         LOG.warn("Det oppstod en valideringsfeil: {}", constraints(exception));
         SECURE_LOG.warn("Det oppstod en valideringsfeil: felt {} - input {}", constraints(exception), getInputs(exception));
         return Response.status(Response.Status.BAD_REQUEST)
-                       .entity("Validation failed: " + exception.getMessage())
+                       .entity(new ProblemDetails(FeilKode.VALIDERING, Response.Status.BAD_REQUEST.getStatusCode(), "Validation failed: " + exception.getMessage()))
                        .build();
     }
 

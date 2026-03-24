@@ -67,7 +67,7 @@ public class GeneralRestExceptionMapper implements ExceptionMapper<Throwable> {
         }
         LOG.warn("Fikk uventet feil: {}", exception.getMessage(), exception);
         SECURE_LOG.info("Fikk uventet feil for bruker: {}", KontekstHolder.getKontekst().getUid(), exception);
-        return Response.status(HttpStatus.INTERNAL_SERVER_ERROR_500).build();
+        return status(HttpStatus.INTERNAL_SERVER_ERROR_500, null, exception.getMessage());
     }
 
     private static Response status(int httpstatus, FeilKode feilKode, String formatertMessage) {
