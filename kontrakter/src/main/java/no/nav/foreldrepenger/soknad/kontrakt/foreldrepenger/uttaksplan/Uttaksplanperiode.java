@@ -9,6 +9,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import jakarta.validation.constraints.AssertTrue;
+
 
 @JsonPropertyOrder({"fom", "tom"})
 @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
@@ -21,4 +23,9 @@ public sealed interface Uttaksplanperiode permits UttaksPeriodeDto, Overførings
     LocalDate fom();
 
     LocalDate tom();
+
+    @AssertTrue(message = "tom kan ikke være før fom")
+    default boolean isTomEtterFom() {
+        return !tom().isBefore(fom());
+    }
 }
