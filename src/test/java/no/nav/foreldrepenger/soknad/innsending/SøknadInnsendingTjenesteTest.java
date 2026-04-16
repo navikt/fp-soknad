@@ -23,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.neovisionaries.i18n.CountryCode;
 
 import jakarta.persistence.EntityManager;
+import jakarta.validation.ConstraintViolationException;
 import no.nav.foreldrepenger.kontrakter.felles.typer.Fødselsnummer;
 import no.nav.foreldrepenger.kontrakter.felles.typer.Orgnummer;
 import no.nav.foreldrepenger.kontrakter.felles.typer.Saksnummer;
@@ -389,5 +390,93 @@ class SøknadInnsendingTjenesteTest {
         // Act/Assert
         assertThatThrownBy(() -> søknadInnsendingTjeneste.lagreSøknadInnsending(søknad))
             .isInstanceOf(DuplikateVedleggException.class);
+    }
+
+    @Test
+    void foreldrepengesøknad_med_ugyldig_uttaksperiode_tom_før_fom_skal_kaste_exception() {
+        // Arrange
+        var fom = LocalDate.now();
+        var tom = fom.minusDays(1);
+        var fnr = new Fødselsnummer("1234567890");
+        var søknad = (ForeldrepengesøknadDto) new ForeldrepengerBuilder()
+            .medRolle(BrukerRolle.MOR)
+            .medSøkerinfo(new SøkerDto(fnr, new SøkerDto.Navn("Per", null, null), null))
+            .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
+            .medUttaksplan(List.of(UttakplanPeriodeBuilder.uttak(MØDREKVOTE, fom, tom).build()))
+            .medDekningsgrad(Dekningsgrad.HUNDRE)
+            .medUtenlandsopphold(List.of())
+            .medAnnenForelder(AnnenforelderBuilder.norskMedRettighetNorge(new Fødselsnummer("0987654321")).build())
+            .build();
+
+        // Act/Assert
+        assertThatThrownBy(() -> søknadInnsendingTjeneste.lagreSøknadInnsending(søknad))
+            .isInstanceOf(ConstraintViolationException.class)
+            .hasMessageContaining("tom er før fom");
+
+        assertThat(dokumentRepository.hentForsendelse(fnr.value())).isEmpty();
+    }
+
+    @Test
+    void endringssøknad_med_ugyldig_uttaksperiode_tom_før_fom_skal_kaste_exception() {
+        // Arrange
+        var fom = LocalDate.now();
+        var tom = fom.minusDays(1);
+        var fnr = new Fødselsnummer("1234567890");
+        var søknad = new EndringssøknadBuilder(new Saksnummer("9292929"))
+            .medRolle(BrukerRolle.MOR)
+            .medSøkerinfo(new SøkerDto(fnr, new SøkerDto.Navn("Per", null, null), null))
+            .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
+            .medUttaksplan(List.of(UttakplanPeriodeBuilder.uttak(MØDREKVOTE, fom, tom).build()))
+            .medAnnenForelder(AnnenforelderBuilder.norskMedRettighetNorge(new Fødselsnummer("0987654321")).build())
+            .build();
+
+        // Act/Assert
+        assertThatThrownBy(() -> søknadInnsendingTjeneste.lagreSøknadInnsending(søknad))
+            .isInstanceOf(ConstraintViolationException.class)
+            .hasMessageContaining("tom er før fom");
+
+        assertThat(dokumentRepository.hentForsendelse(fnr.value())).isEmpty();
+    }
+
+    @Test
+    void foreldrepengesøknad_med_tom_uttaksplan_skal_kaste_exception() {
+        // Arrange
+        var fnr = new Fødselsnummer("1234567890");
+        var søknad = (ForeldrepengesøknadDto) new ForeldrepengerBuilder()
+            .medRolle(BrukerRolle.MOR)
+            .medSøkerinfo(new SøkerDto(fnr, new SøkerDto.Navn("Per", null, null), null))
+            .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
+            .medUttaksplan(List.of())
+            .medDekningsgrad(Dekningsgrad.HUNDRE)
+            .medUtenlandsopphold(List.of())
+            .medAnnenForelder(AnnenforelderBuilder.norskMedRettighetNorge(new Fødselsnummer("0987654321")).build())
+            .build();
+
+        // Act/Assert
+        assertThatThrownBy(() -> søknadInnsendingTjeneste.lagreSøknadInnsending(søknad))
+            .isInstanceOf(ConstraintViolationException.class)
+            .hasMessageContaining("minst én uttaksperiode");
+
+        assertThat(dokumentRepository.hentForsendelse(fnr.value())).isEmpty();
+    }
+
+    @Test
+    void endringssøknad_med_tom_uttaksplan_skal_kaste_exception() {
+        // Arrange
+        var fnr = new Fødselsnummer("1234567890");
+        var søknad = new EndringssøknadBuilder(new Saksnummer("9292929"))
+            .medRolle(BrukerRolle.MOR)
+            .medSøkerinfo(new SøkerDto(fnr, new SøkerDto.Navn("Per", null, null), null))
+            .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
+            .medUttaksplan(List.of())
+            .medAnnenForelder(AnnenforelderBuilder.norskMedRettighetNorge(new Fødselsnummer("0987654321")).build())
+            .build();
+
+        // Act/Assert
+        assertThatThrownBy(() -> søknadInnsendingTjeneste.lagreSøknadInnsending(søknad))
+            .isInstanceOf(ConstraintViolationException.class)
+            .hasMessageContaining("minst én uttaksperiode");
+
+        assertThat(dokumentRepository.hentForsendelse(fnr.value())).isEmpty();
     }
 }
