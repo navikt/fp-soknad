@@ -8,8 +8,6 @@ import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.Random;
 
-import no.nav.vedtak.log.util.LoggerUtils;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.threeten.bp.Duration;
@@ -129,8 +127,6 @@ public class GCPMellomlagring implements Mellomlagring {
             if (blob != null) {
                 LOG.trace("Sletter mellomlagring med id {}", blob.getBlobId());
                 storage.delete(blob.getBlobId());
-            } else {
-                LOG.info("Kunne ikke finne mellomlagring som skulle slettes med id {}", LoggerUtils.removeLineBreaks(objektName));
             }
         } catch (StorageException e) {
             throw new AnnenMellomlagringException(e);
