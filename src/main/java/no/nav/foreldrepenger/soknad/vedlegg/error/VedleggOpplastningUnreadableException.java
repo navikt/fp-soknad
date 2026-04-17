@@ -5,7 +5,7 @@ import jakarta.ws.rs.core.MediaType;
 public class VedleggOpplastningUnreadableException extends VedleggOpplastningException {
 
     public VedleggOpplastningUnreadableException(String msg, MediaType mediaType) {
-        super(msg, mediaType, null);
+        super(msg, mediaType);
     }
 
     public VedleggOpplastningUnreadableException(String msg, MediaType mediaType, Throwable throwable) {

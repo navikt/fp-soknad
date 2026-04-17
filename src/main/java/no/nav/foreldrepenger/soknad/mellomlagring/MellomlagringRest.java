@@ -135,7 +135,7 @@ public class MellomlagringRest {
         try {
             return fileInputStream.readAllBytes();
         } catch (EofException e) {
-            throw new VedleggOpplastningException("Opplastning avbrutt av klient", null, e);
+            throw new VedleggOpplastningException("Opplastning avbrutt av klient", e);
         } catch (IOException e) {
             throw new VedleggOpplastningUnreadableException("Klarte ikke lese innsending", null, e);
         }

@@ -23,6 +23,8 @@ import com.google.cloud.storage.StorageRetryStrategy;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import no.nav.foreldrepenger.konfig.Environment;
+import no.nav.foreldrepenger.soknad.mellomlagring.error.AnnenMellomlagringException;
+import no.nav.vedtak.exception.TekniskException;
 
 @ApplicationScoped
 public class GCPMellomlagring implements Mellomlagring {
@@ -57,17 +59,18 @@ public class GCPMellomlagring implements Mellomlagring {
             .build();
 
         try {
-            storage.create(blob, value.getBytes(UTF_8));
-        } catch (StorageException e) {
-            if (e.getCode() == 429) {
+            doLagre(blob, value.getBytes(UTF_8));
+        } catch (AnnenMellomlagringException e) {
+            if (e.getStatusCode() == 429) {
                 // Håndtering av 'exceeded the rate limit for object mutation' fra GCP, siden vi oppdatere samme objekt ofte.
                 LOG.info("Rate limit for mutering av objekt nådd. Venter litt før en prøver på nytt ...");
                 try {
                     Thread.sleep(1_000L + RANDOM.nextInt(500)); // small jitter
                 } catch (InterruptedException ex) {
-                    throw new RuntimeException(ex);
+                    Thread.currentThread().interrupt();
+                    throw new TekniskException(null, "Avbrutt", ex);
                 }
-                storage.create(blob, value.getBytes(UTF_8));
+                doLagre(blob, value.getBytes(UTF_8));
             } else {
                 throw e;
             }
@@ -80,72 +83,94 @@ public class GCPMellomlagring implements Mellomlagring {
             .setContentType(APPLICATION_OCTET_STREAM)
             .setCustomTimeOffsetDateTime(OffsetDateTime.now())
             .build();
-        storage.create(blob, value);
+        doLagre(blob, value);
+    }
+
+    private void doLagre(BlobInfo blobInfo, byte[] value) {
+        try {
+            storage.create(blobInfo, value);
+        } catch (StorageException e) {
+            throw new AnnenMellomlagringException(e);
+        }
+    }
+
+    private Optional<Blob> doHent(Bøtte bøtte, String key) {
+        try {
+            return Optional.ofNullable(storage.get(bøtte.navn(), key));
+        } catch (StorageException e) {
+            throw new AnnenMellomlagringException(e);
+        }
     }
 
     @Override
     public boolean eksisterer(String katalog, String key) {
-        return Optional.ofNullable(storage.get(mellomlagringBøtte.navn(), key(katalog, key))).isPresent();
+        return doHent(mellomlagringBøtte, key(katalog, key)).isPresent();
     }
 
     @Override
     public Optional<String> les(String katalog, String key) {
-        return Optional.ofNullable(storage.get(mellomlagringBøtte.navn(), key(katalog, key)))
+        return doHent(mellomlagringBøtte, key(katalog, key))
             .map(Blob::getContent)
             .map(b -> new String(b, UTF_8));
     }
 
     @Override
     public Optional<byte[]> lesVedlegg(String katalog, String key) {
-        return Optional.ofNullable(storage.get(mellomlagringBøtte.navn(), key(katalog, key))).map(Blob::getContent);
+        return doHent(mellomlagringBøtte, key(katalog, key)).map(Blob::getContent);
     }
 
     @Override
     public void slett(String katalog, String key) {
-        var objektName = key(katalog, key);
-        var blob = storage.get(mellomlagringBøtte.navn(), objektName);
-        if (blob != null) {
-            LOG.trace("Sletter mellomlagring med id {}", blob.getBlobId());
-            storage.delete(blob.getBlobId());
-        } else {
-            LOG.info("Kunne ikke finne mellomlagring som skulle slettes med id {}", objektName);
+        try {
+            var objektName = key(katalog, key);
+            var blob = doHent(mellomlagringBøtte, objektName).orElse(null);
+            if (blob != null) {
+                LOG.trace("Sletter mellomlagring med id {}", blob.getBlobId());
+                storage.delete(blob.getBlobId());
+            } else {
+                LOG.info("Kunne ikke finne mellomlagring som skulle slettes med id {}", objektName);
+            }
+        } catch (StorageException e) {
+            throw new AnnenMellomlagringException(e);
         }
     }
 
     @Override
     public void oppdaterMellomlagredeVedleggOgSøknad(String katalog) {
-        var blobs = storage.list(
-            mellomlagringBøtte.navn(),
-            Storage.BlobListOption.prefix(katalog)
-        );
+        try {
+            var blobs = storage.list(mellomlagringBøtte.navn(), Storage.BlobListOption.prefix(katalog));
 
-        if (blobs.streamAll().findAny().isPresent()) {
-            var batch = storage.batch();
-            for (var blob : blobs.iterateAll()) {
-                LOG.trace("Legger til {} for oppdatering i batch", blob.getName());
-                var nyBlob = blob.toBuilder().setCustomTimeOffsetDateTime(OffsetDateTime.now()).build();
-                batch.update(nyBlob);
+            if (blobs.streamAll().findAny().isPresent()) {
+                var batch = storage.batch();
+                for (var blob : blobs.iterateAll()) {
+                    LOG.trace("Legger til {} for oppdatering i batch", blob.getName());
+                    var nyBlob = blob.toBuilder().setCustomTimeOffsetDateTime(OffsetDateTime.now()).build();
+                    batch.update(nyBlob);
+                }
+                batch.submit();
+                LOG.trace("Alle blobs i bøtte {} med prefiks {} er oppdatert", mellomlagringBøtte.navn(), katalog);
             }
-            batch.submit();
-            LOG.trace("Alle blobs i bøtte {} med prefiks {} er oppdatert", mellomlagringBøtte.navn(), katalog);
+        }  catch (StorageException e) {
+            throw new AnnenMellomlagringException(e);
         }
     }
 
     @Override
     public void slettAll(String katalog) {
-        var blobs = storage.list(
-            mellomlagringBøtte.navn(),
-            Storage.BlobListOption.prefix(katalog)
-        );
+        try {
+            var blobs = storage.list(mellomlagringBøtte.navn(), Storage.BlobListOption.prefix(katalog));
 
-        if (blobs.streamAll().findAny().isPresent()) {
-            var batch = storage.batch();
-            for (var blob : blobs.iterateAll()) {
-                LOG.trace("Legger til {} for sletting i batch", blob.getName());
-                batch.delete(blob.getBlobId());
+            if (blobs.streamAll().findAny().isPresent()) {
+                var batch = storage.batch();
+                for (var blob : blobs.iterateAll()) {
+                    LOG.trace("Legger til {} for sletting i batch", blob.getName());
+                    batch.delete(blob.getBlobId());
+                }
+                batch.submit();
+                LOG.trace("Alle blobs i bøtte {} med prefiks {} er blitt slettet", mellomlagringBøtte.navn(), katalog);
             }
-            batch.submit();
-            LOG.trace("Alle blobs i bøtte {} med prefiks {} er blitt slettet", mellomlagringBøtte.navn(), katalog);
+        } catch (StorageException e) {
+            throw new AnnenMellomlagringException(e);
         }
     }
 
