@@ -13,9 +13,10 @@ import jakarta.ws.rs.ApplicationPath;
 import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.foreldrepenger.soknad.innsending.SøknadRest;
 import no.nav.foreldrepenger.soknad.mellomlagring.MellomlagringRest;
-import no.nav.foreldrepenger.soknad.server.error.GeneralRestExceptionMapper;
-import no.nav.foreldrepenger.soknad.server.error.ValidationExceptionMapper;
-import no.nav.foreldrepenger.soknad.server.konfig.swagger.OpenApiUtils;
+import no.nav.foreldrepenger.soknad.server.error.LokalRestExceptionMapper;
+import no.nav.foreldrepenger.soknad.server.error.LokalValidationExceptionMapper;
+import no.nav.foreldrepenger.soknad.server.konfig.swagger.TypegenereringFrontendOpenApiReader;
+import no.nav.vedtak.openapi.OpenApiUtils;
 import no.nav.vedtak.server.rest.AuthenticationFilter;
 import no.nav.vedtak.server.rest.jackson.Jackson2MapperFeature;
 
@@ -26,9 +27,11 @@ public class ApiConfig extends ResourceConfig {
     private static final Environment ENV = Environment.current();
 
     public ApiConfig() {
+        // Nesten standard FpRestJackson2-oppsett, men lokale tilpasninger av exceptions.
         register(Jackson2MapperFeature.class); // Jackson konfigurasjon
         register(AuthenticationFilter.class); // Autentisering
-        registerClasses(getFellesConfigClasses());
+        register(LokalRestExceptionMapper.class); // Exception handling
+        register(LokalValidationExceptionMapper.class); // Exception handling
         register(MultiPartFeature.class); // Multipart upload mellomlagring
         if (!ENV.isProd()) {
             registerOpenApi();
@@ -41,12 +44,6 @@ public class ApiConfig extends ResourceConfig {
         return Set.of(SøknadRest.class, MellomlagringRest.class);
     }
 
-    static Set<Class<?>> getFellesConfigClasses() {
-        return  Set.of(
-            GeneralRestExceptionMapper.class, // Exception handling
-            ValidationExceptionMapper.class // Exception handling
-        );
-    }
 
     static Map<String, Object> getApplicationProperties() {
         Map<String, Object> properties = new HashMap<>();
@@ -57,8 +54,9 @@ public class ApiConfig extends ResourceConfig {
     }
 
     private void registerOpenApi() {
-        OpenApiUtils.openApiConfigFor("Fpsoknad - specifikasjon for typegenerering frontend", this)
-            .readerClassTypegenereingFrontend()
+        var contextPath = ENV.getProperty("context.path", "/fpsoknad");
+        OpenApiUtils.openApiConfigFor("Fpsoknad - specifikasjon for typegenerering frontend", contextPath, this)
+            .readerClass(TypegenereringFrontendOpenApiReader.class)
             .registerClasses(getApplicationClasses())
             .buildOpenApiContext();
         register(OpenApiResource.class);
