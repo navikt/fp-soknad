@@ -7,18 +7,13 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.validation.ConstraintViolationException;
 import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.foreldrepenger.soknad.innsending.fordel.BehandleEttersendelseTask;
 import no.nav.foreldrepenger.soknad.innsending.fordel.BehandleSøknadTask;
@@ -38,10 +33,6 @@ import no.nav.foreldrepenger.soknad.kontrakt.barn.BarnDto;
 import no.nav.foreldrepenger.soknad.kontrakt.barn.OmsorgsovertakelseDto;
 import no.nav.foreldrepenger.soknad.kontrakt.ettersendelse.EttersendelseDto;
 import no.nav.foreldrepenger.soknad.kontrakt.ettersendelse.YtelseType;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.OppholdsPeriodeDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.OverføringsPeriodeDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttaksPeriodeDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UtsettelsesPeriodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.InnsendingType;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.VedleggDto;
@@ -55,7 +46,6 @@ import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 
 @ApplicationScoped
 public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
-    private static final Logger LOG = LoggerFactory.getLogger(SøknadInnsendingTjeneste.class);
     private static final JsonMapper MAPPER = DefaultJsonMapper.getJsonMapper();
     private static final Environment ENV = Environment.current();
 
@@ -80,7 +70,8 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
 
     @Override
     public void lagreSøknadInnsending(SøknadDto søknad) {
-        validerUttaksperioder(søknad);
+        UttaksperioderValidator.valider(søknad);
+
         if (erForsendelseAlleredeMottatt(søknad)) {
             throw new DuplikatInnsendingException("Duplikat forsendelse av søknad mottatt for bruker, avbryter lagring og behandling");
         }
@@ -179,49 +170,6 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
         var task = ProsessTaskData.forProsessTask(BehandleEttersendelseTask.class);
         task.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
         prosessTaskTjeneste.lagre(task);
-    }
-
-    private static void validerUttaksperioder(SøknadDto søknad) {
-        var uttaksperioder = switch (søknad) {
-            case ForeldrepengesøknadDto fp -> fp.uttaksplan().uttaksperioder();
-            case EndringssøknadForeldrepengerDto endring -> endring.uttaksplan().uttaksperioder();
-            default -> null;
-        };
-        if (uttaksperioder == null) {
-            return;
-        }
-
-        var søknadstype = søknad instanceof EndringssøknadForeldrepengerDto ? "endringssøknad" : "førstegangssøknad";
-        var saksnummer = søknad instanceof EndringssøknadForeldrepengerDto endring ? endring.saksnummer().value() : null;
-
-        if (uttaksperioder.isEmpty()) {
-            LOG.warn("Mottatt {} uten uttaksperioder{}", søknadstype, saksnummer != null ? ", saksnummer: " + saksnummer : "");
-            throw new ConstraintViolationException("Uttaksplan må inneholde minst én uttaksperiode", Set.of());
-        }
-
-        if (uttaksperioder.size() > 200) {
-            LOG.warn("Mottatt {} med {} uttaksperioder (maks 200){}", søknadstype, uttaksperioder.size(),
-                saksnummer != null ? ", saksnummer: " + saksnummer : "");
-            throw new ConstraintViolationException("Uttaksplan kan ikke inneholde mer enn 200 uttaksperioder", Set.of());
-        }
-
-        var ugyldigePerioder = uttaksperioder.stream()
-            .filter(p -> p.tom().isBefore(p.fom()))
-            .toList();
-
-        if (!ugyldigePerioder.isEmpty()) {
-            for (var periode : ugyldigePerioder) {
-                var periodetype = switch (periode) {
-                    case UttaksPeriodeDto _ -> "uttak";
-                    case OverføringsPeriodeDto _ -> "overføring";
-                    case OppholdsPeriodeDto _ -> "opphold";
-                    case UtsettelsesPeriodeDto _ -> "utsettelse";
-                };
-                LOG.warn("Mottatt {} med ugyldig uttaksperiode: type={}, fom={}, tom={}{}", søknadstype, periodetype, periode.fom(), periode.tom(),
-                    saksnummer != null ? ", saksnummer: " + saksnummer : "");
-            }
-            throw new ConstraintViolationException("Uttaksplan inneholder perioder der tom er før fom", Set.of());
-        }
     }
 
     private boolean erForsendelseAlleredeMottatt(UtalelseOmTilbakebetaling utalelseOmTilbakebetaling) {

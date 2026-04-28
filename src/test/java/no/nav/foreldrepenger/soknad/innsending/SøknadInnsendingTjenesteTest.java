@@ -1,8 +1,10 @@
 package no.nav.foreldrepenger.soknad.innsending;
 
+import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.FEDREKVOTE;
 import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.FELLESPERIODE;
 import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.FORELDREPENGER_FØR_FØDSEL;
 import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.MØDREKVOTE;
+import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.Overføringsårsak.SYKDOM_ANNEN_FORELDER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -417,6 +419,40 @@ class SøknadInnsendingTjenesteTest {
     }
 
     @Test
+    void foreldrepengesøknad_med_overlappende_uttaksperiode_skal_kaste_exception() {
+        // Arrange
+        var now = LocalDate.now();
+
+        var uttaksplan = List.of(
+            UttakplanPeriodeBuilder.uttak(MØDREKVOTE, now, now).build(),
+            UttakplanPeriodeBuilder.uttak(MØDREKVOTE, now, now.plusDays(3)).build()
+        );
+
+        var søknad = (ForeldrepengesøknadDto) new ForeldrepengerBuilder().medUttaksplan(uttaksplan).build();
+
+        // Act/Assert
+        assertThatThrownBy(() -> søknadInnsendingTjeneste.lagreSøknadInnsending(søknad))
+            .isInstanceOf(ConstraintViolationException.class)
+            .hasMessageContaining("Uttaksplan inneholder overlappende perioder");
+    }
+
+    @Test
+    void foreldrepengesøknad_med_overlapp_omsluttende_periode_skal_kaste_exception() {
+        // Arrange
+        var now = LocalDate.now();
+        var uttaksplan = List.of(
+            UttakplanPeriodeBuilder.uttak(MØDREKVOTE, now, now.plusDays(10)).build(),
+            UttakplanPeriodeBuilder.overføring(SYKDOM_ANNEN_FORELDER, FEDREKVOTE, now.plusDays(2), now.plusDays(2)).build()
+        );
+        var søknad = (ForeldrepengesøknadDto) new ForeldrepengerBuilder().medUttaksplan(uttaksplan).build();
+
+        // Act/Assert
+        assertThatThrownBy(() -> søknadInnsendingTjeneste.lagreSøknadInnsending(søknad))
+            .isInstanceOf(ConstraintViolationException.class)
+            .hasMessageContaining("Uttaksplan inneholder overlappende perioder");
+    }
+
+    @Test
     void endringssøknad_med_ugyldig_uttaksperiode_tom_før_fom_skal_kaste_exception() {
         // Arrange
         var fom = LocalDate.now();
@@ -455,7 +491,7 @@ class SøknadInnsendingTjenesteTest {
         // Act/Assert
         assertThatThrownBy(() -> søknadInnsendingTjeneste.lagreSøknadInnsending(søknad))
             .isInstanceOf(ConstraintViolationException.class)
-            .hasMessageContaining("minst én uttaksperiode");
+            .hasMessageContaining("minst én periode");
 
         assertThat(dokumentRepository.hentForsendelse(fnr.value())).isEmpty();
     }
@@ -475,7 +511,7 @@ class SøknadInnsendingTjenesteTest {
         // Act/Assert
         assertThatThrownBy(() -> søknadInnsendingTjeneste.lagreSøknadInnsending(søknad))
             .isInstanceOf(ConstraintViolationException.class)
-            .hasMessageContaining("minst én uttaksperiode");
+            .hasMessageContaining("minst én periode");
 
         assertThat(dokumentRepository.hentForsendelse(fnr.value())).isEmpty();
     }
