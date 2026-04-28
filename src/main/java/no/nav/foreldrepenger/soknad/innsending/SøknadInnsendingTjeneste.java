@@ -23,6 +23,7 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepositor
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus;
 import no.nav.foreldrepenger.soknad.innsending.fordel.utils.SøknadJsonMapper;
+import no.nav.foreldrepenger.soknad.innsending.validering.UttaksperioderValidering;
 import no.nav.foreldrepenger.soknad.kontrakt.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.soknad.kontrakt.EngangsstønadDto;
 import no.nav.foreldrepenger.soknad.kontrakt.ForeldrepengesøknadDto;
@@ -70,7 +71,7 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
 
     @Override
     public void lagreSøknadInnsending(SøknadDto søknad) {
-        UttaksperioderValidator.valider(søknad);
+        UttaksperioderValidering.valider(søknad);
 
         if (erForsendelseAlleredeMottatt(søknad)) {
             throw new DuplikatInnsendingException("Duplikat forsendelse av søknad mottatt for bruker, avbryter lagring og behandling");

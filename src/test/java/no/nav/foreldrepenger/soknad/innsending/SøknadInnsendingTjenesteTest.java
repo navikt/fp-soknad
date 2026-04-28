@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import no.nav.foreldrepenger.soknad.innsending.validering.UttaksperioderValideringException;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +27,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.neovisionaries.i18n.CountryCode;
 
 import jakarta.persistence.EntityManager;
-import jakarta.validation.ConstraintViolationException;
 import no.nav.foreldrepenger.kontrakter.felles.typer.Fødselsnummer;
 import no.nav.foreldrepenger.kontrakter.felles.typer.Orgnummer;
 import no.nav.foreldrepenger.kontrakter.felles.typer.Saksnummer;
@@ -412,7 +413,7 @@ class SøknadInnsendingTjenesteTest {
 
         // Act/Assert
         assertThatThrownBy(() -> søknadInnsendingTjeneste.lagreSøknadInnsending(søknad))
-            .isInstanceOf(ConstraintViolationException.class)
+            .isInstanceOf(UttaksperioderValideringException.class)
             .hasMessageContaining("tom er før fom");
 
         assertThat(dokumentRepository.hentForsendelse(fnr.value())).isEmpty();
@@ -432,7 +433,7 @@ class SøknadInnsendingTjenesteTest {
 
         // Act/Assert
         assertThatThrownBy(() -> søknadInnsendingTjeneste.lagreSøknadInnsending(søknad))
-            .isInstanceOf(ConstraintViolationException.class)
+            .isInstanceOf(UttaksperioderValideringException.class)
             .hasMessageContaining("Uttaksplan inneholder overlappende perioder");
     }
 
@@ -448,7 +449,7 @@ class SøknadInnsendingTjenesteTest {
 
         // Act/Assert
         assertThatThrownBy(() -> søknadInnsendingTjeneste.lagreSøknadInnsending(søknad))
-            .isInstanceOf(ConstraintViolationException.class)
+            .isInstanceOf(UttaksperioderValideringException.class)
             .hasMessageContaining("Uttaksplan inneholder overlappende perioder");
     }
 
@@ -468,7 +469,7 @@ class SøknadInnsendingTjenesteTest {
 
         // Act/Assert
         assertThatThrownBy(() -> søknadInnsendingTjeneste.lagreSøknadInnsending(søknad))
-            .isInstanceOf(ConstraintViolationException.class)
+            .isInstanceOf(UttaksperioderValideringException.class)
             .hasMessageContaining("tom er før fom");
 
         assertThat(dokumentRepository.hentForsendelse(fnr.value())).isEmpty();
@@ -490,7 +491,7 @@ class SøknadInnsendingTjenesteTest {
 
         // Act/Assert
         assertThatThrownBy(() -> søknadInnsendingTjeneste.lagreSøknadInnsending(søknad))
-            .isInstanceOf(ConstraintViolationException.class)
+            .isInstanceOf(UttaksperioderValideringException.class)
             .hasMessageContaining("minst én periode");
 
         assertThat(dokumentRepository.hentForsendelse(fnr.value())).isEmpty();
@@ -510,7 +511,7 @@ class SøknadInnsendingTjenesteTest {
 
         // Act/Assert
         assertThatThrownBy(() -> søknadInnsendingTjeneste.lagreSøknadInnsending(søknad))
-            .isInstanceOf(ConstraintViolationException.class)
+            .isInstanceOf(UttaksperioderValideringException.class)
             .hasMessageContaining("minst én periode");
 
         assertThat(dokumentRepository.hentForsendelse(fnr.value())).isEmpty();
