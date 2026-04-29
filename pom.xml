@@ -22,6 +22,7 @@
         <prosesstask.version>5.2.5</prosesstask.version>
         <fp-kontrakter.version>9.4.31</fp-kontrakter.version>
         <soknad-kontrakt.version>1.0.4</soknad-kontrakt.version>
+        <fpsak-tidsserie.version>2.7.4</fpsak-tidsserie.version>
 
         <openapi-spec-utils.version>2.1.0</openapi-spec-utils.version>
         <tika.version>3.2.3</tika.version> <!-- Bedre måter å gjøre det på -->
@@ -59,6 +60,11 @@
                 <version>${fp-kontrakter.version}</version>
                 <scope>import</scope>
                 <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>no.nav.fpsak.tidsserie</groupId>
+                <artifactId>fpsak-tidsserie</artifactId>
+                <version>${fpsak-tidsserie.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.pdfbox</groupId>
@@ -124,6 +130,10 @@
             <groupId>no.nav.foreldrepenger.felles.integrasjon</groupId>
             <artifactId>dokarkiv-klient</artifactId>
             <version>${felles.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>no.nav.fpsak.tidsserie</groupId>
+            <artifactId>fpsak-tidsserie</artifactId>
         </dependency>
 
         <!-- Google Cloud Storage - Buckets -->
