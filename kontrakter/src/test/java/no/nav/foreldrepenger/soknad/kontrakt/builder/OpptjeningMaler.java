@@ -15,7 +15,7 @@ public final class OpptjeningMaler {
     }
 
     public static FrilansDto frilansOpptjening() {
-        return new FrilansDto(false, LocalDate.now().minusYears(2));
+        return new FrilansDto(null, LocalDate.now().minusYears(2));
     }
 
     public static NæringDto egenNaeringOpptjening(String orgnummer) {
