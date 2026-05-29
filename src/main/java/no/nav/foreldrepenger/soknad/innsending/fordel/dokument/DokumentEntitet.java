@@ -71,6 +71,13 @@ public class DokumentEntitet {
         return content;
     }
 
+    void setDokumentInnhold(byte[] content) {
+        if (content == null || content.length == 0) {
+            throw new TekniskException("SOKNAD-1006", "Utviklerfeil: forsøker oppdatere med tomt dokument");
+        }
+        this.content = Arrays.copyOf(content, content.length);
+    }
+
     public boolean erSøknad() {
         return dokumentTypeId.erSøknad();
     }

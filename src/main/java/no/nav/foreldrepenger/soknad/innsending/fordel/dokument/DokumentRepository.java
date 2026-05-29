@@ -13,6 +13,7 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import no.nav.foreldrepenger.soknad.innsending.fordel.fpsak.Destinasjon;
+import no.nav.vedtak.exception.TekniskException;
 
 @ApplicationScoped
 public class DokumentRepository {
@@ -46,6 +47,24 @@ public class DokumentRepository {
         return em.createQuery("from DokumentEntitet where forsendelseId = :forsendelseId", DokumentEntitet.class)
             .setParameter(FORSENDELSE_ID, forsendelseId)
             .getResultList();
+    }
+
+    public Optional<DokumentEntitet> hentSøknadDokument(UUID forsendelseId) {
+        var søknadDokumenter = hentDokumenter(forsendelseId, ArkivFilType.JSON).stream()
+            .filter(DokumentEntitet::erSøknad)
+            .toList();
+        if (søknadDokumenter.size() > 1) {
+            throw new TekniskException("SOKNAD-1010", "Fant flere søknadsdokumenter på forsendelse " + forsendelseId);
+        }
+        return søknadDokumenter.stream().findFirst();
+    }
+
+    public void oppdaterSøknadJson(DokumentEntitet søknadDokument, byte[] søknadJson) {
+        if (!søknadDokument.erSøknad()) {
+            throw new TekniskException("SOKNAD-1011", "Forsøkte oppdatere content på DokumentEntitet som ikke er en søknad");
+        }
+        søknadDokument.setDokumentInnhold(søknadJson);
+        em.flush();
     }
 
     public ForsendelseEntitet hentEksaktDokumentMetadata(UUID forsendelseId) {
