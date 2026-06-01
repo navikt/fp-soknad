@@ -67,7 +67,7 @@ public class ForvaltningSoknadRest {
         @ApiResponse(responseCode = "404", description = "Fant ikke søknad for forsendelse"),
     })
     @Transactional
-    @BeskyttetRessurs(actionType = ActionType.UPDATE, resourceType = ResourceType.DRIFT, sporingslogg = true)
+    @BeskyttetRessurs(actionType = ActionType.CREATE, resourceType = ResourceType.DRIFT, sporingslogg = true)
     public Response patchSoknad(@TilpassetAbacAttributt(supplierClass = FødselsnummerSupplier.class)
                                 @FormParam("fødselsnummer") @Valid @NotNull Fødselsnummer fødselsnummer,
                                 @FormParam("forsendelseId") @Valid @NotNull UUID forsendelseId,
@@ -75,7 +75,7 @@ public class ForvaltningSoknadRest {
         var fnrForsendelser = dokumentRepository.hentForsendelse(fødselsnummer.value());
         boolean forsendelseMatcherFnr = fnrForsendelser.stream().anyMatch(f -> fødselsnummer.value().equals(f.getBrukersFnr()));
         if (!forsendelseMatcherFnr) {
-            throw new BadRequestException("fnr/forsendelseId mismatch");
+            throw new BadRequestException("Ukjent fnr/forsendelseId eller mismatch");
         }
         var søknadDokument = dokumentRepository.hentSøknadDokument(forsendelseId).orElseThrow();
         var nySøknadJson = deseraliserOgValiderSøknad(json, søknadDokument.getDokumentTypeId());
