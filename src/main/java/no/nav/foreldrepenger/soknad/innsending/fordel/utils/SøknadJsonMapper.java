@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import no.nav.foreldrepenger.soknad.innsending.UtalelseOmTilbakebetaling;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
+import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.kontrakt.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.soknad.kontrakt.EngangsstønadDto;
 import no.nav.foreldrepenger.soknad.kontrakt.ForeldrepengesøknadDto;
@@ -35,15 +36,19 @@ public class SøknadJsonMapper {
 
     public static SøknadDto deseraliserSøknad(DokumentEntitet søknad) {
         try {
-            return switch (søknad.getDokumentTypeId()) {
-                case I000002, I000005 -> MAPPER.readValue(søknad.getByteArrayDokument(), ForeldrepengesøknadDto.class);
-                case I000050 -> MAPPER.readValue(søknad.getByteArrayDokument(), EndringssøknadForeldrepengerDto.class);
-                case I000003, I000004 -> MAPPER.readValue(søknad.getByteArrayDokument(), EngangsstønadDto.class);
-                case I000001 -> MAPPER.readValue(søknad.getByteArrayDokument(), SvangerskapspengesøknadDto.class);
-                default -> throw new IllegalArgumentException("Utviklerfeil: Dokument som er lagret er ikke en søknad: " + søknad.getDokumentTypeId());
-            };
+            return deseraliserSøknad(søknad.getByteArrayDokument(), søknad.getDokumentTypeId());
         } catch (IOException e) {
             throw new TekniskException("SOKNAD-1005", "Noe gikk galt med seralisering av søknad", e);
         }
+    }
+
+    public static SøknadDto deseraliserSøknad(byte[] søknadBytes, DokumentTypeId dokumentTypeId) throws IOException {
+        return switch (dokumentTypeId) {
+            case I000002, I000005 -> MAPPER.readValue(søknadBytes, ForeldrepengesøknadDto.class);
+            case I000050 -> MAPPER.readValue(søknadBytes, EndringssøknadForeldrepengerDto.class);
+            case I000003, I000004 -> MAPPER.readValue(søknadBytes, EngangsstønadDto.class);
+            case I000001 -> MAPPER.readValue(søknadBytes, SvangerskapspengesøknadDto.class);
+            default -> throw new IllegalArgumentException("Utviklerfeil: Dokument som er lagret er ikke en søknad: " + dokumentTypeId);
+        };
     }
 }
