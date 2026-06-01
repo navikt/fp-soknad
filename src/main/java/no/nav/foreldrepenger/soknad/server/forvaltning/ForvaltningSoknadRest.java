@@ -23,7 +23,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.FormParam;
-import jakarta.ws.rs.PATCH;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
@@ -58,7 +58,7 @@ public class ForvaltningSoknadRest {
         this.dokumentRepository = dokumentRepository;
     }
 
-    @PATCH
+    @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Lagre korrigert versjon av søknad-json. Støtter ikke endret søknadstype.", tags = "soknad", responses = {
