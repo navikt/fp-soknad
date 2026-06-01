@@ -72,7 +72,7 @@ class ForvaltningSoknadRestTest {
 
         assertThatThrownBy(() -> rest.patchSoknad(FØDSELSNUMMER, forsendelseId, json))
             .isInstanceOf(BadRequestException.class)
-            .hasMessageContaining("fnr/forsendelseId mismatch");
+            .hasMessageContaining("Ukjent fnr/forsendelseId eller mismatch");
         verify(dokumentRepository, never()).oppdaterSøknadJson(any(), any(byte[].class));
     }
 
