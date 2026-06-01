@@ -46,8 +46,8 @@ class ForvaltningSoknadRestTest {
         rest = new ForvaltningSoknadRest(dokumentRepository);
     }
 
-    private static final String FNR = "12345678901";
-    private static final Fødselsnummer FØDSELSNUMMER = new Fødselsnummer(FNR);
+    private static final String FØDSELSNUMMER_VALUE = "12345678901";
+    private static final Fødselsnummer FØDSELSNUMMER = new Fødselsnummer(FØDSELSNUMMER_VALUE);
 
     @Test
     void skal_oppdatere_søknadsjson_for_forsendelse() {
@@ -55,7 +55,7 @@ class ForvaltningSoknadRestTest {
         var søknad = gyldigEngangsstønad();
         var json = json(søknad);
         var søknadDokument = søknadsdokument(DokumentTypeId.I000003);
-        when(dokumentRepository.hentForsendelse(FNR)).thenReturn(List.of(forsendelseMedFnr(FNR)));
+        when(dokumentRepository.hentForsendelse(FØDSELSNUMMER_VALUE)).thenReturn(List.of(forsendelseMedFnr(FØDSELSNUMMER_VALUE, forsendelseId)));
         when(dokumentRepository.hentSøknadDokument(forsendelseId)).thenReturn(Optional.of(søknadDokument));
 
         var response = rest.patchSoknad(FØDSELSNUMMER, forsendelseId, json);
@@ -68,7 +68,7 @@ class ForvaltningSoknadRestTest {
     void skal_kaste_exception_når_fnr_ikke_matcher_forsendelse() {
         var forsendelseId = UUID.randomUUID();
         var json = "{}";
-        when(dokumentRepository.hentForsendelse(FNR)).thenReturn(List.of(forsendelseMedFnr("99999999999")));
+        when(dokumentRepository.hentForsendelse(FØDSELSNUMMER_VALUE)).thenReturn(List.of(forsendelseMedFnr(FØDSELSNUMMER_VALUE, UUID.randomUUID())));
 
         assertThatThrownBy(() -> rest.patchSoknad(FØDSELSNUMMER, forsendelseId, json))
             .isInstanceOf(BadRequestException.class)
@@ -79,7 +79,7 @@ class ForvaltningSoknadRestTest {
     @Test
     void skal_avvise_ugyldig_json() {
         var forsendelseId = UUID.randomUUID();
-        when(dokumentRepository.hentForsendelse(FNR)).thenReturn(List.of(forsendelseMedFnr(FNR)));
+        when(dokumentRepository.hentForsendelse(FØDSELSNUMMER_VALUE)).thenReturn(List.of(forsendelseMedFnr(FØDSELSNUMMER_VALUE, forsendelseId)));
         when(dokumentRepository.hentSøknadDokument(forsendelseId)).thenReturn(Optional.of(søknadsdokument(DokumentTypeId.I000003)));
 
         assertThatThrownBy(() -> rest.patchSoknad(FØDSELSNUMMER, forsendelseId, "{ugyldig"))
@@ -91,7 +91,7 @@ class ForvaltningSoknadRestTest {
     @Test
     void skal_avvise_json_som_ikke_validerer_som_soknad_dto() {
         var forsendelseId = UUID.randomUUID();
-        when(dokumentRepository.hentForsendelse(FNR)).thenReturn(List.of(forsendelseMedFnr(FNR)));
+        when(dokumentRepository.hentForsendelse(FØDSELSNUMMER_VALUE)).thenReturn(List.of(forsendelseMedFnr(FØDSELSNUMMER_VALUE, forsendelseId)));
         when(dokumentRepository.hentSøknadDokument(forsendelseId)).thenReturn(Optional.of(søknadsdokument(DokumentTypeId.I000003)));
 
         assertThatThrownBy(() -> rest.patchSoknad(FØDSELSNUMMER, forsendelseId, "{}"))
@@ -100,10 +100,10 @@ class ForvaltningSoknadRestTest {
         verify(dokumentRepository, never()).oppdaterSøknadJson(any(), any(byte[].class));
     }
 
-    private static ForsendelseEntitet forsendelseMedFnr(String fnr) {
+    private static ForsendelseEntitet forsendelseMedFnr(String fnr, UUID forsendelseId) {
         return ForsendelseEntitet.builder()
             .setFødselsnummer(fnr)
-            .setForsendelseId(UUID.randomUUID())
+            .setForsendelseId(forsendelseId)
             .setForsendelseMottatt(LocalDateTime.now())
             .build();
     }

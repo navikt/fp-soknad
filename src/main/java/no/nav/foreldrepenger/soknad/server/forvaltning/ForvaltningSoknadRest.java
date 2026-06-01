@@ -73,7 +73,8 @@ public class ForvaltningSoknadRest {
                                 @FormParam("forsendelseId") @Valid @NotNull UUID forsendelseId,
                                 @FormParam("soknadJson") @NotBlank String json) {
         var fnrForsendelser = dokumentRepository.hentForsendelse(fødselsnummer.value());
-        boolean forsendelseMatcherFnr = fnrForsendelser.stream().anyMatch(f -> fødselsnummer.value().equals(f.getBrukersFnr()));
+        boolean forsendelseMatcherFnr = fnrForsendelser.stream()
+            .anyMatch(f -> forsendelseId.equals(f.getForsendelseId()));
         if (!forsendelseMatcherFnr) {
             throw new BadRequestException("Ukjent fnr/forsendelseId eller mismatch");
         }
