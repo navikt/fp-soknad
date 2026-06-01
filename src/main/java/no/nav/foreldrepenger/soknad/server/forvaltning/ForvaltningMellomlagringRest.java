@@ -1,8 +1,6 @@
 package no.nav.foreldrepenger.soknad.server.forvaltning;
 
 
-import java.util.function.Function;
-
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -29,9 +27,7 @@ import no.nav.foreldrepenger.soknad.mellomlagring.Mellomlagring;
 import no.nav.foreldrepenger.soknad.mellomlagring.MellomlagringTjeneste;
 import no.nav.foreldrepenger.soknad.mellomlagring.YtelseMellomlagringType;
 import no.nav.vedtak.felles.prosesstask.rest.AbacEmptySupplier;
-import no.nav.vedtak.sikkerhet.abac.AbacDataAttributter;
 import no.nav.vedtak.sikkerhet.abac.BeskyttetRessurs;
-import no.nav.vedtak.sikkerhet.abac.StandardAbacAttributtType;
 import no.nav.vedtak.sikkerhet.abac.TilpassetAbacAttributt;
 import no.nav.vedtak.sikkerhet.abac.beskyttet.ActionType;
 import no.nav.vedtak.sikkerhet.abac.beskyttet.ResourceType;
@@ -97,11 +93,4 @@ public class ForvaltningMellomlagringRest {
         return Response.noContent().build();
     }
 
-    public static class FødselsnummerSupplier implements Function<Object, AbacDataAttributter> {
-        @Override
-        public AbacDataAttributter apply(Object obj) {
-            var req = (Fødselsnummer) obj;
-            return AbacDataAttributter.opprett().leggTil(StandardAbacAttributtType.FNR, req.value());
-        }
-    }
 }

@@ -3,7 +3,6 @@ package no.nav.foreldrepenger.soknad.server.forvaltning;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -14,17 +13,16 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.spi.CDI;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.FormParam;
-import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -35,13 +33,11 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepositor
 import no.nav.foreldrepenger.soknad.innsending.fordel.utils.SøknadJsonMapper;
 import no.nav.foreldrepenger.soknad.kontrakt.SøknadDto;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.DokumentTypeId;
-import no.nav.vedtak.sikkerhet.abac.AbacDataAttributter;
+import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 import no.nav.vedtak.sikkerhet.abac.BeskyttetRessurs;
-import no.nav.vedtak.sikkerhet.abac.StandardAbacAttributtType;
 import no.nav.vedtak.sikkerhet.abac.TilpassetAbacAttributt;
 import no.nav.vedtak.sikkerhet.abac.beskyttet.ActionType;
 import no.nav.vedtak.sikkerhet.abac.beskyttet.ResourceType;
-import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 
 @OpenAPIDefinition(tags = @Tag(name = "soknad", description = "Forvaltningstjeneste for søknader"))
 @Path("/soknad")
@@ -72,10 +68,10 @@ public class ForvaltningSoknadRest {
     })
     @Transactional
     @BeskyttetRessurs(actionType = ActionType.UPDATE, resourceType = ResourceType.DRIFT, sporingslogg = true)
-    public Response patchSoknad(@TilpassetAbacAttributt(supplierClass = ForsendelseIdFnrSupplier.class)
+    public Response patchSoknad(@TilpassetAbacAttributt(supplierClass = FødselsnummerSupplier.class)
                                 @FormParam("fødselsnummer") @Valid @NotNull Fødselsnummer fødselsnummer,
                                 @FormParam("forsendelseId") @Valid @NotNull UUID forsendelseId,
-                                @FormParam("soknadJson") String json) {
+                                @FormParam("soknadJson") @NotBlank String json) {
         var fnrForsendelser = dokumentRepository.hentForsendelse(fødselsnummer.value());
         boolean forsendelseMatcherFnr = fnrForsendelser.stream().anyMatch(f -> fødselsnummer.value().equals(f.getBrukersFnr()));
         if (!forsendelseMatcherFnr) {
@@ -109,20 +105,6 @@ public class ForvaltningSoknadRest {
             return MAPPER.writeValueAsBytes(søknad);
         } catch (JsonProcessingException e) {
             throw new BadRequestException("Kunne ikke serialisere validert soknadJson", e);
-        }
-    }
-
-    public static class ForsendelseIdFnrSupplier implements Function<Object, AbacDataAttributter> {
-
-        @Override
-        public AbacDataAttributter apply(Object obj) {
-            var forsendelseId = (UUID) obj;
-            var dokumentRepository = CDI.current().select(DokumentRepository.class).get();
-            var metadata = dokumentRepository.hentUnikDokumentMetadata(forsendelseId)
-                .orElseThrow(() -> new NotFoundException("Fant ikke forsendelse " + forsendelseId));
-
-            return AbacDataAttributter.opprett()
-                .leggTil(StandardAbacAttributtType.FNR, metadata.getBrukersFnr());
         }
     }
 
