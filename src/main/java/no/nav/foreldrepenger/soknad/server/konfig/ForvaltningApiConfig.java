@@ -4,6 +4,8 @@ import static no.nav.foreldrepenger.soknad.server.konfig.ApiConfig.getApplicatio
 
 import java.util.Set;
 
+import no.nav.foreldrepenger.soknad.server.forvaltning.ForvaltningSoknadRest;
+
 import org.glassfish.jersey.server.ResourceConfig;
 
 import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
@@ -32,7 +34,8 @@ public class ForvaltningApiConfig extends ResourceConfig {
     private static Set<Class<?>> getForvaltningKlasser() {
         return Set.of(
             ProsessTaskRestTjeneste.class,
-            ForvaltningMellomlagringRest.class
+            ForvaltningMellomlagringRest.class,
+            ForvaltningSoknadRest.class
         );
     }
 

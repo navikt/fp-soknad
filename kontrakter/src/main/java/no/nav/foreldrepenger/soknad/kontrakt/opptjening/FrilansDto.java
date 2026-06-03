@@ -4,5 +4,5 @@ import java.time.LocalDate;
 
 import jakarta.validation.constraints.NotNull;
 
-public record FrilansDto(LocalDate tom, @NotNull LocalDate oppstart) {
+public record FrilansDto(@NotNull LocalDate oppstart, LocalDate tom) {
 }

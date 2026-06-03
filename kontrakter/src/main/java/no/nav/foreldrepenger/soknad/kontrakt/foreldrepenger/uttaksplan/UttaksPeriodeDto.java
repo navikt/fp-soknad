@@ -1,6 +1,7 @@
 package no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan;
 
-import static no.nav.foreldrepenger.kontrakter.felles.validering.InputValideringRegex.FRITEKST;
+import static no.nav.foreldrepenger.kontrakter.felles.validering.InputValideringRegex.ORGNUMMER;
+import static no.nav.foreldrepenger.kontrakter.felles.validering.InputValideringRegex.NORSK_FØDSELSNUMMER;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -30,7 +31,7 @@ public record UttaksPeriodeDto(@NotNull LocalDate fom,
                                Boolean erArbeidstaker,
                                Boolean erFrilanser,
                                Boolean erSelvstendig,
-                               @Size(max = 15) List<@Pattern(regexp = FRITEKST) @NotNull String> orgnumre) {
+                               @Size(max = 15) List<@Pattern(regexp = ORGNUMMER + "|" + NORSK_FØDSELSNUMMER, message = "orgnumre må være organisasjonummer eller personnummer") @NotNull String> orgnumre) {
     }
 
     @AssertTrue(message = "ønskerSamtidigUttak er satt, men ikke prosent, eller så er prosent satt og ikke ønskerSamtidigUttak")
