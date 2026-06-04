@@ -334,7 +334,7 @@ final class V3DomainMapperCommon {
 
     private static Frilans create(FrilansDto frilans) {
         var frilansXML = new Frilans();
-        frilansXML.getPeriode().add(tilPeriode(frilans.oppstart()));
+        frilansXML.getPeriode().add(tilPeriode(frilans.oppstart(), frilans.tom()));
         frilansXML.setHarInntektFraFosterhjem(false);
         frilansXML.setNaerRelasjon(false);
         frilansXML.setErNyoppstartet(frilans.oppstart().isAfter(now().minusMonths(3)));
