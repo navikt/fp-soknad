@@ -2,6 +2,7 @@ package no.nav.foreldrepenger.soknad.innsending;
 
 import static no.nav.foreldrepenger.soknad.innsending.fordel.BehandleSøknadTask.FORSENDELSE_ID_PROPERTY;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -104,6 +105,8 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
 
         var task = ProsessTaskData.forProsessTask(BehandleSøknadTask.class);
         task.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
+        task.setGruppe(innloggetBruker.brukerFraKontekst());
+        task.setSekvens(String.valueOf(Instant.now().toEpochMilli()));
         prosessTaskTjeneste.lagre(task);
     }
 
