@@ -25,10 +25,10 @@
         <fpsak-tidsserie.version>2.7.4</fpsak-tidsserie.version>
 
         <openapi-spec-utils.version>2.1.0</openapi-spec-utils.version>
-        <tika.version>3.3.0</tika.version> <!-- Bedre måter å gjøre det på -->
+        <tika.version>3.3.1</tika.version> <!-- Bedre måter å gjøre det på -->
         <nv.version>1.29</nv.version>
         <pdfbox.version>3.0.7</pdfbox.version>
-        <gcp.storage.version>2.67.0</gcp.storage.version>
+        <gcp.storage.version>2.68.0</gcp.storage.version>
     </properties>
 
     <dependencyManagement>
