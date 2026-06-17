@@ -6,7 +6,6 @@ import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.FORELDR
 import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.MØDREKVOTE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -23,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -86,6 +86,8 @@ class BehandleSøknadTaskTest {
     private FpDokgenRestKlient fpDokgenRestKlient;
     @Mock
     private FpsakTjeneste fpsakTjeneste;
+    @Captor
+    private ArgumentCaptor<List<DokumentEntitet>> dokumentCaptor;
 
     private DokumentRepository dokumentRepository;
     private BehandleSøknadTask task;
@@ -144,8 +146,11 @@ class BehandleSøknadTaskTest {
         assertThat(dokumenter).extracting(DokumentEntitet::getArkivFilType)
             .containsExactlyInAnyOrder(ArkivFilType.JSON, ArkivFilType.PDFA, ArkivFilType.PDFA, ArkivFilType.XML);
 
-        var dokumenterSomSkalTilJournalføring = dokumenter.stream().filter(d -> !d.getArkivFilType().equals(ArkivFilType.JSON)).toList();
-        verify(arkivtjeneste, times(1)).forsøkEndeligJournalføring(any(), eq(dokumenterSomSkalTilJournalføring), any(), any(), any(), any());
+        var forventet = dokumenter.stream().filter(d -> !d.getArkivFilType().equals(ArkivFilType.JSON)).toList();
+        verify(arkivtjeneste, times(1)).forsøkEndeligJournalføring(any(), dokumentCaptor.capture(), any(), any(), any(), any());
+        assertThat(dokumentCaptor.getValue())
+            .hasSameSizeAs(forventet)
+            .containsAll(forventet);
 
         validerProsesstaskOpprettet(forsendelseId, saksnummer);
     }
@@ -190,8 +195,11 @@ class BehandleSøknadTaskTest {
         assertThat(dokumenter).extracting(DokumentEntitet::getArkivFilType)
             .containsExactlyInAnyOrder(ArkivFilType.JSON, ArkivFilType.PDFA, ArkivFilType.XML);
 
-        var dokumenterSomSkalTilJournalføring = dokumenter.stream().filter(d -> !d.getArkivFilType().equals(ArkivFilType.JSON)).toList();
-        verify(arkivtjeneste, times(1)).forsøkEndeligJournalføring(any(), eq(dokumenterSomSkalTilJournalføring), any(), any(), any(), any());
+        var forventet = dokumenter.stream().filter(d -> !d.getArkivFilType().equals(ArkivFilType.JSON)).toList();
+        verify(arkivtjeneste, times(1)).forsøkEndeligJournalføring(any(), dokumentCaptor.capture(), any(), any(), any(), any());
+        assertThat(dokumentCaptor.getValue())
+            .hasSameSizeAs(forventet)
+            .containsAll(forventet);
         verify(fpsakTjeneste, never()).vurderFagsystem(any());
 
         validerProsesstaskOpprettet(forsendelseId, saksnummer.value());
