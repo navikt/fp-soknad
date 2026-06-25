@@ -534,7 +534,7 @@ class SøknadInnsendingTjenesteTest {
 
         // Assert
         verify(prosessTaskTjeneste).lagre(taskDataCaptor.capture());
-        assertThat(taskDataCaptor.getValue().getGruppe()).isEqualTo("563cbaf0043a2ad6");
+        assertThat(taskDataCaptor.getValue().getGruppe()).isEqualTo("187bbdfd764bba51");
         assertThat(taskDataCaptor.getValue().getSekvens()).isNotBlank().isNotEqualTo("1");
     }
 }

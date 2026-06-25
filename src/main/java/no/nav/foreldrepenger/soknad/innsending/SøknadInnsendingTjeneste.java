@@ -4,6 +4,7 @@ import static no.nav.foreldrepenger.soknad.innsending.fordel.BehandleSøknadTask
 
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.security.MessageDigest;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -12,9 +13,6 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -321,14 +319,14 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
     }
 
     private static String pseudonymisertBrukerId(String brukerIdent) {
-        var åpentSalt = "fp-soknad";
         try {
-            var mac = Mac.getInstance("HmacSHA256");
-            mac.init(new SecretKeySpec(åpentSalt.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
-            var hash = mac.doFinal(brukerIdent.getBytes(StandardCharsets.UTF_8));
+            var digest = MessageDigest.getInstance("SHA-256");
+            digest.update("fp-soknad".getBytes(StandardCharsets.UTF_8));
+            var hash = digest.digest(brukerIdent.getBytes(StandardCharsets.UTF_8));
             return HexFormat.of().formatHex(hash).substring(0, 16);
+
         } catch (GeneralSecurityException e) {
-            throw new IllegalStateException("HmacSHA256 ikke tilgjengelig", e); // er tilgjengelig i JVM
+            throw new IllegalStateException("SHA-256 ikke tilgjengelig", e); // er tilgjengelig i JVM
         }
     }
 
