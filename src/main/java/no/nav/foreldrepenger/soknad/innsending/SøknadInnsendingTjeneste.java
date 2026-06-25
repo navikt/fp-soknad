@@ -2,12 +2,19 @@ package no.nav.foreldrepenger.soknad.innsending;
 
 import static no.nav.foreldrepenger.soknad.innsending.fordel.BehandleSøknadTask.FORSENDELSE_ID_PROPERTY;
 
+import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -102,8 +109,11 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
             .toList();
         vedleggDokumenter.forEach(dokumentRepository::lagre);
 
+        var gruppe = pseudonymisertBrukerId(innloggetBruker.brukerFraKontekst());
         var task = ProsessTaskData.forProsessTask(BehandleSøknadTask.class);
         task.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
+        task.setGruppe(gruppe);
+        task.setSekvens(String.valueOf(Instant.now().toEpochMilli()));
         prosessTaskTjeneste.lagre(task);
     }
 
@@ -139,8 +149,11 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
             .toList();
         vedleggDokumenter.forEach(dokumentRepository::lagre);
 
+        var gruppe = pseudonymisertBrukerId(innloggetBruker.brukerFraKontekst());
         var task = ProsessTaskData.forProsessTask(BehandleEttersendelseTask.class);
         task.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
+        task.setGruppe(gruppe);
+        task.setSekvens(String.valueOf(Instant.now().toEpochMilli()));
         prosessTaskTjeneste.lagre(task);
     }
 
@@ -305,6 +318,18 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
             return new VedleggSkjemanummerWrapper(innhold, vedleggDto.skjemanummer(), Optional.of(begrunnelse));
         }
         return new VedleggSkjemanummerWrapper(innhold, vedleggDto.skjemanummer(), Optional.empty());
+    }
+
+    private static String pseudonymisertBrukerId(String brukerIdent) {
+        var åpentSalt = "fp-soknad";
+        try {
+            var mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(åpentSalt.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            var hash = mac.doFinal(brukerIdent.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash).substring(0, 16);
+        } catch (GeneralSecurityException e) {
+            throw new IllegalStateException("HmacSHA256 ikke tilgjengelig", e); // er tilgjengelig i JVM
+        }
     }
 
     private record VedleggSkjemanummerWrapper(byte[] innhold, DokumentTypeId skjemanummer, Optional<String> begrunnelse) {}

@@ -8,6 +8,7 @@ import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.Overføringsårsa
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
@@ -16,11 +17,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import no.nav.foreldrepenger.soknad.innsending.validering.UttaksperioderValideringException;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -36,6 +36,7 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus;
 import no.nav.foreldrepenger.soknad.innsending.fordel.utils.SøknadJsonMapper;
+import no.nav.foreldrepenger.soknad.innsending.validering.UttaksperioderValideringException;
 import no.nav.foreldrepenger.soknad.kontrakt.BrukerRolle;
 import no.nav.foreldrepenger.soknad.kontrakt.ForeldrepengesøknadDto;
 import no.nav.foreldrepenger.soknad.kontrakt.SøkerDto;
@@ -61,6 +62,7 @@ import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.InnsendingType;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.VedleggDto;
 import no.nav.foreldrepenger.soknad.mellomlagring.MellomlagringTjeneste;
 import no.nav.foreldrepenger.soknad.utils.InnloggetBruker;
+import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 
 @ExtendWith(MockitoExtension.class)
@@ -362,8 +364,6 @@ class SøknadInnsendingTjenesteTest {
         assertThat(uttalelseDokument.getArkivFilType()).isEqualTo(ArkivFilType.JSON);
         var deseralisertUttalelse = SøknadJsonMapper.deseraliserUttalelsePåTilbakebetaling(uttalelseDokument);
         assertThat(deseralisertUttalelse).isEqualTo(new UtalelseOmTilbakebetaling(ettersendelse.type(), ettersendelse.brukerTekst()));
-
-
     }
 
     @Test
@@ -515,5 +515,26 @@ class SøknadInnsendingTjenesteTest {
             .hasMessageContaining("minst én periode");
 
         assertThat(dokumentRepository.hentForsendelse(fnr.value())).isEmpty();
+    }
+
+    @Test
+    void innsending_skal_sette_gruppe_og_sekvens() {
+        // Arrange
+        var fnr = new Fødselsnummer("1234567890");
+        var søknad = new EngangsstønadBuilder()
+            .medSøkerinfo(new SøkerDto(fnr, new SøkerDto.Navn("Per", null, "Pål"), null))
+            .medBarn(new FødselDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
+            .medUtenlandsopphold(List.of(new UtenlandsoppholdsperiodeDto(LocalDate.now().minusYears(1), LocalDate.now().minusMonths(6), CountryCode.XK)))
+            .build();
+        when(innloggetBruker.brukerFraKontekst()).thenReturn(fnr.value());
+        var taskDataCaptor = ArgumentCaptor.forClass(ProsessTaskData.class);
+
+        // Act
+        søknadInnsendingTjeneste.lagreSøknadInnsending(søknad);
+
+        // Assert
+        verify(prosessTaskTjeneste).lagre(taskDataCaptor.capture());
+        assertThat(taskDataCaptor.getValue().getGruppe()).isEqualTo("563cbaf0043a2ad6");
+        assertThat(taskDataCaptor.getValue().getSekvens()).isNotBlank().isNotEqualTo("1");
     }
 }
