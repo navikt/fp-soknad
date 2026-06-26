@@ -83,7 +83,7 @@ spec:
     - name: GCP_BUCKET_NAME
       value: {{tmpbucket}}
   envFrom:
-    - secret: mellomlagring-kryptering # krypteringsnøkkel for mellomlagring
+    - secret: mellomlagring-kryptering # nøkler for mellomlagring og prosesstaskgruppe
   observability:
     autoInstrumentation:
       enabled: true

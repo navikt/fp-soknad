@@ -2,6 +2,7 @@ package no.nav.foreldrepenger.soknad.innsending;
 
 import static no.nav.foreldrepenger.soknad.innsending.fordel.BehandleSøknadTask.FORSENDELSE_ID_PROPERTY;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -23,6 +24,7 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepositor
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus;
 import no.nav.foreldrepenger.soknad.innsending.fordel.utils.SøknadJsonMapper;
+import no.nav.foreldrepenger.soknad.innsending.fordel.ProsessTaskGruppeUtleder;
 import no.nav.foreldrepenger.soknad.innsending.validering.UttaksperioderValidering;
 import no.nav.foreldrepenger.soknad.kontrakt.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.soknad.kontrakt.EngangsstønadDto;
@@ -54,6 +56,7 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
     private InnloggetBruker innloggetBruker;
     private DokumentRepository dokumentRepository;
     private ProsessTaskTjeneste prosessTaskTjeneste;
+    private ProsessTaskGruppeUtleder prosessTaskGruppeUtleder;
 
     public SøknadInnsendingTjeneste() {
         //CDI
@@ -62,11 +65,13 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
     public SøknadInnsendingTjeneste(MellomlagringTjeneste mellomlagringTjeneste,
                                     InnloggetBruker innloggetBruker,
                                     DokumentRepository dokumentRepository,
-                                    ProsessTaskTjeneste prosessTaskTjeneste) {
+                                    ProsessTaskTjeneste prosessTaskTjeneste,
+                                    ProsessTaskGruppeUtleder prosessTaskGruppeUtleder) {
         this.mellomlagringTjeneste = mellomlagringTjeneste;
         this.innloggetBruker = innloggetBruker;
         this.dokumentRepository = dokumentRepository;
         this.prosessTaskTjeneste = prosessTaskTjeneste;
+        this.prosessTaskGruppeUtleder = prosessTaskGruppeUtleder;
     }
 
     @Override
@@ -102,8 +107,11 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
             .toList();
         vedleggDokumenter.forEach(dokumentRepository::lagre);
 
+        var gruppe = prosessTaskGruppeUtleder.prosesstaskGruppeFor(innloggetBruker.brukerFraKontekst());
         var task = ProsessTaskData.forProsessTask(BehandleSøknadTask.class);
         task.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
+        task.setGruppe(gruppe);
+        task.setSekvens(String.valueOf(Instant.now().toEpochMilli()));
         prosessTaskTjeneste.lagre(task);
     }
 
@@ -139,8 +147,11 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
             .toList();
         vedleggDokumenter.forEach(dokumentRepository::lagre);
 
+        var gruppe = prosessTaskGruppeUtleder.prosesstaskGruppeFor(innloggetBruker.brukerFraKontekst());
         var task = ProsessTaskData.forProsessTask(BehandleEttersendelseTask.class);
         task.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
+        task.setGruppe(gruppe);
+        task.setSekvens(String.valueOf(Instant.now().toEpochMilli()));
         prosessTaskTjeneste.lagre(task);
     }
 
