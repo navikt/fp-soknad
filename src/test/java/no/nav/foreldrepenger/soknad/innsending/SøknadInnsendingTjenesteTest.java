@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.jose4j.base64url.Base64;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +37,7 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus;
 import no.nav.foreldrepenger.soknad.innsending.fordel.utils.SøknadJsonMapper;
+import no.nav.foreldrepenger.soknad.innsending.fordel.ProsessTaskGruppeUtleder;
 import no.nav.foreldrepenger.soknad.innsending.validering.UttaksperioderValideringException;
 import no.nav.foreldrepenger.soknad.kontrakt.BrukerRolle;
 import no.nav.foreldrepenger.soknad.kontrakt.ForeldrepengesøknadDto;
@@ -82,7 +84,9 @@ class SøknadInnsendingTjenesteTest {
     @BeforeEach
     void setUp(EntityManager entityManager) {
         dokumentRepository = new DokumentRepository(entityManager);
-        søknadInnsendingTjeneste = new SøknadInnsendingTjeneste(mellomlagringTjeneste, innloggetBruker, dokumentRepository, prosessTaskTjeneste);
+        var ptGruppeUtleder = new ProsessTaskGruppeUtleder(Base64.encode("HMAC_KEY".getBytes()));
+        søknadInnsendingTjeneste = new SøknadInnsendingTjeneste(mellomlagringTjeneste, innloggetBruker, dokumentRepository, prosessTaskTjeneste,
+            ptGruppeUtleder);
     }
 
     @Test
@@ -534,7 +538,7 @@ class SøknadInnsendingTjenesteTest {
 
         // Assert
         verify(prosessTaskTjeneste).lagre(taskDataCaptor.capture());
-        assertThat(taskDataCaptor.getValue().getGruppe()).isEqualTo("187bbdfd764bba51");
+        assertThat(taskDataCaptor.getValue().getGruppe()).isEqualTo("e2c236c373d1b649");
         assertThat(taskDataCaptor.getValue().getSekvens()).isNotBlank().isNotEqualTo("1");
     }
 }

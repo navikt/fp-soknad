@@ -2,14 +2,10 @@ package no.nav.foreldrepenger.soknad.innsending;
 
 import static no.nav.foreldrepenger.soknad.innsending.fordel.BehandleSøknadTask.FORSENDELSE_ID_PROPERTY;
 
-import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
-import java.security.MessageDigest;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,6 +24,7 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepositor
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus;
 import no.nav.foreldrepenger.soknad.innsending.fordel.utils.SøknadJsonMapper;
+import no.nav.foreldrepenger.soknad.innsending.fordel.ProsessTaskGruppeUtleder;
 import no.nav.foreldrepenger.soknad.innsending.validering.UttaksperioderValidering;
 import no.nav.foreldrepenger.soknad.kontrakt.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.soknad.kontrakt.EngangsstønadDto;
@@ -59,6 +56,7 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
     private InnloggetBruker innloggetBruker;
     private DokumentRepository dokumentRepository;
     private ProsessTaskTjeneste prosessTaskTjeneste;
+    private ProsessTaskGruppeUtleder prosessTaskGruppeUtleder;
 
     public SøknadInnsendingTjeneste() {
         //CDI
@@ -67,11 +65,13 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
     public SøknadInnsendingTjeneste(MellomlagringTjeneste mellomlagringTjeneste,
                                     InnloggetBruker innloggetBruker,
                                     DokumentRepository dokumentRepository,
-                                    ProsessTaskTjeneste prosessTaskTjeneste) {
+                                    ProsessTaskTjeneste prosessTaskTjeneste,
+                                    ProsessTaskGruppeUtleder prosessTaskGruppeUtleder) {
         this.mellomlagringTjeneste = mellomlagringTjeneste;
         this.innloggetBruker = innloggetBruker;
         this.dokumentRepository = dokumentRepository;
         this.prosessTaskTjeneste = prosessTaskTjeneste;
+        this.prosessTaskGruppeUtleder = prosessTaskGruppeUtleder;
     }
 
     @Override
@@ -107,7 +107,7 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
             .toList();
         vedleggDokumenter.forEach(dokumentRepository::lagre);
 
-        var gruppe = pseudonymisertBrukerId(innloggetBruker.brukerFraKontekst());
+        var gruppe = prosessTaskGruppeUtleder.prosesstaskGruppeFor(innloggetBruker.brukerFraKontekst());
         var task = ProsessTaskData.forProsessTask(BehandleSøknadTask.class);
         task.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
         task.setGruppe(gruppe);
@@ -147,7 +147,7 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
             .toList();
         vedleggDokumenter.forEach(dokumentRepository::lagre);
 
-        var gruppe = pseudonymisertBrukerId(innloggetBruker.brukerFraKontekst());
+        var gruppe = prosessTaskGruppeUtleder.prosesstaskGruppeFor(innloggetBruker.brukerFraKontekst());
         var task = ProsessTaskData.forProsessTask(BehandleEttersendelseTask.class);
         task.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
         task.setGruppe(gruppe);
@@ -316,18 +316,6 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
             return new VedleggSkjemanummerWrapper(innhold, vedleggDto.skjemanummer(), Optional.of(begrunnelse));
         }
         return new VedleggSkjemanummerWrapper(innhold, vedleggDto.skjemanummer(), Optional.empty());
-    }
-
-    private static String pseudonymisertBrukerId(String brukerIdent) {
-        try {
-            var digest = MessageDigest.getInstance("SHA-256");
-            digest.update("fp-soknad".getBytes(StandardCharsets.UTF_8));
-            var hash = digest.digest(brukerIdent.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(hash).substring(0, 16);
-
-        } catch (GeneralSecurityException e) {
-            throw new IllegalStateException("SHA-256 ikke tilgjengelig", e); // er tilgjengelig i JVM
-        }
     }
 
     private record VedleggSkjemanummerWrapper(byte[] innhold, DokumentTypeId skjemanummer, Optional<String> begrunnelse) {}
