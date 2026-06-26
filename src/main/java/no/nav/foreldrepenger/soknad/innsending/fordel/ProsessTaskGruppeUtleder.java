@@ -26,8 +26,8 @@ public class ProsessTaskGruppeUtleder {
     }
 
     @Inject
-    public ProsessTaskGruppeUtleder(@KonfigVerdi(value = "PT_UID_HMAC_KEY") String hmacKeyBase64) {
-        Objects.requireNonNull(hmacKeyBase64, "PT_UID_HMAC_KEY mangler");
+    public ProsessTaskGruppeUtleder(@KonfigVerdi(value = "PT_GRUPPE_HMAC_SECRET") String hmacKeyBase64) {
+        Objects.requireNonNull(hmacKeyBase64, "PT_GRUPPE_HMAC_SECRET mangler");
         this.hmacKey = Base64.getDecoder().decode(hmacKeyBase64);
     }
 

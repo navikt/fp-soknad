@@ -84,7 +84,7 @@ class SøknadInnsendingTjenesteTest {
     @BeforeEach
     void setUp(EntityManager entityManager) {
         dokumentRepository = new DokumentRepository(entityManager);
-        var ptGruppeUtleder = new ProsessTaskGruppeUtleder(Base64.encode("HMAC_KEY".getBytes()));
+        var ptGruppeUtleder = new ProsessTaskGruppeUtleder(Base64.encode("HMAC_SECRET".getBytes()));
         søknadInnsendingTjeneste = new SøknadInnsendingTjeneste(mellomlagringTjeneste, innloggetBruker, dokumentRepository, prosessTaskTjeneste,
             ptGruppeUtleder);
     }
@@ -538,7 +538,7 @@ class SøknadInnsendingTjenesteTest {
 
         // Assert
         verify(prosessTaskTjeneste).lagre(taskDataCaptor.capture());
-        assertThat(taskDataCaptor.getValue().getGruppe()).isEqualTo("e2c236c373d1b649");
+        assertThat(taskDataCaptor.getValue().getGruppe()).isEqualTo("bf05ae03af3662b1");
         assertThat(taskDataCaptor.getValue().getSekvens()).isNotBlank().isNotEqualTo("1");
     }
 }
