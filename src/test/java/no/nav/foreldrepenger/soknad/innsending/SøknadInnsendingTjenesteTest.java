@@ -13,11 +13,11 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.jose4j.base64url.Base64;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -84,7 +84,7 @@ class SøknadInnsendingTjenesteTest {
     @BeforeEach
     void setUp(EntityManager entityManager) {
         dokumentRepository = new DokumentRepository(entityManager);
-        var ptGruppeUtleder = new ProsessTaskGruppeUtleder(Base64.encode("HMAC_SECRET".getBytes()));
+        var ptGruppeUtleder = new ProsessTaskGruppeUtleder(Base64.getEncoder().encodeToString("HMAC_SECRET".getBytes()));
         søknadInnsendingTjeneste = new SøknadInnsendingTjeneste(mellomlagringTjeneste, innloggetBruker, dokumentRepository, prosessTaskTjeneste,
             ptGruppeUtleder);
     }
