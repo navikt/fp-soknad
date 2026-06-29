@@ -22,7 +22,7 @@
         <prosesstask.version>5.2.7</prosesstask.version>
         <fp-kontrakter.version>9.4.37</fp-kontrakter.version>
         <soknad-kontrakt.version>1.0.6</soknad-kontrakt.version>
-        <fpsak-tidsserie.version>2.7.4</fpsak-tidsserie.version>
+        <fpsak-tidsserie.version>2.7.5</fpsak-tidsserie.version>
 
         <openapi-spec-utils.version>2.1.0</openapi-spec-utils.version>
         <tika.version>3.3.1</tika.version> <!-- Bedre måter å gjøre det på -->
