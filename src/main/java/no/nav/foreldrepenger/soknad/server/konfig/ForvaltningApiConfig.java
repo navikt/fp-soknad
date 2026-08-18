@@ -4,19 +4,18 @@ import static no.nav.foreldrepenger.soknad.server.konfig.ApiConfig.getApplicatio
 
 import java.util.Set;
 
-import no.nav.foreldrepenger.soknad.server.forvaltning.ForvaltningSoknadRest;
-
 import org.glassfish.jersey.server.ResourceConfig;
 
 import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
 import jakarta.ws.rs.ApplicationPath;
 import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.foreldrepenger.soknad.server.forvaltning.ForvaltningMellomlagringRest;
+import no.nav.foreldrepenger.soknad.server.forvaltning.ForvaltningSoknadRest;
 import no.nav.vedtak.felles.prosesstask.rest.ProsessTaskRestTjeneste;
 import no.nav.vedtak.openapi.OpenApiUtils;
-import no.nav.vedtak.server.rest.ForvaltningAuthorizationFilter;
 import no.nav.vedtak.server.rest.AuthenticationFilter;
-import no.nav.vedtak.server.rest.FpRestJackson2Feature;
+import no.nav.vedtak.server.rest.ForvaltningAuthorizationFilter;
+import no.nav.vedtak.server.rest.FpRestJacksonFeature;
 
 @ApplicationPath(ForvaltningApiConfig.API_URI)
 public class ForvaltningApiConfig extends ResourceConfig {
@@ -26,7 +25,7 @@ public class ForvaltningApiConfig extends ResourceConfig {
 
     public ForvaltningApiConfig() {
         register(AuthenticationFilter.class);
-        register(FpRestJackson2Feature.class);
+        register(FpRestJacksonFeature.class);
         register(ForvaltningAuthorizationFilter.class); // Autorisering – drift
         registerOpenApi();
         registerClasses(getForvaltningKlasser());

@@ -1,19 +1,17 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.utils;
 
-import java.io.IOException;
-
-import com.fasterxml.jackson.databind.json.JsonMapper;
-
 import no.nav.foreldrepenger.soknad.innsending.UtalelseOmTilbakebetaling;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
-import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.kontrakt.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.soknad.kontrakt.EngangsstønadDto;
 import no.nav.foreldrepenger.soknad.kontrakt.ForeldrepengesøknadDto;
 import no.nav.foreldrepenger.soknad.kontrakt.SvangerskapspengesøknadDto;
 import no.nav.foreldrepenger.soknad.kontrakt.SøknadDto;
+import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.DokumentTypeId;
 import no.nav.vedtak.exception.TekniskException;
 import no.nav.vedtak.mapper.json.DefaultJsonMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 
 public class SøknadJsonMapper {
@@ -29,7 +27,7 @@ public class SøknadJsonMapper {
     public static UtalelseOmTilbakebetaling deseraliserUttalelsePåTilbakebetaling(DokumentEntitet ettersendelse) {
         try {
             return MAPPER.readValue(ettersendelse.getByteArrayDokument(), UtalelseOmTilbakebetaling.class);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new TekniskException("SOKNAD-1004", "Klarte ikke deseralisere uttalelse om tilbakekreving", e);
         }
     }
@@ -37,12 +35,12 @@ public class SøknadJsonMapper {
     public static SøknadDto deseraliserSøknad(DokumentEntitet søknad) {
         try {
             return deseraliserSøknad(søknad.getByteArrayDokument(), søknad.getDokumentTypeId());
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new TekniskException("SOKNAD-1005", "Noe gikk galt med seralisering av søknad", e);
         }
     }
 
-    public static SøknadDto deseraliserSøknad(byte[] søknadBytes, DokumentTypeId dokumentTypeId) throws IOException {
+    public static SøknadDto deseraliserSøknad(byte[] søknadBytes, DokumentTypeId dokumentTypeId) {
         return switch (dokumentTypeId) {
             case I000002, I000005 -> MAPPER.readValue(søknadBytes, ForeldrepengesøknadDto.class);
             case I000050 -> MAPPER.readValue(søknadBytes, EndringssøknadForeldrepengerDto.class);

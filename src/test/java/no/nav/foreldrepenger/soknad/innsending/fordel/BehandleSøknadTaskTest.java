@@ -26,8 +26,6 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 import jakarta.persistence.EntityManager;
 import no.nav.foreldrepenger.kontrakter.felles.kodeverk.Overføringsårsak;
 import no.nav.foreldrepenger.kontrakter.felles.typer.AktørId;
@@ -103,7 +101,7 @@ class BehandleSøknadTaskTest {
     }
 
     @Test
-    void innsending_av_foreldrepenger_destinasjon_fpsak_med_saksnummer() throws JsonProcessingException {
+    void innsending_av_foreldrepenger_destinasjon_fpsak_med_saksnummer() {
         // Arrange
         var familehendelseDato = LocalDateTime.now().minusWeeks(1).toLocalDate();
         var søknad = (ForeldrepengesøknadDto) new ForeldrepengerBuilder().medRolle(BrukerRolle.MOR)
@@ -156,7 +154,7 @@ class BehandleSøknadTaskTest {
     }
 
     @Test
-    void innsending_av_endringssøknad() throws JsonProcessingException {
+    void innsending_av_endringssøknad() {
         // Arrange
         var familehendelseDato = LocalDateTime.now().minusWeeks(1).toLocalDate();
         var saksnummer = new Saksnummer("111111");
@@ -217,7 +215,7 @@ class BehandleSøknadTaskTest {
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.DOKUMENT_TYPE_ID_PROPERTY)).isEqualTo(DokumentTypeId.I000005.getKode());
     }
 
-    private void lagreForsendelseOgSøknad(SøknadDto søknad, UUID forsendelseId) throws JsonProcessingException {
+    private void lagreForsendelseOgSøknad(SøknadDto søknad, UUID forsendelseId) {
         var metadata = ForsendelseEntitet.builder()
             .setFødselsnummer(søknad.søkerinfo().fnr().value())
             .setSaksnummer(søknad instanceof EndringssøknadForeldrepengerDto endring ? endring.saksnummer().value() : null)

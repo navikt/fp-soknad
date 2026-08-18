@@ -5,7 +5,6 @@ import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.FORELDR
 import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.MØDREKVOTE;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,7 +12,6 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.neovisionaries.i18n.CountryCode;
 
 import no.nav.foreldrepenger.kontrakter.felles.typer.Fødselsnummer;
@@ -36,10 +34,9 @@ import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.Dokumenterer;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.InnsendingType;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.VedleggDto;
 import no.nav.vedtak.mapper.json.DefaultJsonMapper;
+import tools.jackson.core.JacksonException;
 
 public class SøknadJacksonRoundtripTest {
-
-    private static final JsonMapper MAPPER = DefaultJsonMapper.getJsonMapper();
 
     @Test
     void engangsstønad_utenlandsopphold_jackson_roundtrip_test() {
@@ -141,12 +138,12 @@ public class SøknadJacksonRoundtripTest {
     }
 
 
-
+    @SuppressWarnings("unchecked")
     public static <T> T seralizeAndDeseralize(T søknad) {
         try {
-            var seralizedSøknad = MAPPER.writeValueAsBytes(søknad);
-            return (T) MAPPER.readValue(seralizedSøknad, søknad.getClass());
-        } catch (IOException e) {
+            var seralizedSøknad = DefaultJsonMapper.toJson(søknad);
+            return (T) DefaultJsonMapper.fromJson(seralizedSøknad, søknad.getClass());
+        } catch (JacksonException e) {
             throw new RuntimeException("Feil ved serialisering/deserialisering av ForeldrepengesøknadDto", e);
         }
     }
