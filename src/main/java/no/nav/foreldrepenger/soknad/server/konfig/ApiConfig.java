@@ -16,7 +16,7 @@ import no.nav.foreldrepenger.soknad.mellomlagring.MellomlagringRest;
 import no.nav.foreldrepenger.soknad.server.konfig.swagger.TypegenereringFrontendOpenApiReader;
 import no.nav.vedtak.openapi.OpenApiUtils;
 import no.nav.vedtak.server.rest.AuthenticationFilter;
-import no.nav.vedtak.server.rest.FpRestJackson2Feature;
+import no.nav.vedtak.server.rest.FpRestJacksonFeature;
 import no.nav.vedtak.server.rest.RestSecureLogFeature;
 
 @ApplicationPath(ApiConfig.API_URI)
@@ -26,9 +26,8 @@ public class ApiConfig extends ResourceConfig {
     private static final Environment ENV = Environment.current();
 
     public ApiConfig() {
-        // Nesten standard FpRestJackson2-oppsett, men lokale tilpasninger av exceptions.
         register(AuthenticationFilter.class);
-        register(FpRestJackson2Feature.class); // Jackson konfigurasjon
+        register(FpRestJacksonFeature.class); // Jackson konfigurasjon
         register(RestSecureLogFeature.class);  // Sørger for logging av feil (validering og annet) til sikkerlogg
         register(MultiPartFeature.class); // Multipart upload mellomlagring
         if (!ENV.isProd()) {
