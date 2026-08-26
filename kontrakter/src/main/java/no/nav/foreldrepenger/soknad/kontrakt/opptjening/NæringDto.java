@@ -4,14 +4,13 @@ import static no.nav.foreldrepenger.kontrakter.felles.validering.InputValidering
 
 import java.time.LocalDate;
 
-import com.neovisionaries.i18n.CountryCode;
-
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import no.nav.foreldrepenger.kontrakter.felles.typer.Orgnummer;
+import no.nav.foreldrepenger.soknad.kontrakt.validering.GyldigLandkode;
 
 public record NæringDto(@Valid @NotNull LocalDate fom,
                         @Valid LocalDate tom,
@@ -20,7 +19,7 @@ public record NæringDto(@Valid @NotNull LocalDate fom,
                         @Valid Orgnummer organisasjonsnummer,
                         @Digits(integer = 9, fraction = 0) Integer næringsinntekt,
                         @NotNull boolean registrertINorge,
-                        CountryCode registrertILand,
+                        @GyldigLandkode String registrertILand,
                         Boolean harBlittYrkesaktivILøpetAvDeTreSisteFerdigliknedeÅrene,
                         LocalDate oppstartsdato,
                         Boolean hattVarigEndringAvNæringsinntektSiste4Kalenderår,
