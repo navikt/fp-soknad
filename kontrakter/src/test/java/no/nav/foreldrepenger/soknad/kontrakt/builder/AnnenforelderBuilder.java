@@ -1,7 +1,5 @@
 package no.nav.foreldrepenger.soknad.kontrakt.builder;
 
-import com.neovisionaries.i18n.CountryCode;
-
 import no.nav.foreldrepenger.kontrakter.felles.typer.Fødselsnummer;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.annenpart.AnnenForelderDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.annenpart.NorskForelderDto;
@@ -34,7 +32,7 @@ public class AnnenforelderBuilder {
             .medHarMorUføretrygd(true);
     }
 
-    public static UtenlandskForelderBuilder utenlandskForelderRettEØS(Fødselsnummer fnr, CountryCode bostedsland) {
+    public static UtenlandskForelderBuilder utenlandskForelderRettEØS(Fødselsnummer fnr, String bostedsland) {
         return new UtenlandskForelderBuilder(fnr, bostedsland).medHarRettPåForeldrepenger(false)
             .medHarAnnenForelderOppholdtSegIEØS(true)
             .medHarAnnenForelderTilsvarendeRettEØS(true)
@@ -104,12 +102,12 @@ public class AnnenforelderBuilder {
 
     public static class UtenlandskForelderBuilder {
         private final Fødselsnummer fnr;
-        private final CountryCode bostedsland;
+        private final String bostedsland;
         private String fornavn;
         private String etternavn;
         private RettighetBuilder rettigheter = new RettighetBuilder();
 
-        public UtenlandskForelderBuilder(Fødselsnummer fnr, CountryCode bostedsland) {
+        public UtenlandskForelderBuilder(Fødselsnummer fnr, String bostedsland) {
             this.fornavn = "Fornavn annenforelder";
             this.etternavn = "Etternavn annenforelder";
             this.fnr = fnr;
