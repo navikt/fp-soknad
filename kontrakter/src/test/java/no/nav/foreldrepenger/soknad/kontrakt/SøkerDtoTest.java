@@ -67,6 +67,26 @@ class SøkerDtoTest {
     }
 
     @Test
+    void frilansoppdrag_uten_fom_skal_gi_valideringsfeil() {
+        // Uten fom klarer vi ikke å dokumentere perioden i kvitteringen, så søknaden må avvises ved innsending
+        var søker = new SøkerDto(FNR, NAVN, List.of(), List.of(new SøkerDto.Frilansoppdrag("Kulturskolen", null, null)), List.of());
+
+        var violations = hentValidator().validate(søker);
+
+        assertThat(violations).hasSize(1);
+        assertThat(violations.iterator().next().getPropertyPath()).hasToString("frilansoppdrag[0].fom");
+    }
+
+    @Test
+    void selvstendig_næring_uten_næringstype_skal_være_gyldig() {
+        // Næringstypen utledes av en BRREG-mapping der ukjente verdier er tenkelige, og skal ikke føre til avvist søknad
+        var søker = new SøkerDto(FNR, NAVN, List.of(), List.of(),
+            List.of(new SøkerDto.SelvstendigNæring("Sagene Fiskeri", new Orgnummer("974760673"), null)));
+
+        assertThat(hentValidator().validate(søker)).isEmpty();
+    }
+
+    @Test
     void selvstendig_næring_med_ugyldig_organisasjonsnummer_skal_gi_valideringsfeil() {
         var søker = new SøkerDto(FNR, NAVN, List.of(), List.of(),
             List.of(new SøkerDto.SelvstendigNæring("Fiskeri AS", new Orgnummer("123456789"), NæringDto.Virksomhetstype.FISKE)));

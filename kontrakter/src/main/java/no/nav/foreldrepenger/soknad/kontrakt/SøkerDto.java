@@ -42,8 +42,10 @@ public record SøkerDto(@Valid @NotNull Fødselsnummer fnr,
     /**
      * Frilansoppdrag hentet fra AA-registeret. Oppdragsgiver kan være en privatperson, og da er identifikatoren et fødselsnummer.
      * Vi tar derfor bare med navnet på oppdragsgiver, ikke identifikatoren.
+     * Fra-og-med-datoen er påkrevd i AA-registeret, og er derfor påkrevd her også slik at vi avviser søknaden ved innsending
+     * framfor å feile på dokumentgenerering i etterkant.
      */
-    public record Frilansoppdrag(@Pattern(regexp = FRITEKST) String navn, LocalDate fom, LocalDate tom) {
+    public record Frilansoppdrag(@Pattern(regexp = FRITEKST) String navn, @NotNull LocalDate fom, LocalDate tom) {
     }
 
     /**
