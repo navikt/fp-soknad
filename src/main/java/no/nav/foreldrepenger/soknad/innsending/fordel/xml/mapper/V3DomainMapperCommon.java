@@ -1,7 +1,5 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper;
 
-import static com.neovisionaries.i18n.CountryCode.NO;
-import static com.neovisionaries.i18n.CountryCode.XK;
 import static java.time.LocalDate.now;
 import static java.time.Month.OCTOBER;
 import static java.time.temporal.TemporalAdjusters.firstDayOfYear;
@@ -14,8 +12,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-
-import com.neovisionaries.i18n.CountryCode;
 
 import jakarta.xml.bind.JAXBElement;
 import no.nav.foreldrepenger.kontrakter.felles.typer.AktørId;
@@ -30,6 +26,7 @@ import no.nav.foreldrepenger.soknad.kontrakt.barn.TerminDto;
 import no.nav.foreldrepenger.soknad.kontrakt.opptjening.AnnenInntektDto;
 import no.nav.foreldrepenger.soknad.kontrakt.opptjening.FrilansDto;
 import no.nav.foreldrepenger.soknad.kontrakt.opptjening.NæringDto;
+import no.nav.foreldrepenger.soknad.kontrakt.validering.Landkode;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.InnsendingType;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.VedleggDto;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.ÅpenPeriodeDto;
@@ -53,7 +50,9 @@ import no.nav.vedtak.felles.xml.soeknad.kodeverk.v3.Spraakkode;
 import no.nav.vedtak.felles.xml.soeknad.kodeverk.v3.Virksomhetstyper;
 
 final class V3DomainMapperCommon {
-    private static final Land KOSOVO = landFra("XXK");
+    private static final String NORGE = "NOR";
+    private static final String KOSOVO_KODE = "XXK";
+    private static final Land KOSOVO = landFra(KOSOVO_KODE);
     private static final no.nav.vedtak.felles.xml.soeknad.foreldrepenger.v3.ObjectFactory FP_FACTORY_V3 = new no.nav.vedtak.felles.xml.soeknad.foreldrepenger.v3.ObjectFactory();
 
     private V3DomainMapperCommon() {
@@ -92,15 +91,15 @@ final class V3DomainMapperCommon {
     }
 
     public static boolean varINorge(List<UtenlandsoppholdsperiodeDto> opphold, LocalDate dato) {
-        return NO.equals(landVedDato(opphold, dato));
+        return NORGE.equals(Landkode.normaliser(landVedDato(opphold, dato)));
     }
 
-    private static CountryCode landVedDato(List<UtenlandsoppholdsperiodeDto> utenlandsopphold, LocalDate dato) {
+    private static String landVedDato(List<UtenlandsoppholdsperiodeDto> utenlandsopphold, LocalDate dato) {
         return safeStream(utenlandsopphold)
             .filter(s -> dato.isAfter(s.fom().minusDays(1)) && dato.isBefore(s.tom().plusDays(1)))
             .map(UtenlandsoppholdsperiodeDto::landkode)
             .findFirst()
-            .orElse(NO);
+            .orElse(NORGE);
     }
 
     private static List<OppholdUtlandet> oppholdUtlandetFra(List<UtenlandsoppholdsperiodeDto> utenlandsopphold) {
@@ -112,7 +111,7 @@ final class V3DomainMapperCommon {
     private static OppholdUtlandet tilOppholdUtlandet(UtenlandsoppholdsperiodeDto o) {
         var oppholdUtlandet = new OppholdUtlandet();
         oppholdUtlandet.setPeriode(tilPeriode(o.fom(), o.tom()));
-        oppholdUtlandet.setLand(landFra(o.landkode()));
+        oppholdUtlandet.setLand(landFraLandkode(o.landkode()));
         return oppholdUtlandet;
     }
 
@@ -151,7 +150,8 @@ final class V3DomainMapperCommon {
         // Fiskere kan svare nei på om den er registert i norge og deretter velge norge for å unngå å fylle inn orgnummer
         // I dette tilfelle vil de bli lagret som utenlandsk næring
         var vedleggReferanser = dokumentasjonSomDokumentererOpptjeningsperiode(vedlegg, new ÅpenPeriodeDto(egenNæring.fom(), egenNæring.tom()));
-        if ((egenNæring.registrertINorge() || CountryCode.NO.equals(egenNæring.registrertILand())) && egenNæring.organisasjonsnummer() != null) {
+        if ((egenNæring.registrertINorge() || NORGE.equals(Landkode.normaliser(egenNæring.registrertILand())))
+            && egenNæring.organisasjonsnummer() != null) {
             return norskOrganisasjon(egenNæring, vedleggReferanser);
         } else {
             return utenlandskOrganisasjon(egenNæring, vedleggReferanser);
@@ -171,7 +171,7 @@ final class V3DomainMapperCommon {
         utenlandskOrganisasjon.setNaeringsinntektBrutto(næringsinntekt(utenlandskOrg));
         utenlandskOrganisasjon.setNavn(utenlandskOrg.navnPåNæringen());
         // Fiskere kan være registrert i NO, uten orgnummer. I dette tilfelle skal de lagres som utenlandsk næring.
-        var land = landFra(utenlandskOrg.registrertINorge() ? NO : utenlandskOrg.registrertILand());
+        var land = landFraLandkode(utenlandskOrg.registrertINorge() ? NORGE : utenlandskOrg.registrertILand());
         utenlandskOrganisasjon.setRegistrertILand(land);
         utenlandskOrganisasjon.setPeriode(tilPeriode(utenlandskOrg.fom(), utenlandskOrg.tom()));
         utenlandskOrganisasjon.getVirksomhetstype().add(virksomhetsTypeFra(utenlandskOrg.næringstype()));
@@ -264,13 +264,15 @@ final class V3DomainMapperCommon {
                 .orElse(null);
     }
 
-    static Land landFra(CountryCode land) {
-        if (XK.equals(land)) {
+    static Land landFraLandkode(String landkode) {
+        if (landkode == null) {
+            return null;
+        }
+        var normalisertLandkode = Landkode.normaliser(landkode);
+        if (KOSOVO_KODE.equals(normalisertLandkode)) {
             return KOSOVO; // https://jira.adeo.no/browse/PFP-6077
         }
-        return Optional.ofNullable(land)
-                .map(s -> landFra(s.getAlpha3()))
-                .orElse(null);
+        return landFra(normalisertLandkode);
     }
 
     private static List<UtenlandskArbeidsforhold> utenlandskeArbeidsforholdFra(List<AnnenInntektDto> arbeidsforhold, List<VedleggDto> vedlegg) {
@@ -284,7 +286,7 @@ final class V3DomainMapperCommon {
         var utenlandskArbeidsforhold = new UtenlandskArbeidsforhold();
         utenlandskArbeidsforhold.getVedlegg().addAll(utenlandsArbeidsforholdVedleggFra(vedleggreferanser));
         utenlandskArbeidsforhold.setArbeidsgiversnavn(anneninntekt.arbeidsgiverNavn());
-        utenlandskArbeidsforhold.setArbeidsland(landFra(anneninntekt.land()));
+        utenlandskArbeidsforhold.setArbeidsland(landFraLandkode(anneninntekt.land()));
         utenlandskArbeidsforhold.setPeriode(tilPeriode(anneninntekt.fom(), anneninntekt.tom()));
         return utenlandskArbeidsforhold;
     }
