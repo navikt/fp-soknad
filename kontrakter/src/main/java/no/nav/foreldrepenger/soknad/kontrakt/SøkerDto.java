@@ -4,7 +4,6 @@ import static no.nav.foreldrepenger.kontrakter.felles.validering.InputValidering
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -27,13 +26,13 @@ public record SøkerDto(@Valid @NotNull Fødselsnummer fnr,
                        @Size(max = 100) List<@NotNull @Valid Frilansoppdrag> frilansoppdrag,
                        @Size(max = 100) List<@NotNull @Valid SelvstendigNæring> selvstendigNæring) {
 
-    public SøkerDto {
-        frilansoppdrag = Optional.ofNullable(frilansoppdrag).orElse(List.of());
-        selvstendigNæring = Optional.ofNullable(selvstendigNæring).orElse(List.of());
-    }
-
+    /**
+     * Listene normaliseres bevisst ikke til tomme lister. Fravær av feltet ({@code null}) betyr at søknaden kommer fra en frontend
+     * som ikke forela aktivitetene, mens en tom liste betyr at oppslaget ble gjort uten treff. Skillet brukes til å velge riktig
+     * innhold i søknadskvitteringen, og går tapt dersom {@code null} erstattes med {@code List.of()}.
+     */
     public SøkerDto(Fødselsnummer fnr, Navn navn, List<Arbeidsforhold> arbeidsforhold) {
-        this(fnr, navn, arbeidsforhold, List.of(), List.of());
+        this(fnr, navn, arbeidsforhold, null, null);
     }
 
     public record Arbeidsforhold(String navn, Orgnummer orgnummer, Double stillingsprosent, LocalDate fom, LocalDate tom) {

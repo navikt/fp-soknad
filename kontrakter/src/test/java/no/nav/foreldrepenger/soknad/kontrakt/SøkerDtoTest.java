@@ -34,11 +34,31 @@ class SøkerDtoTest {
     }
 
     @Test
-    void manglende_lister_skal_defaultes_til_tomme_lister() {
+    void manglende_lister_skal_bevares_som_null() {
+        // Skillet mellom null og tom liste forteller om aktivitetene ble forelagt i det hele tatt, og må ikke normaliseres bort
         var søker = new SøkerDto(FNR, NAVN, List.of(), null, null);
 
-        assertThat(søker.frilansoppdrag()).isEmpty();
-        assertThat(søker.selvstendigNæring()).isEmpty();
+        assertThat(søker.frilansoppdrag()).isNull();
+        assertThat(søker.selvstendigNæring()).isNull();
+    }
+
+    @Test
+    void treargumentskonstruktøren_skal_markere_at_aktiviteter_ikke_ble_forelagt() {
+        var søker = new SøkerDto(FNR, NAVN, List.of());
+
+        assertThat(søker.frilansoppdrag()).isNull();
+        assertThat(søker.selvstendigNæring()).isNull();
+    }
+
+    @Test
+    void null_og_tom_liste_skal_gi_forskjellig_json() {
+        var ikkeForelagt = DefaultJsonMapper.toJson(new SøkerDto(FNR, NAVN, List.of(), null, null));
+        var forelagtUtenTreff = DefaultJsonMapper.toJson(new SøkerDto(FNR, NAVN, List.of(), List.of(), List.of()));
+
+        assertThat(ikkeForelagt).isNotEqualTo(forelagtUtenTreff);
+        assertThat(forelagtUtenTreff).contains("\"selvstendigNæring\":[]").contains("\"frilansoppdrag\":[]");
+        assertThat(DefaultJsonMapper.fromJson(ikkeForelagt, SøkerDto.class).selvstendigNæring()).isNull();
+        assertThat(DefaultJsonMapper.fromJson(forelagtUtenTreff, SøkerDto.class).selvstendigNæring()).isEmpty();
     }
 
     @Test
@@ -53,8 +73,9 @@ class SøkerDtoTest {
 
         var søker = DefaultJsonMapper.fromJson(json, SøkerDto.class);
 
-        assertThat(søker.frilansoppdrag()).isEmpty();
-        assertThat(søker.selvstendigNæring()).isEmpty();
+        assertThat(søker.frilansoppdrag()).isNull();
+        assertThat(søker.selvstendigNæring()).isNull();
+        assertThat(hentValidator().validate(søker)).isEmpty();
     }
 
     @Test
