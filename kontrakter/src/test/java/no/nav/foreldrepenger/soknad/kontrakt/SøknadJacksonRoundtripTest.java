@@ -12,8 +12,6 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
-import com.neovisionaries.i18n.CountryCode;
-
 import no.nav.foreldrepenger.kontrakter.felles.typer.Fødselsnummer;
 import no.nav.foreldrepenger.kontrakter.felles.typer.Orgnummer;
 import no.nav.foreldrepenger.kontrakter.felles.typer.Saksnummer;
@@ -45,7 +43,7 @@ public class SøknadJacksonRoundtripTest {
         var søknad = new EngangsstønadBuilder()
                 .medSøkerinfo(new SøkerDto(fnr, new SøkerDto.Navn("Per", null, "Pål"), null))
                 .medBarn(new FødselDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
-                .medUtenlandsopphold(List.of(new UtenlandsoppholdsperiodeDto(LocalDate.now().minusYears(1), LocalDate.now().minusMonths(6), CountryCode.XK)))
+                .medUtenlandsopphold(List.of(new UtenlandsoppholdsperiodeDto(LocalDate.now().minusYears(1), LocalDate.now().minusMonths(6), "XXK")))
                 .build();
 
         // Act
@@ -99,7 +97,7 @@ public class SøknadJacksonRoundtripTest {
         var søknad = new SvangerskapspengerBuilder(tilrettelegginger)
                 .medSøkerinfo(new SøkerDto(fnr, new SøkerDto.Navn("Per", null, null), null))
                 .medBarn(new TerminDto(1, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
-                .medUtenlandsopphold(List.of(new UtenlandsoppholdsperiodeDto(LocalDate.now().minusYears(1), LocalDate.now().minusMonths(6), CountryCode.XK)))
+                .medUtenlandsopphold(List.of(new UtenlandsoppholdsperiodeDto(LocalDate.now().minusYears(1), LocalDate.now().minusMonths(6), "XXK")))
                 .medFrilansInformasjon(OpptjeningMaler.frilansOpptjening())
                 .medSelvstendigNæringsdrivendeInformasjon(OpptjeningMaler.egenNaeringOpptjening("123456789"))
                 .build();

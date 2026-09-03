@@ -25,8 +25,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.neovisionaries.i18n.CountryCode;
-
 import jakarta.persistence.EntityManager;
 import no.nav.foreldrepenger.kontrakter.felles.typer.Fødselsnummer;
 import no.nav.foreldrepenger.kontrakter.felles.typer.Orgnummer;
@@ -151,7 +149,7 @@ class SøknadInnsendingTjenesteTest {
         var søknad = new EngangsstønadBuilder()
             .medSøkerinfo(new SøkerDto(fnr, new SøkerDto.Navn("Per", null, "Pål"), null))
             .medBarn(new FødselDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
-            .medUtenlandsopphold(List.of(new UtenlandsoppholdsperiodeDto(LocalDate.now().minusYears(1), LocalDate.now().minusMonths(6), CountryCode.XK)))
+            .medUtenlandsopphold(List.of(new UtenlandsoppholdsperiodeDto(LocalDate.now().minusYears(1), LocalDate.now().minusMonths(6), "XXK")))
             .build();
         when(innloggetBruker.brukerFraKontekst()).thenReturn(fnr.value());
 
@@ -191,7 +189,7 @@ class SøknadInnsendingTjenesteTest {
         var søknad = new SvangerskapspengerBuilder(tilrettelegginger)
             .medSøkerinfo(new SøkerDto(fnr, new SøkerDto.Navn("Per", null, null), null))
             .medBarn(new TerminDto(1, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
-            .medUtenlandsopphold(List.of(new UtenlandsoppholdsperiodeDto(LocalDate.now().minusYears(1), LocalDate.now().minusMonths(6), CountryCode.XK)))
+            .medUtenlandsopphold(List.of(new UtenlandsoppholdsperiodeDto(LocalDate.now().minusYears(1), LocalDate.now().minusMonths(6), "XXK")))
             .medFrilansInformasjon(OpptjeningMaler.frilansOpptjening())
             .medSelvstendigNæringsdrivendeInformasjon(OpptjeningMaler.egenNaeringOpptjening("123456789"))
             .build();
@@ -528,7 +526,7 @@ class SøknadInnsendingTjenesteTest {
         var søknad = new EngangsstønadBuilder()
             .medSøkerinfo(new SøkerDto(fnr, new SøkerDto.Navn("Per", null, "Pål"), null))
             .medBarn(new FødselDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
-            .medUtenlandsopphold(List.of(new UtenlandsoppholdsperiodeDto(LocalDate.now().minusYears(1), LocalDate.now().minusMonths(6), CountryCode.XK)))
+            .medUtenlandsopphold(List.of(new UtenlandsoppholdsperiodeDto(LocalDate.now().minusYears(1), LocalDate.now().minusMonths(6), "XXK")))
             .build();
         when(innloggetBruker.brukerFraKontekst()).thenReturn(fnr.value());
         var taskDataCaptor = ArgumentCaptor.forClass(ProsessTaskData.class);

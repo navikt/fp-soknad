@@ -28,7 +28,6 @@
 
         <openapi-spec-utils.version>2.1.0</openapi-spec-utils.version>
         <tika.version>3.3.2</tika.version> <!-- Bedre måter å gjøre det på -->
-        <nv.version>1.29</nv.version>
         <pdfbox.version>3.0.8</pdfbox.version>
         <gcp.storage.version>2.70.0</gcp.storage.version>
     </properties>
@@ -77,11 +76,6 @@
     </dependencyManagement>
 
     <dependencies>
-        <dependency>
-            <groupId>com.neovisionaries</groupId>
-            <artifactId>nv-i18n</artifactId>
-            <version>${nv.version}</version>
-        </dependency>
         <dependency>
             <groupId>no.nav.foreldrepenger.felles</groupId>
             <artifactId>felles-util</artifactId>

@@ -2,7 +2,7 @@ package no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper;
 
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.DokumentasjonReferanseMapper.dokumentasjonSomDokumentererBarn;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.DokumentasjonReferanseMapper.dokumentasjonSomDokumentererUttaksperiode;
-import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.landFra;
+import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.landFraLandkode;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.medlemsskapFra;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.målformFra;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.opptjeningFra;
@@ -18,8 +18,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-
-import com.neovisionaries.i18n.CountryCode;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -442,7 +440,7 @@ public class V3ForeldrepengerDomainMapper  {
     private static AnnenForelderUtenNorskIdent utenlandskForelder(UtenlandskForelderDto utenlandskForelder) {
         var annenForelderUtenNorskIdent = new AnnenForelderUtenNorskIdent();
         annenForelderUtenNorskIdent.setUtenlandskPersonidentifikator(utenlandskForelder.fnr().value());
-        annenForelderUtenNorskIdent.setLand(landFra(utenlandskForelder.bostedsland()));
+        annenForelderUtenNorskIdent.setLand(landFraLandkode(utenlandskForelder.bostedsland()));
         return annenForelderUtenNorskIdent;
     }
 
@@ -451,7 +449,7 @@ public class V3ForeldrepengerDomainMapper  {
         if (aktørId.isEmpty()) {
             //Oppgitt fnr som ikke er i bruk
             return utenlandskForelder(new UtenlandskForelderDto(norskForelder.fnr(), norskForelder.fornavn(), norskForelder.etternavn(),
-                CountryCode.NO, norskForelder.rettigheter()));
+                "NOR", norskForelder.rettigheter()));
         }
         var annenForelderMedNorskIdent = new AnnenForelderMedNorskIdent();
         annenForelderMedNorskIdent.setAktoerId(aktørId.get().value());
