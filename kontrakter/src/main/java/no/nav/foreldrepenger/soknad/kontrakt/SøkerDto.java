@@ -38,18 +38,9 @@ public record SøkerDto(@Valid @NotNull Fødselsnummer fnr,
     public record Arbeidsforhold(String navn, Orgnummer orgnummer, Double stillingsprosent, LocalDate fom, LocalDate tom) {
     }
 
-    /**
-     * Frilansoppdrag hentet fra AA-registeret. Oppdragsgiver kan være en privatperson, og da er identifikatoren et fødselsnummer.
-     * Vi tar derfor bare med navnet på oppdragsgiver, ikke identifikatoren.
-     * Fra-og-med-datoen er påkrevd i AA-registeret, og er derfor påkrevd her også slik at vi avviser søknaden ved innsending
-     * framfor å feile på dokumentgenerering i etterkant.
-     */
     public record Frilansoppdrag(@Pattern(regexp = FRITEKST) String navn, @NotNull LocalDate fom, LocalDate tom) {
     }
 
-    /**
-     * Selvstendig næring hentet fra Enhetsregisteret (BRREG) basert på rollene søker har i registeret.
-     */
     public record SelvstendigNæring(@Pattern(regexp = FRITEKST) String navn,
                                     @Valid Orgnummer organisasjonsnummer,
                                     NæringDto.Virksomhetstype næringstype) {
