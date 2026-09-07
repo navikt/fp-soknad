@@ -12,18 +12,12 @@ import no.nav.foreldrepenger.soknad.kontrakt.UtenlandsoppholdsperiodeDto;
 class LandkodeTest {
 
     @Test
-    void normaliserer_alpha2_til_alpha3() {
-        assertThat(Landkode.normaliser("no")).isEqualTo("NOR");
-    }
-
-    @Test
     void beholder_alpha3() {
         assertThat(Landkode.normaliser("nor")).isEqualTo("NOR");
     }
 
     @Test
     void viderefører_kosovo_håndtering() {
-        assertThat(Landkode.normaliser("XK")).isEqualTo("XXK");
         assertThat(Landkode.normaliser("XXK")).isEqualTo("XXK");
     }
 
@@ -33,11 +27,25 @@ class LandkodeTest {
     }
 
     @Test
-    void godtar_rå_alpha2_og_alpha3() {
-        assertThat(Landkode.erGyldig("NO")).isTrue();
+    void godtar_alpha3() {
         assertThat(Landkode.erGyldig("NOR")).isTrue();
-        assertThat(Landkode.erGyldig("XK")).isTrue();
+        assertThat(Landkode.erGyldig("nor")).isTrue();
         assertThat(Landkode.erGyldig("XXK")).isTrue();
+    }
+
+    @Test
+    void avviser_alpha2() {
+        assertThat(Landkode.erGyldig("NO")).isFalse();
+        assertThat(Landkode.erGyldig("XK")).isFalse();
+    }
+
+    @Test
+    void avviser_verdier_som_ikke_er_alpha3() {
+        assertThat(Landkode.erGyldig(" NOR")).isFalse();
+        assertThat(Landkode.erGyldig("NOR ")).isFalse();
+        assertThat(Landkode.erGyldig("N0R")).isFalse();
+        assertThat(Landkode.erGyldig("NΟR")).isFalse();
+        assertThat(Landkode.erGyldig("NORGE")).isFalse();
     }
 
     @Test
