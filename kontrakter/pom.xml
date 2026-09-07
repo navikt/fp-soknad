@@ -17,7 +17,7 @@
     <name>Kontrakt – soknad</name>
 
     <properties>
-        <fp-kontrakter.version>9.4.37</fp-kontrakter.version>
+        <fp-kontrakter.version>9.4.39</fp-kontrakter.version>
         <felles.version>7.9.0</felles.version>
     </properties>
 
