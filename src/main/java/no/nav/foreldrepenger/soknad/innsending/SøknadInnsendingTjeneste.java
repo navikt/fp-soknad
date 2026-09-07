@@ -112,7 +112,6 @@ public class SøknadInnsendingTjeneste implements InnsendingTjeneste {
         task.setGruppe(gruppe);
         task.setSekvens(String.valueOf(Instant.now().toEpochMilli()));
         prosessTaskTjeneste.lagre(task);
-        LandkodeMetrikker.registrer(søknad);
     }
 
     @Override

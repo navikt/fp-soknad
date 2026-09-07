@@ -24,6 +24,7 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntite
 import no.nav.foreldrepenger.soknad.kontrakt.EngangsstønadDto;
 import no.nav.foreldrepenger.soknad.kontrakt.Målform;
 import no.nav.foreldrepenger.soknad.kontrakt.SøkerDto;
+import no.nav.foreldrepenger.soknad.kontrakt.UtenlandsoppholdsperiodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.barn.FødselDto;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.DokumentTypeId;
 import no.nav.vedtak.mapper.json.DefaultJsonMapper;
@@ -100,6 +101,20 @@ class ForvaltningSoknadRestTest {
         verify(dokumentRepository, never()).oppdaterSøknadJson(any(), any(byte[].class));
     }
 
+    @Test
+    void skal_avvise_alpha2_landkode_i_korrigert_søknad() {
+        var forsendelseId = UUID.randomUUID();
+        var søknad = gyldigEngangsstønadMedLandkode("NO");
+        var søknadDokument = søknadsdokument(DokumentTypeId.I000003);
+        when(dokumentRepository.hentForsendelse(FØDSELSNUMMER_VALUE)).thenReturn(List.of(forsendelseMedFnr(FØDSELSNUMMER_VALUE, forsendelseId)));
+        when(dokumentRepository.hentSøknadDokument(forsendelseId)).thenReturn(Optional.of(søknadDokument));
+
+        assertThatThrownBy(() -> rest.patchSoknad(FØDSELSNUMMER, forsendelseId, json(søknad)))
+            .isInstanceOf(BadRequestException.class)
+            .hasMessageContaining("Landkode er ugyldig");
+        verify(dokumentRepository, never()).oppdaterSøknadJson(any(), any(byte[].class));
+    }
+
     private static ForsendelseEntitet forsendelseMedFnr(String fnr, UUID forsendelseId) {
         return ForsendelseEntitet.builder()
             .setFødselsnummer(fnr)
@@ -125,10 +140,13 @@ class ForvaltningSoknadRestTest {
             List.of());
     }
 
+    private static EngangsstønadDto gyldigEngangsstønadMedLandkode(String landkode) {
+        var søknad = gyldigEngangsstønad();
+        var opphold = new UtenlandsoppholdsperiodeDto(LocalDate.now().minusDays(2), LocalDate.now().minusDays(1), landkode);
+        return new EngangsstønadDto(søknad.mottattdato(), søknad.søkerinfo(), søknad.språkkode(), søknad.barn(), List.of(opphold), søknad.vedlegg());
+    }
+
     private static String json(EngangsstønadDto søknad) {
         return DefaultJsonMapper.toJson(søknad);
     }
 }
-
-
-
