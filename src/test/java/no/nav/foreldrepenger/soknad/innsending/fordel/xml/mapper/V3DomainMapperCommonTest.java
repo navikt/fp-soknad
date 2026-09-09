@@ -29,4 +29,22 @@ class V3DomainMapperCommonTest {
 
         assertThat(V3DomainMapperCommon.varINorge(opphold, dato)).isTrue();
     }
+
+    @Test
+    void skalHandtereApentUtenlandsoppholdVedVurderingAvINorgeVedFoedsel() {
+        var fom = LocalDate.now().minusDays(10);
+        var relasjonsDato = fom.plusDays(5);
+        var opphold = List.of(new UtenlandsoppholdsperiodeDto(fom, null, "SWE"));
+
+        assertThat(V3DomainMapperCommon.varINorge(opphold, relasjonsDato)).isFalse();
+    }
+
+    @Test
+    void skalReknastSomINorgeFoerEitApentUtenlandsoppholdHarStarta() {
+        var fom = LocalDate.now().plusDays(10);
+        var relasjonsDato = fom.minusDays(5);
+        var opphold = List.of(new UtenlandsoppholdsperiodeDto(fom, null, "SWE"));
+
+        assertThat(V3DomainMapperCommon.varINorge(opphold, relasjonsDato)).isTrue();
+    }
 }

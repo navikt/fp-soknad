@@ -96,7 +96,9 @@ final class V3DomainMapperCommon {
 
     private static String landVedDato(List<UtenlandsoppholdsperiodeDto> utenlandsopphold, LocalDate dato) {
         return safeStream(utenlandsopphold)
-            .filter(s -> dato.isAfter(s.fom().minusDays(1)) && dato.isBefore(s.tom().plusDays(1)))
+            // Eit ope opphald (tom == null, ukjend returdato) reknast som framleis pågåande,
+            // altså at brukar framleis er i utlandet på dato (TFP-5511, forretningsavklaring).
+            .filter(s -> dato.isAfter(s.fom().minusDays(1)) && (s.tom() == null || dato.isBefore(s.tom().plusDays(1))))
             .map(UtenlandsoppholdsperiodeDto::landkode)
             .findFirst()
             .orElse(NORGE);
@@ -124,7 +126,9 @@ final class V3DomainMapperCommon {
     private static Periode tilPeriode(LocalDate fom, LocalDate tom) {
         var periode = new Periode();
         periode.setFom(fom);
-        periode.setTom(tom);
+        if (tom != null) {
+            periode.setTom(tom);
+        }
         return periode;
     }
 
