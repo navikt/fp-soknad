@@ -126,9 +126,7 @@ final class V3DomainMapperCommon {
     private static Periode tilPeriode(LocalDate fom, LocalDate tom) {
         var periode = new Periode();
         periode.setFom(fom);
-        if (tom != null) {
-            periode.setTom(tom);
-        }
+        periode.setTom(tom);
         return periode;
     }
 
