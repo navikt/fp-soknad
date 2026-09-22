@@ -22,7 +22,11 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.fpsak.DestinasjonsRuter;
 import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.ArkivTjeneste;
 import no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.OpprettetJournalpost;
 import no.nav.foreldrepenger.soknad.innsending.fordel.pdf.PdfTjeneste;
+import no.nav.foreldrepenger.soknad.innsending.fordel.utils.SøknadJsonMapper;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.StrukturertDokumentMapperXML;
+import no.nav.foreldrepenger.soknad.kontrakt.EndringssøknadForeldrepengerDto;
+import no.nav.foreldrepenger.soknad.kontrakt.ForeldrepengesøknadDto;
+import no.nav.foreldrepenger.soknad.kontrakt.SøknadDto;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.DokumentTypeId;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
@@ -82,7 +86,8 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
         var opprettetJournalpost = journalførForsøkEndelig(metadata, dokumenterForInnsending, forsendelseId, dokumentTypeId, behandlingTema, destinasjon);
 
         dokumentRepository.oppdaterForsendelseMetadata(forsendelseId, opprettetJournalpost.journalpostId(), destinasjon);
-        utledNesteSteg(opprettetJournalpost, behandlingTema, dokumentTypeId, forsendelseId, destinasjon);
+        utledNesteSteg(prosessTaskData, opprettetJournalpost, behandlingTema, dokumentTypeId, forsendelseId, destinasjon,
+            SøknadJsonMapper.deseraliserSøknad(søknad));
     }
 
     private static Stream<DokumentEntitet> alleVedlegg(List<DokumentEntitet> orginaleDokumenter) {
@@ -110,18 +115,29 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
         return opprettetJournalpost;
     }
 
-    private void utledNesteSteg(OpprettetJournalpost opprettetJournalpost, BehandlingTema behandlingTema, DokumentTypeId dokumentTypeId,
-                                UUID forsendelseId, Destinasjon destinasjon) {
+    private void utledNesteSteg(ProsessTaskData gjeldendeTask, OpprettetJournalpost opprettetJournalpost, BehandlingTema behandlingTema,
+                                DokumentTypeId dokumentTypeId,
+                                UUID forsendelseId, Destinasjon destinasjon, SøknadDto søknad) {
         if (!opprettetJournalpost.ferdigstilt()) {
             return; // Midlertidig journalført, plukkes opp av fp-mottak og avventer handling
         }
 
-        var task = ProsessTaskData.forProsessTask(VLKlargjørerTask.class);
+        var task = ProsessTaskData.forProsessTask(harFellesUttaksplan(søknad) ? FpoversiktLagreAnnenPartUttaksplanTask.class : VLKlargjørerTask.class);
         task.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
         task.setProperty(SAKSNUMMER_PROPERTY, destinasjon.saksnummer());
         task.setProperty(BEHANDLING_TEMA_PROPERTY, behandlingTema.getOffisiellKode());
         task.setProperty(DOKUMENT_TYPE_ID_PROPERTY, dokumentTypeId.name());
+        task.setGruppe(gjeldendeTask.getGruppe());
+        task.setSekvens(gjeldendeTask.getSekvens());
         taskTjeneste.lagre(task);
+    }
+
+    private static boolean harFellesUttaksplan(SøknadDto søknad) {
+        return switch (søknad) {
+            case ForeldrepengesøknadDto førstegang -> førstegang.fellesUttaksplan() != null;
+            case EndringssøknadForeldrepengerDto endring -> endring.fellesUttaksplan() != null;
+            default -> false;
+        };
     }
 
 }

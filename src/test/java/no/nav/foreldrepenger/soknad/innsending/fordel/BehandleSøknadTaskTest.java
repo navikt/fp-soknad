@@ -19,8 +19,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -61,6 +62,7 @@ import no.nav.foreldrepenger.soknad.kontrakt.builder.EndringssøknadBuilder;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.ForeldrepengerBuilder;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.UttakplanPeriodeBuilder;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.Dekningsgrad;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.Dokumenterer;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.InnsendingType;
@@ -100,8 +102,9 @@ class BehandleSøknadTaskTest {
         task = new BehandleSøknadTask(dokumentRepository, destinasjonsRuter, arkivtjeneste, taskTjeneste, xmlMapper, pdfTjeneste);
     }
 
-    @Test
-    void innsending_av_foreldrepenger_destinasjon_fpsak_med_saksnummer() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void innsending_av_foreldrepenger_destinasjon_fpsak_med_saksnummer(boolean medFellesUttaksplan) {
         // Arrange
         var familehendelseDato = LocalDateTime.now().minusWeeks(1).toLocalDate();
         var søknad = (ForeldrepengesøknadDto) new ForeldrepengerBuilder().medRolle(BrukerRolle.MOR)
@@ -118,6 +121,9 @@ class BehandleSøknadTaskTest {
             .medVedlegg(List.of(new VedleggDto(UUID.randomUUID(), DokumentTypeId.I000141, InnsendingType.LASTET_OPP, null,
                 new Dokumenterer(Dokumenterer.DokumentererType.BARN, null, null))))
             .build();
+        if (medFellesUttaksplan) {
+            søknad = medFellesUttaksplan(søknad, familehendelseDato);
+        }
         var forsendelseId = UUID.randomUUID();
         lagreForsendelseOgSøknad(søknad, forsendelseId);
 
@@ -131,6 +137,8 @@ class BehandleSøknadTaskTest {
         // Act
         var prosessTaskData = ProsessTaskData.forProsessTask(BehandleSøknadTask.class);
         prosessTaskData.setProperty(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
+        prosessTaskData.setGruppe("søker");
+        prosessTaskData.setSekvens("123");
         task.doTask(prosessTaskData);
 
         // Assert
@@ -150,11 +158,12 @@ class BehandleSøknadTaskTest {
             .hasSameSizeAs(forventet)
             .containsAll(forventet);
 
-        validerProsesstaskOpprettet(forsendelseId, saksnummer);
+        validerProsesstaskOpprettet(forsendelseId, saksnummer, medFellesUttaksplan);
     }
 
-    @Test
-    void innsending_av_endringssøknad() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void innsending_av_endringssøknad(boolean medFellesUttaksplan) {
         // Arrange
         var familehendelseDato = LocalDateTime.now().minusWeeks(1).toLocalDate();
         var saksnummer = new Saksnummer("111111");
@@ -169,6 +178,9 @@ class BehandleSøknadTaskTest {
                     familehendelseDato.plusWeeks(31).minusDays(1)).build()))
             .medAnnenForelder(AnnenforelderBuilder.norskMedRettighetNorge(new Fødselsnummer("0987654321")).build())
             .build();
+        if (medFellesUttaksplan) {
+            endringssøknad = medFellesUttaksplan(endringssøknad, familehendelseDato);
+        }
         var forsendelseId = UUID.randomUUID();
         lagreForsendelseOgSøknad(endringssøknad, forsendelseId);
 
@@ -180,6 +192,8 @@ class BehandleSøknadTaskTest {
         // Act
         var prosessTaskData = ProsessTaskData.forProsessTask(BehandleSøknadTask.class);
         prosessTaskData.setProperty(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
+        prosessTaskData.setGruppe("søker");
+        prosessTaskData.setSekvens("123");
         task.doTask(prosessTaskData);
 
         // Assert
@@ -200,19 +214,39 @@ class BehandleSøknadTaskTest {
             .containsAll(forventet);
         verify(fpsakTjeneste, never()).vurderFagsystem(any());
 
-        validerProsesstaskOpprettet(forsendelseId, saksnummer.value());
+        validerProsesstaskOpprettet(forsendelseId, saksnummer.value(), medFellesUttaksplan);
     }
 
-    private void validerProsesstaskOpprettet(UUID forsendelseId, String saksnummer) {
+    private void validerProsesstaskOpprettet(UUID forsendelseId, String saksnummer, boolean medFellesUttaksplan) {
         var captor = ArgumentCaptor.forClass(ProsessTaskData.class);
         verify(taskTjeneste, times(1)).lagre(captor.capture());
         var vlklargjørtask = captor.getValue();
-        assertThat(vlklargjørtask.taskType().value()).isEqualTo("fordeling.klargjoering");
+        assertThat(vlklargjørtask.taskType().value()).isEqualTo(
+            medFellesUttaksplan ? "fordeling.fpoversikt.annenpart.uttaksplan" : "fordeling.klargjoering");
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY)).isEqualTo(forsendelseId.toString());
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.SAKSNUMMER_PROPERTY)).isEqualTo(saksnummer);
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.BEHANDLING_TEMA_PROPERTY)).isEqualTo(
             BehandlingTema.FORELDREPENGER_FØDSEL.getOffisiellKode());
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.DOKUMENT_TYPE_ID_PROPERTY)).isEqualTo(DokumentTypeId.I000005.getKode());
+        assertThat(vlklargjørtask.getGruppe()).isEqualTo("søker");
+        assertThat(vlklargjørtask.getSekvens()).isEqualTo("123");
+    }
+
+    private static ForeldrepengesøknadDto medFellesUttaksplan(ForeldrepengesøknadDto søknad, LocalDate start) {
+        return new ForeldrepengesøknadDto(søknad.mottattdato(), søknad.søkerinfo(), søknad.rolle(), søknad.språkkode(), søknad.barn(),
+            søknad.frilans(), søknad.egenNæring(), søknad.andreInntekterSiste10Mnd(), søknad.annenForelder(), søknad.dekningsgrad(),
+            søknad.uttaksplan(), fellesUttaksplan(start), søknad.utenlandsopphold(), søknad.vedlegg());
+    }
+
+    private static EndringssøknadForeldrepengerDto medFellesUttaksplan(EndringssøknadForeldrepengerDto søknad, LocalDate start) {
+        return new EndringssøknadForeldrepengerDto(søknad.mottattdato(), søknad.saksnummer(), søknad.søkerinfo(), søknad.rolle(),
+            søknad.språkkode(), søknad.barn(), søknad.annenForelder(), søknad.uttaksplan(), fellesUttaksplan(start), søknad.vedlegg());
+    }
+
+    private static FellesUttaksplanDto fellesUttaksplan(LocalDate start) {
+        var uttak = new FellesUttaksplanDto.UttakDto(FellesUttaksplanDto.Rolle.MOR, FELLESPERIODE, null, null, null, null, null, false, null);
+        var periode = new FellesUttaksplanDto.UttakPeriodeDto(start, start.plusDays(4), uttak, null, null);
+        return new FellesUttaksplanDto(start, 1, FellesUttaksplanDto.Dekningsgrad.HUNDRE, List.of(periode));
     }
 
     private void lagreForsendelseOgSøknad(SøknadDto søknad, UUID forsendelseId) {
@@ -242,4 +276,3 @@ class BehandleSøknadTaskTest {
         }
     }
 }
-
