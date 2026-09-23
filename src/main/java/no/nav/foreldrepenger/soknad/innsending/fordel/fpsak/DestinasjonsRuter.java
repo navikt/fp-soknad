@@ -35,7 +35,6 @@ import no.nav.vedtak.konfig.Tid;
 public class DestinasjonsRuter {
 
     private static final LocalDate ENDRING_BEREGNING_DATO = LocalDate.of(2019, 1, 1);
-    private static final String DOKUMENT_KATEGORI_SOKNAD = "SOK";
 
     private FpsakTjeneste fpsakTjeneste;
     private Personoppslag personoppslag;
@@ -83,7 +82,6 @@ public class DestinasjonsRuter {
         );
         dto.setForsendelseMottattTidspunkt(metadata.getForsendelseMottatt());
         dto.setDokumentTypeIdOffisiellKode(søknad.getDokumentTypeId().getKode());
-        dto.setDokumentKategoriOffisiellKode(DOKUMENT_KATEGORI_SOKNAD);
         dto.setOpprettSakVedBehov(true);
 
         var søknadDto = SøknadJsonMapper.deseraliserSøknad(søknad);
