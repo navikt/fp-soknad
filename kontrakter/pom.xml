@@ -18,7 +18,7 @@
 
     <properties>
         <fp-kontrakter.version>9.4.37</fp-kontrakter.version>
-        <felles.version>7.9.0</felles.version>
+        <felles.version>7.9.1</felles.version>
     </properties>
 
     <dependencies>
