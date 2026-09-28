@@ -18,7 +18,7 @@
         <sonar.projectName>fp-soknad</sonar.projectName>
         <sonar.projectKey>navikt_fp-soknad</sonar.projectKey>
 
-        <felles.version>7.9.1</felles.version>
+        <felles.version>7.9.2</felles.version>
         <prosesstask.version>5.2.8</prosesstask.version>
         <fp-kontrakter.version>9.4.39</fp-kontrakter.version>
         <soknad-kontrakt.version>1.0.10</soknad-kontrakt.version>
