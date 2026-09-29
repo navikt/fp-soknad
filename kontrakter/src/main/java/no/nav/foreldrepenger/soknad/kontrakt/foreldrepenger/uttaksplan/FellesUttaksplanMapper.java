@@ -8,10 +8,10 @@ import java.util.Objects;
 import java.util.Optional;
 
 import no.nav.foreldrepenger.kontrakter.felles.kodeverk.Overføringsårsak;
-import no.nav.foreldrepenger.kontrakter.fpoversikt.FellesUttaksplanDto.Aktivitet;
-import no.nav.foreldrepenger.kontrakter.fpoversikt.FellesUttaksplanDto.Gradering;
-import no.nav.foreldrepenger.kontrakter.fpoversikt.FellesUttaksplanDto.UttakDto;
-import no.nav.foreldrepenger.kontrakter.fpoversikt.FellesUttaksplanDto.UttakPeriodeDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Aktivitet;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Gradering;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakPeriodeDto;
 
 public final class FellesUttaksplanMapper {
 

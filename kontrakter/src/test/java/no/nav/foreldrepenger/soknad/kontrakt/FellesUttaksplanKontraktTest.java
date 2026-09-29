@@ -12,6 +12,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import jakarta.validation.Validation;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttaksPeriodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttaksplanDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UtsettelsesPeriodeDto;
@@ -55,6 +56,24 @@ class FellesUttaksplanKontraktTest {
           "konto": "FELLESPERIODE"
         }]
         """;
+
+    @Test
+    void felles_uttaksplan_beholder_jsonformat_og_deler_periodetype_med_søknaden() throws Exception {
+        var json = """
+            {"termindato": "2026-01-05", "antallBarn": 1, "dekningsgrad": "HUNDRE", "perioder": %s}
+            """.formatted(PERIODER_JSON);
+        var plan = DefaultJsonMapper.fromJson(json, FellesUttaksplanDto.class);
+        var søknad = DefaultJsonMapper.fromJson("""
+            {"uttaksplan": {"uttaksperioder": [], "perioder": %s}}
+            """.formatted(PERIODER_JSON), ForeldrepengesøknadDto.class);
+
+        assertThat(søknad.uttaksplan().perioder()).isEqualTo(plan.perioder());
+        var jsonMapper = DefaultJsonMapper.getJsonMapper();
+        assertThat(jsonMapper.readTree(DefaultJsonMapper.toJson(plan))).isEqualTo(jsonMapper.readTree(json));
+        try (var factory = Validation.buildDefaultValidatorFactory()) {
+            assertThat(factory.getValidator().validate(plan)).isEmpty();
+        }
+    }
 
     @Test
     void foreldrepengesøknad_normaliserer_legacy_og_beholder_nye_perioder() {

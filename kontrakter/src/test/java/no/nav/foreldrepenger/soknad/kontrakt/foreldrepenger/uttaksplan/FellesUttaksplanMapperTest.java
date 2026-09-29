@@ -3,7 +3,7 @@ package no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan;
 import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.FEDREKVOTE;
 import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.FELLESPERIODE;
 import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.MorsAktivitet.ARBEID;
-import static no.nav.foreldrepenger.kontrakter.fpoversikt.FellesUttaksplanDto.Rolle.MOR;
+import static no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Rolle.MOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -14,17 +14,17 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import jakarta.validation.Validation;
-import no.nav.foreldrepenger.kontrakter.fpoversikt.FellesUttaksplanDto.Aktivitet;
-import no.nav.foreldrepenger.kontrakter.fpoversikt.FellesUttaksplanDto.Arbeidsgiver;
-import no.nav.foreldrepenger.kontrakter.fpoversikt.FellesUttaksplanDto.Arbeidstidprosent;
-import no.nav.foreldrepenger.kontrakter.fpoversikt.FellesUttaksplanDto.EøsUttakDto;
-import no.nav.foreldrepenger.kontrakter.fpoversikt.FellesUttaksplanDto.Gradering;
-import no.nav.foreldrepenger.kontrakter.fpoversikt.FellesUttaksplanDto.OverføringÅrsak;
-import no.nav.foreldrepenger.kontrakter.fpoversikt.FellesUttaksplanDto.SamtidigUttak;
-import no.nav.foreldrepenger.kontrakter.fpoversikt.FellesUttaksplanDto.UtsettelseÅrsak;
-import no.nav.foreldrepenger.kontrakter.fpoversikt.FellesUttaksplanDto.UttakDto;
-import no.nav.foreldrepenger.kontrakter.fpoversikt.FellesUttaksplanDto.UttakPeriodeDto;
-import no.nav.foreldrepenger.kontrakter.fpoversikt.FellesUttaksplanDto.VedtattResultat;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Aktivitet;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Arbeidsgiver;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Arbeidstidprosent;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.EøsUttakDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Gradering;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.OverføringÅrsak;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.SamtidigUttak;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UtsettelseÅrsak;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakPeriodeDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.VedtattResultat;
 
 class FellesUttaksplanMapperTest {
 

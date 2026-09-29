@@ -18,17 +18,10 @@
 
     <properties>
         <fp-kontrakter.version>9.4.39</fp-kontrakter.version>
-        <!-- Replace with the published shared contract version before release. -->
-        <fp-oversikt-kontrakt.version>1.0-SNAPSHOT</fp-oversikt-kontrakt.version>
         <felles.version>7.9.1</felles.version>
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>no.nav.foreldrepenger.kontrakter</groupId>
-            <artifactId>fp-oversikt</artifactId>
-            <version>${fp-oversikt-kontrakt.version}</version>
-        </dependency>
         <dependency>
             <groupId>no.nav.foreldrepenger.kontrakter</groupId>
             <artifactId>fp-kontrakt-felles</artifactId>
