@@ -4,6 +4,7 @@ import java.util.List;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import no.nav.foreldrepenger.kontrakter.fpoversikt.FellesUttaksplanDto.UttakPeriodeDto;
 
 public record UttaksplanDto(Boolean ønskerJustertUttakVedFødsel,
                             @NotNull List<@Valid @NotNull Uttaksplanperiode> uttaksperioder,

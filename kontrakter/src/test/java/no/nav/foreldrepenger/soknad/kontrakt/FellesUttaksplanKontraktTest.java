@@ -159,7 +159,8 @@ class FellesUttaksplanKontraktTest {
     @Test
     void validering_kaskaderer_fra_søknad_til_nye_perioder_og_avviser_null_elementer() {
         var ugyldigePerioder = """
-            [null, {"tom": "2026-01-09", "søker": {"kontoType": "FELLESPERIODE"},
+            [null, {"tom": "2026-01-09", "søker": {"kontoType": "FELLESPERIODE",
+              "gradering": {"arbeidstidprosent": 40, "aktivitet": {"arbeidsgiver": {}}}},
               "annenPart": {"resultat": {}},
               "annenPartEøs": {"kontoType": "FELLESPERIODE", "trekkdager": -1}}]
             """;
@@ -178,6 +179,8 @@ class FellesUttaksplanKontraktTest {
                         "uttaksplan.perioder[0].<list element>",
                         "uttaksplan.perioder[1].fom",
                         "uttaksplan.perioder[1].søker.forelder",
+                        "uttaksplan.perioder[1].søker.gradering.aktivitet.type",
+                        "uttaksplan.perioder[1].søker.gradering.aktivitet.arbeidsgiver.id",
                         "uttaksplan.perioder[1].annenPart.forelder",
                         "uttaksplan.perioder[1].annenPart.resultat.årsak",
                         "uttaksplan.perioder[1].annenPartEøs.trekkdager.verdi");

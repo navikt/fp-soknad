@@ -27,6 +27,7 @@ public record EndringssøknadForeldrepengerDto(LocalDateTime mottattdato,
                                               @VedlegglistestørrelseConstraint @Size(max = 100) List<@Valid @NotNull VedleggDto> vedlegg) implements SøknadDto {
 
     public EndringssøknadForeldrepengerDto {
+        // Midlertidig i expand-fasen: map nye perioder til eksisterende format mens begge formater støttes.
         if (uttaksplan != null && uttaksplan.perioder() != null) {
             uttaksplan = FellesUttaksplanMapper.tilUttaksplanForEndringssøknad(uttaksplan.perioder(), uttaksplan);
         }

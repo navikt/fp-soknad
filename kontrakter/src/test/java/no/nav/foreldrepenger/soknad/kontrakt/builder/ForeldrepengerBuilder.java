@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
+import no.nav.foreldrepenger.kontrakter.fpoversikt.FellesUttaksplanDto.UttakPeriodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.BrukerRolle;
 import no.nav.foreldrepenger.soknad.kontrakt.ForeldrepengesøknadDto;
 import no.nav.foreldrepenger.soknad.kontrakt.Målform;
@@ -14,7 +15,6 @@ import no.nav.foreldrepenger.soknad.kontrakt.UtenlandsoppholdsperiodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.barn.BarnDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.Dekningsgrad;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.annenpart.AnnenForelderDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttaksplanDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.Uttaksplanperiode;
 import no.nav.foreldrepenger.soknad.kontrakt.opptjening.AnnenInntektDto;

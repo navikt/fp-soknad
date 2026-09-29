@@ -32,6 +32,7 @@ public record ForeldrepengesøknadDto(LocalDateTime mottattdato,
                                      @Size(max = 40) List<@Valid @NotNull UtenlandsoppholdsperiodeDto> utenlandsopphold,
                                      @VedlegglistestørrelseConstraint @Size(max = 100)  List<@Valid @NotNull VedleggDto> vedlegg) implements SøknadDto {
     public ForeldrepengesøknadDto {
+        // Midlertidig i expand-fasen: map nye perioder til eksisterende format mens begge formater støttes.
         if (uttaksplan != null && uttaksplan.perioder() != null) {
             uttaksplan = FellesUttaksplanMapper.tilUttaksplan(uttaksplan.perioder(), uttaksplan);
         }
