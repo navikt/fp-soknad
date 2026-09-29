@@ -10,6 +10,7 @@ import jakarta.validation.constraints.Size;
 import no.nav.foreldrepenger.soknad.kontrakt.barn.BarnDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.Dekningsgrad;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.annenpart.AnnenForelderDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanMapper;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttaksplanDto;
 import no.nav.foreldrepenger.soknad.kontrakt.opptjening.AnnenInntektDto;
 import no.nav.foreldrepenger.soknad.kontrakt.opptjening.FrilansDto;
@@ -31,10 +32,12 @@ public record ForeldrepengesøknadDto(LocalDateTime mottattdato,
                                      @Size(max = 40) List<@Valid @NotNull UtenlandsoppholdsperiodeDto> utenlandsopphold,
                                      @VedlegglistestørrelseConstraint @Size(max = 100)  List<@Valid @NotNull VedleggDto> vedlegg) implements SøknadDto {
     public ForeldrepengesøknadDto {
+        if (uttaksplan != null && uttaksplan.perioder() != null) {
+            uttaksplan = FellesUttaksplanMapper.tilUttaksplan(uttaksplan.perioder(), uttaksplan);
+        }
         andreInntekterSiste10Mnd = Optional.ofNullable(andreInntekterSiste10Mnd).orElse(List.of());
         utenlandsopphold = Optional.ofNullable(utenlandsopphold).orElse(List.of());
         vedlegg = Optional.ofNullable(vedlegg).orElse(List.of());
     }
-
 
 }

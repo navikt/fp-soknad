@@ -12,6 +12,7 @@ import no.nav.foreldrepenger.soknad.kontrakt.Målform;
 import no.nav.foreldrepenger.soknad.kontrakt.SøkerDto;
 import no.nav.foreldrepenger.soknad.kontrakt.barn.BarnDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.annenpart.AnnenForelderDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttaksplanDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.Uttaksplanperiode;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.VedleggDto;
@@ -25,6 +26,7 @@ public class EndringssøknadBuilder implements SøknadBuilder<EngangsstønadBuil
     private BarnDto barn;
     private AnnenForelderDto annenForelder;
     private UttaksplanDto uttaksplan;
+    private List<UttakPeriodeDto> perioder;
     private List<VedleggDto> vedlegg;
 
     public EndringssøknadBuilder(Saksnummer saksnummer) {
@@ -82,10 +84,18 @@ public class EndringssøknadBuilder implements SøknadBuilder<EngangsstønadBuil
         return this;
     }
 
+    public EndringssøknadBuilder medPerioder(List<UttakPeriodeDto> perioder) {
+        this.perioder = perioder;
+        return this;
+    }
+
     public EndringssøknadForeldrepengerDto build() {
         if (mottattdato == null) {
             mottattdato = LocalDateTime.now();
         }
-        return new EndringssøknadForeldrepengerDto(mottattdato, saksnummer, søkerinfo, rolle, språkkode, barn, annenForelder, uttaksplan , vedlegg);
+        return new EndringssøknadForeldrepengerDto(mottattdato, saksnummer, søkerinfo, rolle, språkkode, barn, annenForelder,
+                perioder == null ? uttaksplan : new UttaksplanDto(
+                    uttaksplan == null ? null : uttaksplan.ønskerJustertUttakVedFødsel(),
+                    uttaksplan == null ? List.of() : uttaksplan.uttaksperioder(), perioder), vedlegg);
     }
 }
