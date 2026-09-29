@@ -150,7 +150,7 @@ class FellesUttaksplanKontraktTest {
             """.formatted(perioder), EndringssøknadForeldrepengerDto.class);
 
         assertThat(søknad.uttaksplan().uttaksperioder()).containsExactly(
-            new UtsettelsesPeriodeDto(LocalDate.of(2026, 1, 12), LocalDate.of(2026, 1, 16), UtsettelsesÅrsak.FRI, null, null));
+            new UtsettelsesPeriodeDto(LocalDate.of(2026, 1, 12), LocalDate.of(2026, 1, 16), UtsettelsesÅrsak.FRI, null, false));
         assertThat(søknad.uttaksplan().ønskerJustertUttakVedFødsel()).isTrue();
         var gjenlest = DefaultJsonMapper.fromJson(DefaultJsonMapper.toJson(søknad), EndringssøknadForeldrepengerDto.class);
         assertThat(gjenlest.uttaksplan()).isEqualTo(søknad.uttaksplan());
