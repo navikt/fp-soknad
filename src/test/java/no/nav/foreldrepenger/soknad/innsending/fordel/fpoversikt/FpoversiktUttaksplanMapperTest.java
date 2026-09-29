@@ -2,8 +2,8 @@ package no.nav.foreldrepenger.soknad.innsending.fordel.fpoversikt;
 
 import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.FELLESPERIODE;
 import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.MorsAktivitet.ARBEID;
-import static no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Rolle.FAR_MEDMOR;
-import static no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Rolle.MOR;
+import static no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.Rolle.FAR_MEDMOR;
+import static no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.Rolle.MOR;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
@@ -13,16 +13,15 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Aktivitet;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Arbeidsgiver;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Arbeidstidprosent;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.EøsUttakDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Gradering;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.SamtidigUttak;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakPeriodeDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.VedtattResultat;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.Aktivitet;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.Arbeidsgiver;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.Arbeidstidprosent;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.EøsUttakDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.Gradering;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.SamtidigUttak;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.UttakDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.VedtattResultat;
 
 class FpoversiktUttaksplanMapperTest {
 
@@ -39,10 +38,10 @@ class FpoversiktUttaksplanMapperTest {
         var annenPart = new UttakDto(FAR_MEDMOR, FELLESPERIODE, null, null, gradering, ARBEID, samtidigUttak, true, resultat);
         var søker = new UttakDto(MOR, FELLESPERIODE, null, null, null, null, null, false, resultat);
         var eøs = new EøsUttakDto(FELLESPERIODE, new EøsUttakDto.Trekkdager(BigDecimal.ONE));
-        var plan = new FellesUttaksplanDto(START, 1, FellesUttaksplanDto.Dekningsgrad.HUNDRE, List.of(
+        var plan = List.of(
             new UttakPeriodeDto(START, START.plusDays(4), søker, null, null),
             new UttakPeriodeDto(START.plusWeeks(1), START.plusWeeks(1).plusDays(4), null, annenPart, null),
-            new UttakPeriodeDto(START.plusWeeks(2), START.plusWeeks(2).plusDays(4), null, null, eøs)));
+            new UttakPeriodeDto(START.plusWeeks(2), START.plusWeeks(2).plusDays(4), null, null, eøs));
 
         var request = FpoversiktUttaksplanMapper.map("123", MOTTATT, plan).orElseThrow();
 
@@ -63,16 +62,14 @@ class FpoversiktUttaksplanMapperTest {
     void felles_plan_uten_norsk_annen_part_gir_tom_erstatningsliste() {
         var søker = new UttakDto(MOR, FELLESPERIODE, null, null, null, null, null, false, null);
         var eøs = new EøsUttakDto(FELLESPERIODE, new EøsUttakDto.Trekkdager(BigDecimal.ONE));
-        var plan = new FellesUttaksplanDto(START, 1, FellesUttaksplanDto.Dekningsgrad.HUNDRE,
-            List.of(new UttakPeriodeDto(START, START.plusDays(4), søker, null, eøs)));
+        var plan = List.of(new UttakPeriodeDto(START, START.plusDays(4), søker, null, eøs));
 
         assertThat(FpoversiktUttaksplanMapper.map("123", MOTTATT, plan))
             .get()
             .extracting(FpoversiktUttaksplanRequest::perioder)
             .asList()
             .isEmpty();
-        assertThat(FpoversiktUttaksplanMapper.map("123", MOTTATT,
-            new FellesUttaksplanDto(START, 1, FellesUttaksplanDto.Dekningsgrad.HUNDRE, List.of())))
+        assertThat(FpoversiktUttaksplanMapper.map("123", MOTTATT, List.of()))
             .get()
             .extracting(FpoversiktUttaksplanRequest::perioder)
             .asList()

@@ -1,5 +1,6 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel;
 
+import java.util.List;
 import java.util.UUID;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -11,7 +12,7 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.utils.SøknadJsonMapper;
 import no.nav.foreldrepenger.soknad.kontrakt.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.soknad.kontrakt.ForeldrepengesøknadDto;
 import no.nav.foreldrepenger.soknad.kontrakt.SøknadDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
@@ -53,10 +54,10 @@ public class FpoversiktLagreAnnenPartUttaksplanTask implements ProsessTaskHandle
         taskTjeneste.lagre(vlKlargjørerTask(prosessTaskData));
     }
 
-    private static FellesUttaksplanDto fellesUttaksplan(SøknadDto søknad) {
+    private static List<UttakPeriodeDto> fellesUttaksplan(SøknadDto søknad) {
         return switch (søknad) {
-            case ForeldrepengesøknadDto førstegang -> førstegang.fellesUttaksplan();
-            case EndringssøknadForeldrepengerDto endring -> endring.fellesUttaksplan();
+            case ForeldrepengesøknadDto førstegang -> førstegang.uttaksplan().perioder();
+            case EndringssøknadForeldrepengerDto endring -> endring.uttaksplan().perioder();
             default -> null;
         };
     }

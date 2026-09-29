@@ -14,6 +14,7 @@ import no.nav.foreldrepenger.soknad.kontrakt.UtenlandsoppholdsperiodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.barn.BarnDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.Dekningsgrad;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.annenpart.AnnenForelderDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttaksplanDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.Uttaksplanperiode;
 import no.nav.foreldrepenger.soknad.kontrakt.opptjening.AnnenInntektDto;
@@ -33,6 +34,7 @@ public class ForeldrepengerBuilder implements SøknadBuilder<EngangsstønadBuild
     private AnnenForelderDto annenForelder;
     private Dekningsgrad dekningsgrad;
     private UttaksplanDto uttaksplan;
+    private List<UttakPeriodeDto> perioder;
     private List<UtenlandsoppholdsperiodeDto> utenlandsopphold;
     private List<VedleggDto> vedlegg;
 
@@ -115,6 +117,11 @@ public class ForeldrepengerBuilder implements SøknadBuilder<EngangsstønadBuild
         return this;
     }
 
+    public ForeldrepengerBuilder medPerioder(List<UttakPeriodeDto> perioder) {
+        this.perioder = perioder;
+        return this;
+    }
+
     public SøknadDto build() {
         if (mottattdato == null) {
             mottattdato = LocalDateTime.now();
@@ -130,7 +137,9 @@ public class ForeldrepengerBuilder implements SøknadBuilder<EngangsstønadBuild
                 andreInntekterSiste10Mnd,
                 annenForelder,
                 dekningsgrad,
-                uttaksplan,
+                perioder == null ? uttaksplan : new UttaksplanDto(
+                    uttaksplan == null ? null : uttaksplan.ønskerJustertUttakVedFødsel(),
+                    uttaksplan == null ? List.of() : uttaksplan.uttaksperioder(), perioder),
                 utenlandsopphold,
                 vedlegg
         );

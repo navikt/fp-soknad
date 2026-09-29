@@ -62,7 +62,7 @@ import no.nav.foreldrepenger.soknad.kontrakt.builder.EndringssøknadBuilder;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.ForeldrepengerBuilder;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.UttakplanPeriodeBuilder;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.Dekningsgrad;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.Dokumenterer;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.InnsendingType;
@@ -103,8 +103,8 @@ class BehandleSøknadTaskTest {
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void innsending_av_foreldrepenger_destinasjon_fpsak_med_saksnummer(boolean medFellesUttaksplan) {
+    @ValueSource(strings = {"legacy", "tom", "full"})
+    void innsending_av_foreldrepenger_destinasjon_fpsak_med_saksnummer(String plantype) {
         // Arrange
         var familehendelseDato = LocalDateTime.now().minusWeeks(1).toLocalDate();
         var søknad = (ForeldrepengesøknadDto) new ForeldrepengerBuilder().medRolle(BrukerRolle.MOR)
@@ -116,14 +116,12 @@ class BehandleSøknadTaskTest {
                 UttakplanPeriodeBuilder.uttak(FELLESPERIODE, familehendelseDato.plusWeeks(15), familehendelseDato.plusWeeks(31).minusDays(1))
                     .build()))
             .medDekningsgrad(Dekningsgrad.HUNDRE)
+            .medPerioder(perioder(plantype, familehendelseDato))
             .medUtenlandsopphold(List.of())
             .medAnnenForelder(AnnenforelderBuilder.norskMedRettighetNorge(new Fødselsnummer("0987654321")).build())
             .medVedlegg(List.of(new VedleggDto(UUID.randomUUID(), DokumentTypeId.I000141, InnsendingType.LASTET_OPP, null,
                 new Dokumenterer(Dokumenterer.DokumentererType.BARN, null, null))))
             .build();
-        if (medFellesUttaksplan) {
-            søknad = medFellesUttaksplan(søknad, familehendelseDato);
-        }
         var forsendelseId = UUID.randomUUID();
         lagreForsendelseOgSøknad(søknad, forsendelseId);
 
@@ -158,29 +156,29 @@ class BehandleSøknadTaskTest {
             .hasSameSizeAs(forventet)
             .containsAll(forventet);
 
-        validerProsesstaskOpprettet(forsendelseId, saksnummer, medFellesUttaksplan);
+        validerProsesstaskOpprettet(forsendelseId, saksnummer, !plantype.equals("legacy"));
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void innsending_av_endringssøknad(boolean medFellesUttaksplan) {
+    @ValueSource(strings = {"legacy", "tom", "full"})
+    void innsending_av_endringssøknad(String plantype) {
         // Arrange
         var familehendelseDato = LocalDateTime.now().minusWeeks(1).toLocalDate();
         var saksnummer = new Saksnummer("111111");
         var endringssøknad = new EndringssøknadBuilder(saksnummer).medRolle(BrukerRolle.MOR)
             .medSøkerinfo(new SøkerDto(new Fødselsnummer("1234567890"), new SøkerDto.Navn("Per", null, "etternavn"), null))
             .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
-            .medUttaksplan(List.of(
+            .medUttaksplan(plantype.equals("tom")
+                ? List.of(UttakplanPeriodeBuilder.friUtsettelse(familehendelseDato, familehendelseDato.plusDays(4)).build())
+                : List.of(
                 UttakplanPeriodeBuilder.uttak(FORELDREPENGER_FØR_FØDSEL, familehendelseDato.minusWeeks(3), familehendelseDato.minusDays(1)).build(),
                 UttakplanPeriodeBuilder.gradert(MØDREKVOTE, familehendelseDato, familehendelseDato.plusWeeks(15).minusDays(1), 43.2).build(),
                 UttakplanPeriodeBuilder.friUtsettelse(familehendelseDato.plusWeeks(15), familehendelseDato.plusWeeks(20).minusDays(1)).build(),
                 UttakplanPeriodeBuilder.overføring(Overføringsårsak.SYKDOM_ANNEN_FORELDER, FEDREKVOTE, familehendelseDato.plusWeeks(20),
                     familehendelseDato.plusWeeks(31).minusDays(1)).build()))
             .medAnnenForelder(AnnenforelderBuilder.norskMedRettighetNorge(new Fødselsnummer("0987654321")).build())
+            .medPerioder(perioder(plantype, familehendelseDato))
             .build();
-        if (medFellesUttaksplan) {
-            endringssøknad = medFellesUttaksplan(endringssøknad, familehendelseDato);
-        }
         var forsendelseId = UUID.randomUUID();
         lagreForsendelseOgSøknad(endringssøknad, forsendelseId);
 
@@ -214,7 +212,7 @@ class BehandleSøknadTaskTest {
             .containsAll(forventet);
         verify(fpsakTjeneste, never()).vurderFagsystem(any());
 
-        validerProsesstaskOpprettet(forsendelseId, saksnummer.value(), medFellesUttaksplan);
+        validerProsesstaskOpprettet(forsendelseId, saksnummer.value(), !plantype.equals("legacy"));
     }
 
     private void validerProsesstaskOpprettet(UUID forsendelseId, String saksnummer, boolean medFellesUttaksplan) {
@@ -232,21 +230,13 @@ class BehandleSøknadTaskTest {
         assertThat(vlklargjørtask.getSekvens()).isEqualTo("123");
     }
 
-    private static ForeldrepengesøknadDto medFellesUttaksplan(ForeldrepengesøknadDto søknad, LocalDate start) {
-        return new ForeldrepengesøknadDto(søknad.mottattdato(), søknad.søkerinfo(), søknad.rolle(), søknad.språkkode(), søknad.barn(),
-            søknad.frilans(), søknad.egenNæring(), søknad.andreInntekterSiste10Mnd(), søknad.annenForelder(), søknad.dekningsgrad(),
-            søknad.uttaksplan(), fellesUttaksplan(start), søknad.utenlandsopphold(), søknad.vedlegg());
-    }
-
-    private static EndringssøknadForeldrepengerDto medFellesUttaksplan(EndringssøknadForeldrepengerDto søknad, LocalDate start) {
-        return new EndringssøknadForeldrepengerDto(søknad.mottattdato(), søknad.saksnummer(), søknad.søkerinfo(), søknad.rolle(),
-            søknad.språkkode(), søknad.barn(), søknad.annenForelder(), søknad.uttaksplan(), fellesUttaksplan(start), søknad.vedlegg());
-    }
-
-    private static FellesUttaksplanDto fellesUttaksplan(LocalDate start) {
-        var uttak = new FellesUttaksplanDto.UttakDto(FellesUttaksplanDto.Rolle.MOR, FELLESPERIODE, null, null, null, null, null, false, null);
-        var periode = new FellesUttaksplanDto.UttakPeriodeDto(start, start.plusDays(4), uttak, null, null);
-        return new FellesUttaksplanDto(start, 1, FellesUttaksplanDto.Dekningsgrad.HUNDRE, List.of(periode));
+    private static List<UttakPeriodeDto> perioder(String plantype, LocalDate start) {
+        var uttak = new UttakPeriodeDto.UttakDto(UttakPeriodeDto.Rolle.MOR, FELLESPERIODE, null, null, null, null, null, false, null);
+        return switch (plantype) {
+            case "legacy" -> null;
+            case "tom" -> List.of();
+            default -> List.of(new UttakPeriodeDto(start, start.plusDays(4), uttak, null, null));
+        };
     }
 
     private void lagreForsendelseOgSøknad(SøknadDto søknad, UUID forsendelseId) {

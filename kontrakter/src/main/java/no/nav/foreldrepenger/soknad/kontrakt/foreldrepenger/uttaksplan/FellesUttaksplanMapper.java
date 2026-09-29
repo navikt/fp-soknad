@@ -8,33 +8,32 @@ import java.util.Objects;
 import java.util.Optional;
 
 import no.nav.foreldrepenger.kontrakter.felles.kodeverk.Overføringsårsak;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Aktivitet;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Gradering;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakPeriodeDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.Aktivitet;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.Gradering;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.UttakDto;
 
 public final class FellesUttaksplanMapper {
 
     private FellesUttaksplanMapper() {
     }
 
-    public static UttaksplanDto tilUttaksplan(FellesUttaksplanDto fellesUttaksplan, UttaksplanDto legacyUttaksplan) {
+    public static UttaksplanDto tilUttaksplan(List<UttakPeriodeDto> fellesUttaksplan, UttaksplanDto legacyUttaksplan) {
         var perioder = mapPerioder(fellesUttaksplan, true);
-        return new UttaksplanDto(ønskerJustertUttakVedFødsel(legacyUttaksplan), perioder);
+        return new UttaksplanDto(ønskerJustertUttakVedFødsel(legacyUttaksplan), perioder, fellesUttaksplan);
     }
 
-    public static UttaksplanDto tilUttaksplanForEndringssøknad(FellesUttaksplanDto fellesUttaksplan, UttaksplanDto legacyUttaksplan) {
+    public static UttaksplanDto tilUttaksplanForEndringssøknad(List<UttakPeriodeDto> fellesUttaksplan, UttaksplanDto legacyUttaksplan) {
         var cutoff = finnEndringstidspunkt(legacyUttaksplan);
         var perioder = new ArrayList<>(mapPerioder(fellesUttaksplan, false).stream()
             .filter(periode -> periode.tom() != null && !periode.tom().isBefore(cutoff))
             .toList());
         finnFriEndringsmarkør(legacyUttaksplan, cutoff).ifPresent(perioder::add);
         perioder.sort(Comparator.comparing(Uttaksplanperiode::fom));
-        return new UttaksplanDto(ønskerJustertUttakVedFødsel(legacyUttaksplan), perioder);
+        return new UttaksplanDto(ønskerJustertUttakVedFødsel(legacyUttaksplan), perioder, fellesUttaksplan);
     }
 
-    private static List<Uttaksplanperiode> mapPerioder(FellesUttaksplanDto fellesUttaksplan, boolean inkluderAvslåttePerioder) {
-        return Optional.ofNullable(fellesUttaksplan.perioder()).orElse(List.of()).stream()
+    private static List<Uttaksplanperiode> mapPerioder(List<UttakPeriodeDto> fellesUttaksplan, boolean inkluderAvslåttePerioder) {
+        return Optional.ofNullable(fellesUttaksplan).orElse(List.of()).stream()
             .filter(Objects::nonNull)
             .filter(periode -> inkluderAvslåttePerioder || erIkkeAvslått(periode.søker()))
             .map(FellesUttaksplanMapper::tilUttaksplanperiode)
@@ -48,7 +47,7 @@ public final class FellesUttaksplanMapper {
 
     private static LocalDate finnEndringstidspunkt(UttaksplanDto legacyUttaksplan) {
         if (legacyUttaksplan == null || legacyUttaksplan.uttaksperioder() == null || legacyUttaksplan.uttaksperioder().isEmpty()) {
-            throw new IllegalArgumentException("Endringssøknad med fellesUttaksplan krever en ikke-tom legacy uttaksplan");
+            throw new IllegalArgumentException("Endringssøknad med perioder krever en ikke-tom legacy uttaksplan");
         }
         return legacyUttaksplan.uttaksperioder().stream()
             .map(Uttaksplanperiode::fom)

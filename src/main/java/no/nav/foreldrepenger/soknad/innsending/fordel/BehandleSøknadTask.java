@@ -134,8 +134,8 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
 
     private static boolean harFellesUttaksplan(SøknadDto søknad) {
         return switch (søknad) {
-            case ForeldrepengesøknadDto førstegang -> førstegang.fellesUttaksplan() != null;
-            case EndringssøknadForeldrepengerDto endring -> endring.fellesUttaksplan() != null;
+            case ForeldrepengesøknadDto førstegang -> førstegang.uttaksplan().perioder() != null;
+            case EndringssøknadForeldrepengerDto endring -> endring.uttaksplan().perioder() != null;
             default -> false;
         };
     }

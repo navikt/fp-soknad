@@ -3,7 +3,7 @@ package no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan;
 import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.FEDREKVOTE;
 import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.FELLESPERIODE;
 import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.MorsAktivitet.ARBEID;
-import static no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Rolle.MOR;
+import static no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.Rolle.MOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -14,17 +14,16 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import jakarta.validation.Validation;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Aktivitet;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Arbeidsgiver;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Arbeidstidprosent;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.EøsUttakDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Gradering;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.OverføringÅrsak;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.SamtidigUttak;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UtsettelseÅrsak;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakPeriodeDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.VedtattResultat;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.Aktivitet;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.Arbeidsgiver;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.Arbeidstidprosent;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.EøsUttakDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.Gradering;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.OverføringÅrsak;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.SamtidigUttak;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.UtsettelseÅrsak;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.UttakDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.VedtattResultat;
 
 class FellesUttaksplanMapperTest {
 
@@ -54,12 +53,11 @@ class FellesUttaksplanMapperTest {
             periode(9, utsettelse(UtsettelseÅrsak.FRI), null, null),
             periode(10, null, uttak, null),
             periode(11, null, null, new EøsUttakDto(FELLESPERIODE, new EøsUttakDto.Trekkdager(BigDecimal.ONE))));
-        var fellesPlan = new FellesUttaksplanDto(START, 1, FellesUttaksplanDto.Dekningsgrad.HUNDRE, perioder);
-
-        var legacyPlan = FellesUttaksplanMapper.tilUttaksplan(fellesPlan, null);
+        var legacyPlan = FellesUttaksplanMapper.tilUttaksplan(perioder, null);
 
         assertThat(legacyPlan.ønskerJustertUttakVedFødsel()).isNull();
         assertThat(legacyPlan.uttaksperioder()).hasSize(7);
+        assertThat(legacyPlan.perioder()).isEqualTo(perioder);
 
         var uttaksperiode = (UttaksPeriodeDto) legacyPlan.uttaksperioder().getFirst();
         assertThat(uttaksperiode.konto()).isEqualTo(FELLESPERIODE);
@@ -92,7 +90,7 @@ class FellesUttaksplanMapperTest {
         var ugyldigResultat = new VedtattResultat(true, false, true, null);
         var ugyldigSøker = new UttakDto(null, FELLESPERIODE, null, null, null, null, null, false, ugyldigResultat);
         var ugyldigEøsUttak = new EøsUttakDto(FELLESPERIODE, new EøsUttakDto.Trekkdager(BigDecimal.valueOf(-1)));
-        var plan = new FellesUttaksplanDto(START, 1, FellesUttaksplanDto.Dekningsgrad.HUNDRE,
+        var plan = new UttaksplanDto(null, List.of(),
             List.of(periode(0, ugyldigSøker, null, ugyldigEøsUttak)));
 
         try (var factory = Validation.buildDefaultValidatorFactory()) {
@@ -114,17 +112,18 @@ class FellesUttaksplanMapperTest {
         var legacyPlan = new UttaksplanDto(true, List.of(legacyPeriode));
         var innvilget = new VedtattResultat(true, false, true, VedtattResultat.Årsak.ANNET);
         var avslått = new VedtattResultat(false, false, false, VedtattResultat.Årsak.ANNET);
-        var plan = new FellesUttaksplanDto(START, 1, FellesUttaksplanDto.Dekningsgrad.HUNDRE, List.of(
+        var plan = List.of(
             uttaksperiode(START, START.plusDays(4), innvilget),
             uttaksperiode(cutoff.minusDays(2), cutoff.plusDays(2), innvilget),
             uttaksperiode(cutoff.plusWeeks(1), cutoff.plusWeeks(1).plusDays(4), innvilget),
-            uttaksperiode(cutoff.plusWeeks(2), cutoff.plusWeeks(2).plusDays(4), avslått)));
+            uttaksperiode(cutoff.plusWeeks(2), cutoff.plusWeeks(2).plusDays(4), avslått));
 
         var førstegang = FellesUttaksplanMapper.tilUttaksplan(plan, null);
         var resultat = FellesUttaksplanMapper.tilUttaksplanForEndringssøknad(plan, legacyPlan);
 
         assertThat(førstegang.uttaksperioder()).hasSize(4);
         assertThat(resultat.ønskerJustertUttakVedFødsel()).isTrue();
+        assertThat(resultat.perioder()).isEqualTo(plan);
         assertThat(resultat.uttaksperioder())
             .extracting(Uttaksplanperiode::fom)
             .containsExactly(cutoff.minusDays(2), cutoff.plusWeeks(1));
@@ -132,7 +131,7 @@ class FellesUttaksplanMapperTest {
 
     @Test
     void endringssøknad_med_felles_plan_krever_legacy_perioder() {
-        var plan = new FellesUttaksplanDto(START, 1, FellesUttaksplanDto.Dekningsgrad.HUNDRE, List.of());
+        var plan = List.<UttakPeriodeDto>of();
 
         assertThatThrownBy(() -> FellesUttaksplanMapper.tilUttaksplanForEndringssøknad(plan, null))
             .isInstanceOf(IllegalArgumentException.class)
@@ -147,9 +146,9 @@ class FellesUttaksplanMapperTest {
         var cutoff = START.plusWeeks(2);
         var endringsmarkør = new UtsettelsesPeriodeDto(cutoff, cutoff.plusDays(4), UtsettelsesÅrsak.FRI, null, false);
         var legacyPlan = new UttaksplanDto(null, List.of(endringsmarkør));
-        var plan = new FellesUttaksplanDto(START, 1, FellesUttaksplanDto.Dekningsgrad.HUNDRE, List.of(
+        var plan = List.of(
             uttaksperiode(START, START.plusDays(4), null),
-            uttaksperiode(cutoff.plusWeeks(1), cutoff.plusWeeks(1).plusDays(4), null)));
+            uttaksperiode(cutoff.plusWeeks(1), cutoff.plusWeeks(1).plusDays(4), null));
 
         var resultat = FellesUttaksplanMapper.tilUttaksplanForEndringssøknad(plan, legacyPlan);
 

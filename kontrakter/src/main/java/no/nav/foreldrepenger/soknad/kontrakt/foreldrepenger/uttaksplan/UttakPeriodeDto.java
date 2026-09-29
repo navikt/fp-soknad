@@ -2,7 +2,6 @@ package no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
@@ -13,17 +12,11 @@ import jakarta.validation.constraints.NotNull;
 import no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType;
 import no.nav.foreldrepenger.kontrakter.felles.kodeverk.MorsAktivitet;
 
-public record FellesUttaksplanDto(LocalDate termindato,
-                                 @NotNull Integer antallBarn,
-                                 @NotNull Dekningsgrad dekningsgrad,
-                                 @NotNull List<@Valid @NotNull UttakPeriodeDto> perioder) {
-
-    public record UttakPeriodeDto(@NotNull LocalDate fom,
-                                  @NotNull LocalDate tom,
-                                  @Valid UttakDto søker,
-                                  @Valid UttakDto annenPart,
-                                  @Valid EøsUttakDto annenPartEøs) {
-    }
+public record UttakPeriodeDto(@NotNull LocalDate fom,
+                              @NotNull LocalDate tom,
+                              @Valid UttakDto søker,
+                              @Valid UttakDto annenPart,
+                              @Valid EøsUttakDto annenPartEøs) {
 
     public record UttakDto(@NotNull Rolle forelder,
                            KontoType kontoType,
@@ -34,10 +27,6 @@ public record FellesUttaksplanDto(LocalDate termindato,
                            @Valid SamtidigUttak samtidigUttak,
                            @NotNull boolean flerbarnsdager,
                            @Valid VedtattResultat resultat) {
-    }
-
-    public enum Dekningsgrad {
-        ÅTTI, HUNDRE
     }
 
     public enum UtsettelseÅrsak {

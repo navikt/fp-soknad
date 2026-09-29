@@ -1,7 +1,7 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel;
 
 import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.FELLESPERIODE;
-import static no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Rolle.FAR_MEDMOR;
+import static no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.Rolle.FAR_MEDMOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.inOrder;
@@ -30,9 +30,9 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.fpoversikt.FpoversiktTjene
 import no.nav.foreldrepenger.soknad.innsending.fordel.fpoversikt.FpoversiktUttaksplanRequest;
 import no.nav.foreldrepenger.soknad.kontrakt.ForeldrepengesøknadDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.Dekningsgrad;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakPeriodeDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttakPeriodeDto.UttakDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttaksplanDto;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.DokumentTypeId;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
@@ -113,10 +113,9 @@ class FpoversiktLagreAnnenPartUttaksplanTaskTest {
     private static DokumentEntitet søknadDokument(UUID forsendelseId) {
         var start = LocalDate.of(2026, 1, 5);
         var annenPart = new UttakDto(FAR_MEDMOR, FELLESPERIODE, null, null, null, null, null, false, null);
-        var fellesPlan = new FellesUttaksplanDto(start, 1, FellesUttaksplanDto.Dekningsgrad.HUNDRE,
-            List.of(new UttakPeriodeDto(start, start.plusDays(4), null, annenPart, null)));
-        var søknad = new ForeldrepengesøknadDto(null, null, null, null, null, null, null, List.of(), null, Dekningsgrad.HUNDRE, null,
-            fellesPlan, List.of(), List.of());
+        var perioder = List.of(new UttakPeriodeDto(start, start.plusDays(4), null, annenPart, null));
+        var søknad = new ForeldrepengesøknadDto(null, null, null, null, null, null, null, List.of(), null, Dekningsgrad.HUNDRE,
+            new UttaksplanDto(null, List.of(), perioder), List.of(), List.of());
         return DokumentEntitet.builder()
             .setDokumentInnhold(DefaultJsonMapper.getJsonMapper().writeValueAsBytes(søknad), ArkivFilType.JSON)
             .setForsendelseId(forsendelseId)
