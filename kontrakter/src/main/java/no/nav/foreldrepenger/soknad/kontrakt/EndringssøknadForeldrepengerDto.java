@@ -28,4 +28,5 @@ public record EndringssøknadForeldrepengerDto(LocalDateTime mottattdato,
     public EndringssøknadForeldrepengerDto {
         vedlegg = Optional.ofNullable(vedlegg).map(ArrayList::new).orElse(new ArrayList<>());
     }
+
 }

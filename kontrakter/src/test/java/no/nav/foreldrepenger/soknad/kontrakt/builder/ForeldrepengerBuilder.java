@@ -14,6 +14,7 @@ import no.nav.foreldrepenger.soknad.kontrakt.UtenlandsoppholdsperiodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.barn.BarnDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.Dekningsgrad;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.annenpart.AnnenForelderDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakPeriodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttaksplanDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.Uttaksplanperiode;
 import no.nav.foreldrepenger.soknad.kontrakt.opptjening.AnnenInntektDto;
@@ -106,12 +107,21 @@ public class ForeldrepengerBuilder implements SøknadBuilder<EngangsstønadBuild
     }
 
     public ForeldrepengerBuilder medUttaksplan(List<Uttaksplanperiode> uttaksperioder) {
-        this.uttaksplan = new UttaksplanDto(null, uttaksperioder);
+        this.uttaksplan = new UttaksplanDto(null, uttaksperioder, uttaksplan == null ? null : uttaksplan.perioder());
         return this;
     }
 
     public ForeldrepengerBuilder medVedlegg(List<VedleggDto> vedlegg) {
         this.vedlegg = vedlegg;
+        return this;
+    }
+
+    public ForeldrepengerBuilder medPerioder(List<UttakPeriodeDto> perioder) {
+        if (uttaksplan != null || perioder != null) {
+            this.uttaksplan = new UttaksplanDto(
+                uttaksplan == null ? null : uttaksplan.ønskerJustertUttakVedFødsel(),
+                uttaksplan == null ? List.of() : uttaksplan.uttaksperioder(), perioder);
+        }
         return this;
     }
 

@@ -36,5 +36,4 @@ public record ForeldrepengesøknadDto(LocalDateTime mottattdato,
         vedlegg = Optional.ofNullable(vedlegg).orElse(List.of());
     }
 
-
 }
