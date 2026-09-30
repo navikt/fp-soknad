@@ -27,6 +27,7 @@ import no.nav.foreldrepenger.soknad.kontrakt.barn.OmsorgsovertakelseDto;
 import no.nav.foreldrepenger.soknad.kontrakt.barn.TerminDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.annenpart.AnnenForelderDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.annenpart.NorskForelderDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakPeriodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttaksplanDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.Uttaksplanperiode;
 import no.nav.vedtak.konfig.Tid;
@@ -133,6 +134,14 @@ public class DestinasjonsRuter {
     }
 
     private static LocalDate førsteUttaksdatoFraPlan(UttaksplanDto uttaksplan) {
+        // Gammel kodesti beholdes bare i expand-fasen.
+        if (uttaksplan.perioder() != null) {
+            return uttaksplan.perioder().stream()
+                .filter(p -> p.søker() != null)
+                .map(UttakPeriodeDto::fom)
+                .min(LocalDate::compareTo)
+                .orElseThrow(() -> new IllegalArgumentException("Uttaksplan mangler søkerperioder"));
+        }
         return uttaksplan.uttaksperioder().stream()
             .map(Uttaksplanperiode::fom)
             .min(LocalDate::compareTo)

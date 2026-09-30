@@ -2,7 +2,6 @@ package no.nav.foreldrepenger.soknad.kontrakt;
 
 import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.FELLESPERIODE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -76,7 +75,7 @@ class FellesUttaksplanKontraktTest {
     }
 
     @Test
-    void foreldrepengesøknad_normaliserer_legacy_og_beholder_nye_perioder() {
+    void foreldrepengesøknad_beholder_begge_lister_uendret() {
         var søknad = DefaultJsonMapper.fromJson("""
             {
               "dekningsgrad": "100",
@@ -89,13 +88,14 @@ class FellesUttaksplanKontraktTest {
             """.formatted(PERIODER_JSON), ForeldrepengesøknadDto.class);
 
         assertThat(søknad.uttaksplan().ønskerJustertUttakVedFødsel()).isTrue();
+        assertThat(søknad.uttaksplan().uttaksperioder()).isEmpty();
         assertPlanOgSerialisering(søknad.uttaksplan(), DefaultJsonMapper.toJson(søknad));
         var gjenlest = DefaultJsonMapper.fromJson(DefaultJsonMapper.toJson(søknad), ForeldrepengesøknadDto.class);
         assertThat(gjenlest.uttaksplan()).isEqualTo(søknad.uttaksplan());
     }
 
     @Test
-    void endringssøknad_normaliserer_legacy_og_beholder_nye_perioder() {
+    void endringssøknad_beholder_begge_lister_uendret() {
         var søknad = DefaultJsonMapper.fromJson("""
             {
               "uttaksplan": {
@@ -107,6 +107,7 @@ class FellesUttaksplanKontraktTest {
             """.formatted(LEGACY_PERIODER_JSON, PERIODER_JSON), EndringssøknadForeldrepengerDto.class);
 
         assertThat(søknad.uttaksplan().ønskerJustertUttakVedFødsel()).isFalse();
+        assertThat(søknad.uttaksplan().uttaksperioder()).singleElement().isInstanceOf(UttaksPeriodeDto.class);
         assertPlanOgSerialisering(søknad.uttaksplan(), DefaultJsonMapper.toJson(søknad));
         var gjenlest = DefaultJsonMapper.fromJson(DefaultJsonMapper.toJson(søknad), EndringssøknadForeldrepengerDto.class);
         assertThat(gjenlest.uttaksplan()).isEqualTo(søknad.uttaksplan());
@@ -130,12 +131,12 @@ class FellesUttaksplanKontraktTest {
     }
 
     @Test
-    void tom_ny_plan_tømmer_førstegang_og_overlever_serialisering() {
+    void tom_ny_plan_endrer_ikke_gammel_plan_ved_serialisering() {
         var søknad = DefaultJsonMapper.fromJson("""
             {"uttaksplan": {"uttaksperioder": %s, "perioder": []}}
             """.formatted(LEGACY_PERIODER_JSON), ForeldrepengesøknadDto.class);
 
-        assertThat(søknad.uttaksplan().uttaksperioder()).isEmpty();
+        assertThat(søknad.uttaksplan().uttaksperioder()).hasSize(1);
         assertThat(søknad.uttaksplan().perioder()).isEmpty();
         var gjenlest = DefaultJsonMapper.fromJson(DefaultJsonMapper.toJson(søknad), ForeldrepengesøknadDto.class);
         assertThat(gjenlest.uttaksplan()).isEqualTo(søknad.uttaksplan());
@@ -143,16 +144,22 @@ class FellesUttaksplanKontraktTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"null", "[]"})
-    void endringssøknad_med_nye_perioder_avviser_manglende_eller_tom_legacy_plan(String legacyPerioder) {
-        assertThatThrownBy(() -> DefaultJsonMapper.fromJson("""
+    void ny_plan_er_uavhengig_av_gammel_liste_også_for_endring(String legacyPerioder) {
+        var json = """
             {"uttaksplan": {"uttaksperioder": %s, "perioder": %s}}
-            """.formatted(legacyPerioder, PERIODER_JSON), EndringssøknadForeldrepengerDto.class))
-            .hasRootCauseInstanceOf(IllegalArgumentException.class);
+            """.formatted(legacyPerioder, PERIODER_JSON);
+        var endring = DefaultJsonMapper.fromJson(json, EndringssøknadForeldrepengerDto.class);
+        var førstegang = DefaultJsonMapper.fromJson(json, ForeldrepengesøknadDto.class);
+        assertThat(endring.uttaksplan()).isEqualTo(førstegang.uttaksplan());
+        assertThat(endring.uttaksplan().perioder()).hasSize(1);
+        try (var factory = Validation.buildDefaultValidatorFactory()) {
+            assertThat(factory.getValidator().validate(endring.uttaksplan())).isEmpty();
+        }
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"[]", PERIODER_JSON})
-    void endring_beholder_fri_markør_og_avgrenser_full_plan_ved_serialisering(String perioder) {
+    void endring_beholder_listene_uten_avgrensning_ved_serialisering(String perioder) {
         var søknad = DefaultJsonMapper.fromJson("""
             {
               "uttaksplan": {
@@ -208,25 +215,25 @@ class FellesUttaksplanKontraktTest {
     }
 
     @Test
-    void ny_liste_er_valgfri_mens_legacy_liste_fortsatt_er_påkrevd() {
+    void minst_en_av_listene_må_være_oppgitt() {
         try (var factory = Validation.buildDefaultValidatorFactory()) {
             var validator = factory.getValidator();
             assertThat(validator.validate(new UttaksplanDto(null, List.of()))).isEmpty();
             assertThat(validator.validate(new UttaksplanDto(null, List.of(), List.of()))).isEmpty();
-            assertThat(validator.validate(new UttaksplanDto(null, null, List.of())))
-                .extracting(feil -> feil.getPropertyPath().toString()).containsExactly("uttaksperioder");
+            assertThat(validator.validate(new UttaksplanDto(null, null, List.of()))).isEmpty();
+            assertThat(validator.validate(new UttaksplanDto(null, null, null)))
+                .extracting(feil -> feil.getPropertyPath().toString()).containsExactly("planOppgitt");
         }
     }
 
     private static void assertPlanOgSerialisering(UttaksplanDto uttaksplan, String serialisertSøknad) {
-        assertThat(uttaksplan.uttaksperioder()).singleElement().isInstanceOf(UttaksPeriodeDto.class);
-        assertThat(((UttaksPeriodeDto) uttaksplan.uttaksperioder().getFirst()).konto()).isEqualTo(FELLESPERIODE);
         assertThat(uttaksplan.perioder()).singleElement().satisfies(periode -> {
+            assertThat(periode.søker().kontoType()).isEqualTo(FELLESPERIODE);
             assertThat(periode.søker().resultat()).isNotNull();
             assertThat(periode.annenPart()).isNotNull();
             assertThat(periode.annenPartEøs()).isNotNull();
         });
         assertThat(serialisertSøknad).contains("\"uttaksplan\"", "\"uttaksperioder\"", "\"perioder\"")
-            .doesNotContain("\"fellesUttaksplan\"", "\"termindato\"", "\"antallBarn\"");
+            .doesNotContain("\"fellesUttaksplan\"", "\"termindato\"", "\"antallBarn\"", "\"planOppgitt\"");
     }
 }

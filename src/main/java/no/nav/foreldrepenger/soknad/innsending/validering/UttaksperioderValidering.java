@@ -5,6 +5,7 @@ import java.util.List;
 import no.nav.foreldrepenger.soknad.kontrakt.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.soknad.kontrakt.ForeldrepengesøknadDto;
 import no.nav.foreldrepenger.soknad.kontrakt.SøknadDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakPeriodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.OppholdsPeriodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.OverføringsPeriodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UtsettelsesPeriodeDto;
@@ -21,33 +22,74 @@ public final class UttaksperioderValidering {
     }
 
     public static void valider(SøknadDto søknad) {
-        var uttaksperioder = switch (søknad) {
-            case ForeldrepengesøknadDto fp -> fp.uttaksplan().uttaksperioder();
-            case EndringssøknadForeldrepengerDto endring -> endring.uttaksplan().uttaksperioder();
+        var uttaksplan = switch (søknad) {
+            case ForeldrepengesøknadDto fp -> fp.uttaksplan();
+            case EndringssøknadForeldrepengerDto endring -> endring.uttaksplan();
             default -> null;
         };
 
-        if (uttaksperioder == null) {
+        if (uttaksplan == null) {
             return;
         }
 
         var søknadBeskrivelse = søknad instanceof EndringssøknadForeldrepengerDto endring ?
             "endringssøknad (saksnummer " + endring.saksnummer().value() + ")" : "førstegangssøknad";
 
+        // Separate kodestier i expand-fasen; en tom ny liste skal ikke falle tilbake til den gamle.
+        if (uttaksplan.perioder() != null) {
+            validerNyePerioder(uttaksplan.perioder(), søknadBeskrivelse);
+            return;
+        }
+
+        var uttaksperioder = uttaksplan.uttaksperioder();
+        if (uttaksperioder == null) {
+            throw new UttaksperioderValideringException("Uttaksplan mangler perioder. Gjelder " + søknadBeskrivelse);
+        }
         requireMinstEnPeriode(uttaksperioder, søknadBeskrivelse);
         requireAntallPerioderUnderTerskel(uttaksperioder, søknadBeskrivelse);
         requireFomFørTom(uttaksperioder, søknadBeskrivelse);
         requireIngenOverlapp(uttaksperioder, søknadBeskrivelse);
     }
 
-    private static void requireMinstEnPeriode(List<Uttaksplanperiode> uttaksperioder, String søknadBeskrivelse) {
+    private static void validerNyePerioder(List<UttakPeriodeDto> perioder, String søknadBeskrivelse) {
+        var søkerperioder = perioder.stream().filter(p -> p.søker() != null).toList();
+        requireMinstEnPeriode(søkerperioder, søknadBeskrivelse);
+        requireAntallPerioderUnderTerskel(søkerperioder, søknadBeskrivelse);
+        var ugyldigeDatoer = søkerperioder.stream()
+            .filter(p -> p.tom().isBefore(p.fom()))
+            .map(p -> String.format("{fom=%s, tom=%s}", p.fom(), p.tom()))
+            .toList();
+        if (!ugyldigeDatoer.isEmpty()) {
+            throw new UttaksperioderValideringException(String.format(
+                "Uttaksplan inneholder perioder der tom er før fom. Gjelder %s: %s",
+                søknadBeskrivelse, String.join(", ", ugyldigeDatoer)));
+        }
+        for (var periode : søkerperioder) {
+            var søker = periode.søker();
+            if (søker.utsettelseÅrsak() == null && søker.kontoType() == null) {
+                throw new UttaksperioderValideringException(
+                    "Søkerperiode må ha konto eller utsettelsesårsak. Gjelder " + søknadBeskrivelse);
+            }
+        }
+        try {
+            var segmenter = søkerperioder.stream()
+                .map(p -> new LocalDateSegment<>(p.fom(), p.tom(), "søker"))
+                .toList();
+            new LocalDateTimeline<>(segmenter);
+        } catch (IllegalArgumentException e) {
+            throw new UttaksperioderValideringException(String.format(
+                "Uttaksplan inneholder overlappende perioder. Gjelder %s: %s", søknadBeskrivelse, e.getMessage()));
+        }
+    }
+
+    private static void requireMinstEnPeriode(List<?> uttaksperioder, String søknadBeskrivelse) {
         if (uttaksperioder.isEmpty()) {
             var msg = String.format("Uttaksplan må inneholde minst én periode. Gjelder %s", søknadBeskrivelse);
             throw new UttaksperioderValideringException(msg);
         }
     }
 
-    private static void requireAntallPerioderUnderTerskel(List<Uttaksplanperiode> uttaksperioder, String søknadBeskrivelse) {
+    private static void requireAntallPerioderUnderTerskel(List<?> uttaksperioder, String søknadBeskrivelse) {
         if (uttaksperioder.size() > MAKS_ANTALL_PERIODER) {
             var msg = String.format("Uttaksplan kan ikke inneholde mer enn %s perioder. Gjelder %s med %s uttaksperioder", MAKS_ANTALL_PERIODER, søknadBeskrivelse, uttaksperioder.size());
             throw new UttaksperioderValideringException(msg);
