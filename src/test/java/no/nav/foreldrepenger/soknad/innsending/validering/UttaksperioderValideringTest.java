@@ -33,14 +33,16 @@ class UttaksperioderValideringTest {
     @ValueSource(booleans = {false, true})
     void bruker_gammel_liste_når_ny_er_null(boolean endring) {
         assertThatCode(() -> UttaksperioderValidering.valider(søknad(endring, GAMMEL, null))).doesNotThrowAnyException();
-        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad(endring, List.of(), null)))
+        var søknadUtenPerioder = søknad(endring, List.of(), null);
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknadUtenPerioder))
             .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("minst én");
     }
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
     void tom_ny_liste_faller_ikke_tilbake_til_gammel(boolean endring) {
-        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad(endring, GAMMEL, List.of())))
+        var søknadMedTomNyListe = søknad(endring, GAMMEL, List.of());
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknadMedTomNyListe))
             .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("minst én");
     }
 
@@ -59,7 +61,8 @@ class UttaksperioderValideringTest {
     @ValueSource(booleans = {false, true})
     void annen_parts_perioder_erstatter_ikke_søkers_perioder(boolean endring) {
         var annenPart = new UttakPeriodeDto(START, START.plusDays(4), null, UTTAK, null);
-        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad(endring, GAMMEL, List.of(annenPart))))
+        var søknadMedKunAnnenPartsPerioder = søknad(endring, GAMMEL, List.of(annenPart));
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknadMedKunAnnenPartsPerioder))
             .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("minst én");
     }
 
@@ -67,10 +70,12 @@ class UttaksperioderValideringTest {
     @ValueSource(booleans = {false, true})
     void avviser_ugyldige_datoer_og_overlapp_i_ny_liste(boolean endring) {
         var feilDato = new UttakPeriodeDto(START, START.minusDays(1), UTTAK, null, null);
-        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad(endring, GAMMEL, List.of(feilDato))))
+        var søknadMedFeilDato = søknad(endring, GAMMEL, List.of(feilDato));
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknadMedFeilDato))
             .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("tom er før fom");
         var periode = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, null, null);
-        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad(endring, GAMMEL, List.of(periode, periode))))
+        var søknadMedOverlapp = søknad(endring, GAMMEL, List.of(periode, periode));
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknadMedOverlapp))
             .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("overlappende");
     }
 
@@ -80,7 +85,8 @@ class UttaksperioderValideringTest {
         var perioder = IntStream.range(0, 201)
             .mapToObj(i -> new UttakPeriodeDto(START.plusDays(i), START.plusDays(i), UTTAK, null, null))
             .toList();
-        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad(endring, GAMMEL, perioder)))
+        var søknadMedForMangePerioder = søknad(endring, GAMMEL, perioder);
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknadMedForMangePerioder))
             .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("200");
     }
 

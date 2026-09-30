@@ -221,8 +221,7 @@ public class V3ForeldrepengerDomainMapper  {
                 if (søker.utsettelseÅrsak() == null && søker.kontoType() == null) {
                     throw new IllegalArgumentException("Søkerperiode må ha konto eller utsettelsesårsak");
                 }
-                var xml = søker.utsettelseÅrsak() != null ? utsettelseFra(søker)
-                    : søker.overføringÅrsak() != null ? overføringFra(søker) : uttakFra(søker);
+                var xml = lukketPeriodeFra(søker);
                 xml.setFom(periode.fom());
                 xml.setTom(periode.tom());
                 var referanser = dokumentasjonSomDokumentererUttaksperiode(vedlegg, new ÅpenPeriodeDto(periode.fom(), periode.tom()));
@@ -230,6 +229,16 @@ public class V3ForeldrepengerDomainMapper  {
                 return xml;
             })
             .toList();
+    }
+
+    private static LukketPeriodeMedVedlegg lukketPeriodeFra(UttakDto søker) {
+        if (søker.utsettelseÅrsak() != null) {
+            return utsettelseFra(søker);
+        }
+        if (søker.overføringÅrsak() != null) {
+            return overføringFra(søker);
+        }
+        return uttakFra(søker);
     }
 
     private static Utsettelsesperiode utsettelseFra(UttakDto søker) {
