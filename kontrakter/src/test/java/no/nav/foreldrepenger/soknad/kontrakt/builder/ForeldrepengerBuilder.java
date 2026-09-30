@@ -34,7 +34,6 @@ public class ForeldrepengerBuilder implements SøknadBuilder<EngangsstønadBuild
     private AnnenForelderDto annenForelder;
     private Dekningsgrad dekningsgrad;
     private UttaksplanDto uttaksplan;
-    private List<UttakPeriodeDto> perioder;
     private List<UtenlandsoppholdsperiodeDto> utenlandsopphold;
     private List<VedleggDto> vedlegg;
 
@@ -108,7 +107,7 @@ public class ForeldrepengerBuilder implements SøknadBuilder<EngangsstønadBuild
     }
 
     public ForeldrepengerBuilder medUttaksplan(List<Uttaksplanperiode> uttaksperioder) {
-        this.uttaksplan = new UttaksplanDto(null, uttaksperioder);
+        this.uttaksplan = new UttaksplanDto(null, uttaksperioder, uttaksplan == null ? null : uttaksplan.perioder());
         return this;
     }
 
@@ -118,7 +117,11 @@ public class ForeldrepengerBuilder implements SøknadBuilder<EngangsstønadBuild
     }
 
     public ForeldrepengerBuilder medPerioder(List<UttakPeriodeDto> perioder) {
-        this.perioder = perioder;
+        if (uttaksplan != null || perioder != null) {
+            this.uttaksplan = new UttaksplanDto(
+                uttaksplan == null ? null : uttaksplan.ønskerJustertUttakVedFødsel(),
+                uttaksplan == null ? List.of() : uttaksplan.uttaksperioder(), perioder);
+        }
         return this;
     }
 
@@ -137,9 +140,7 @@ public class ForeldrepengerBuilder implements SøknadBuilder<EngangsstønadBuild
                 andreInntekterSiste10Mnd,
                 annenForelder,
                 dekningsgrad,
-                perioder == null ? uttaksplan : new UttaksplanDto(
-                    uttaksplan == null ? null : uttaksplan.ønskerJustertUttakVedFødsel(),
-                    uttaksplan == null ? List.of() : uttaksplan.uttaksperioder(), perioder),
+                uttaksplan,
                 utenlandsopphold,
                 vedlegg
         );

@@ -17,6 +17,7 @@ public record UttaksplanDto(Boolean ønskerJustertUttakVedFødsel,
         this(ønskerJustertUttakVedFødsel, uttaksperioder, null);
     }
 
+    // TODO: Kan slettes i contract fase av ny fellesUttaksplan
     @JsonIgnore
     @AssertTrue(message = "Uttaksplan må ha perioder eller uttaksperioder")
     public boolean isPlanOppgitt() {

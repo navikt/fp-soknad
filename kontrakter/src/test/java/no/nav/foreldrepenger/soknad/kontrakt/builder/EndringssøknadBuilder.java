@@ -26,7 +26,6 @@ public class EndringssøknadBuilder implements SøknadBuilder<EngangsstønadBuil
     private BarnDto barn;
     private AnnenForelderDto annenForelder;
     private UttaksplanDto uttaksplan;
-    private List<UttakPeriodeDto> perioder;
     private List<VedleggDto> vedlegg;
 
     public EndringssøknadBuilder(Saksnummer saksnummer) {
@@ -75,7 +74,7 @@ public class EndringssøknadBuilder implements SøknadBuilder<EngangsstønadBuil
     }
 
     public EndringssøknadBuilder medUttaksplan(List<Uttaksplanperiode> uttaksplanperiodeer) {
-        this.uttaksplan = new UttaksplanDto(null, uttaksplanperiodeer);
+        this.uttaksplan = new UttaksplanDto(null, uttaksplanperiodeer, uttaksplan == null ? null : uttaksplan.perioder());
         return this;
     }
 
@@ -85,7 +84,11 @@ public class EndringssøknadBuilder implements SøknadBuilder<EngangsstønadBuil
     }
 
     public EndringssøknadBuilder medPerioder(List<UttakPeriodeDto> perioder) {
-        this.perioder = perioder;
+        if (uttaksplan != null || perioder != null) {
+            this.uttaksplan = new UttaksplanDto(
+                uttaksplan == null ? null : uttaksplan.ønskerJustertUttakVedFødsel(),
+                uttaksplan == null ? List.of() : uttaksplan.uttaksperioder(), perioder);
+        }
         return this;
     }
 
@@ -93,9 +96,6 @@ public class EndringssøknadBuilder implements SøknadBuilder<EngangsstønadBuil
         if (mottattdato == null) {
             mottattdato = LocalDateTime.now();
         }
-        return new EndringssøknadForeldrepengerDto(mottattdato, saksnummer, søkerinfo, rolle, språkkode, barn, annenForelder,
-                perioder == null ? uttaksplan : new UttaksplanDto(
-                    uttaksplan == null ? null : uttaksplan.ønskerJustertUttakVedFødsel(),
-                    uttaksplan == null ? List.of() : uttaksplan.uttaksperioder(), perioder), vedlegg);
+        return new EndringssøknadForeldrepengerDto(mottattdato, saksnummer, søkerinfo, rolle, språkkode, barn, annenForelder, uttaksplan, vedlegg);
     }
 }
