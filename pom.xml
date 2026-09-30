@@ -21,7 +21,7 @@
         <felles.version>7.9.1</felles.version>
         <prosesstask.version>5.2.8</prosesstask.version>
         <fp-kontrakter.version>9.4.39</fp-kontrakter.version>
-        <soknad-kontrakt.version>2.3.5-SNAPSHOT</soknad-kontrakt.version>
+        <soknad-kontrakt.version>1.0.11</soknad-kontrakt.version>
         <fpsak-tidsserie.version>2.8.0</fpsak-tidsserie.version>
 
         <openapi-spec-utils.version>2.1.0</openapi-spec-utils.version>
