@@ -1,6 +1,8 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.fpsak;
 
 
+import static no.nav.foreldrepenger.soknad.innsending.fordel.utils.FpsakUttaksperioder.perioderTilFpsak;
+
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.Optional;
@@ -126,21 +128,20 @@ public class DestinasjonsRuter {
 
     private static Optional<LocalDate> hentFørsteUttaksdagFP(SøknadDto søknad) {
         return switch (søknad) {
-            case ForeldrepengesøknadDto fp -> Optional.of(førsteUttaksdatoFraPlan(fp.uttaksplan()));
-            case EndringssøknadForeldrepengerDto fp -> Optional.of(førsteUttaksdatoFraPlan(fp.uttaksplan()));
+            case ForeldrepengesøknadDto fp -> Optional.of(førsteUttaksdatoFraPlan(fp.uttaksplan(), false));
+            case EndringssøknadForeldrepengerDto fp -> Optional.of(førsteUttaksdatoFraPlan(fp.uttaksplan(), true));
             case EngangsstønadDto _ -> Optional.empty();
             case SvangerskapspengesøknadDto _ -> Optional.empty();
         };
     }
 
-    private static LocalDate førsteUttaksdatoFraPlan(UttaksplanDto uttaksplan) {
+    private static LocalDate førsteUttaksdatoFraPlan(UttaksplanDto uttaksplan, boolean erEndringssøknad) {
         // Gammel kodesti beholdes bare i expand-fasen.
         if (uttaksplan.perioder() != null) {
-            return uttaksplan.perioder().stream()
-                .filter(p -> p.søker() != null)
+            return perioderTilFpsak(uttaksplan.perioder(), erEndringssøknad).stream()
                 .map(UttakPeriodeDto::fom)
                 .min(LocalDate::compareTo)
-                .orElseThrow(() -> new IllegalArgumentException("Uttaksplan mangler søkerperioder"));
+                .orElseThrow(() -> new IllegalArgumentException("Uttaksplan mangler perioder til FPSAK"));
         }
         return uttaksplan.uttaksperioder().stream()
             .map(Uttaksplanperiode::fom)

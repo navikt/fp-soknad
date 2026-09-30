@@ -1,5 +1,6 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper;
 
+import static no.nav.foreldrepenger.soknad.innsending.fordel.utils.FpsakUttaksperioder.perioderTilFpsak;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.DokumentasjonReferanseMapper.dokumentasjonSomDokumentererBarn;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.DokumentasjonReferanseMapper.dokumentasjonSomDokumentererUttaksperiode;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.landFraLandkode;
@@ -137,7 +138,7 @@ public class V3ForeldrepengerDomainMapper  {
 
     private static JAXBElement<Endringssoeknad> endringssøknadFra(EndringssøknadForeldrepengerDto endring) {
         var endringssoeknad = new Endringssoeknad();
-        endringssoeknad.setFordeling(fordelingFra(endring.uttaksplan(), endring.annenForelder(), endring.vedlegg()));
+        endringssoeknad.setFordeling(fordelingFra(endring.uttaksplan(), endring.annenForelder(), endring.vedlegg(), true));
         endringssoeknad.setSaksnummer(endring.saksnummer().value());
         return ENDRING_FACTORY_V3.createEndringssoeknad(endringssoeknad);
     }
@@ -151,7 +152,7 @@ public class V3ForeldrepengerDomainMapper  {
         foreldrepenger.setDekningsgrad(dekningsgradFra(fp.dekningsgrad()));
         foreldrepenger.setMedlemskap(medlemsskapFra(fp.utenlandsopphold(), relasjonDato(fp.barn())));
         foreldrepenger.setOpptjening(opptjeningFra(fp.egenNæring(), fp.frilans(), fp.andreInntekterSiste10Mnd(), fp.vedlegg()));
-        foreldrepenger.setFordeling(fordelingFra(fp.uttaksplan(), fp.annenForelder(), fp.vedlegg()));
+        foreldrepenger.setFordeling(fordelingFra(fp.uttaksplan(), fp.annenForelder(), fp.vedlegg(), false));
         foreldrepenger.setRettigheter(rettigheterFra(fp.annenForelder()));
         foreldrepenger.setAnnenForelder(annenForelderFra(fp.annenForelder()));
         foreldrepenger.setRelasjonTilBarnet(relasjonFra(fp.barn(), dokumentasjonSomDokumentererBarn(fp.vedlegg())));
@@ -188,11 +189,12 @@ public class V3ForeldrepengerDomainMapper  {
         return dekningsgrader;
     }
 
-    private static Fordeling fordelingFra(UttaksplanDto uttaksplan, AnnenForelderDto annenForelder, List<VedleggDto> vedlegg) {
+    private static Fordeling fordelingFra(UttaksplanDto uttaksplan, AnnenForelderDto annenForelder, List<VedleggDto> vedlegg,
+                                          boolean erEndringssøknad) {
         var fordelingXML = new Fordeling();
         // Gammel kodesti beholdes bare i expand-fasen; nye perioder mappes direkte til XML.
         fordelingXML.getPerioder().addAll(uttaksplan.perioder() != null
-            ? fellesPerioderFra(uttaksplan.perioder(), vedlegg)
+            ? fellesPerioderFra(uttaksplan.perioder(), vedlegg, erEndringssøknad)
             : perioderFra(uttaksplan.uttaksperioder(), vedlegg));
         fordelingXML.setOenskerJustertVedFoedsel(uttaksplan.ønskerJustertUttakVedFødsel());
         fordelingXML.setOenskerKvoteOverfoert(overføringsÅrsakFra(UKJENT_KODEVERKSVERDI));
@@ -213,15 +215,11 @@ public class V3ForeldrepengerDomainMapper  {
                 .toList();
     }
 
-    private static List<LukketPeriodeMedVedlegg> fellesPerioderFra(List<UttakPeriodeDto> perioder, List<VedleggDto> vedlegg) {
-        return perioder.stream()
-            .filter(periode -> periode.søker() != null)
+    private static List<LukketPeriodeMedVedlegg> fellesPerioderFra(List<UttakPeriodeDto> perioder, List<VedleggDto> vedlegg,
+                                                                   boolean erEndringssøknad) {
+        return perioderTilFpsak(perioder, erEndringssøknad).stream()
             .map(periode -> {
-                var søker = periode.søker();
-                if (søker.utsettelseÅrsak() == null && søker.kontoType() == null) {
-                    throw new IllegalArgumentException("Søkerperiode må ha konto eller utsettelsesårsak");
-                }
-                var xml = lukketPeriodeFra(søker);
+                var xml = periode.søker() != null ? lukketPeriodeFra(periode.søker()) : oppholdFra(periode.annenPart());
                 xml.setFom(periode.fom());
                 xml.setTom(periode.tom());
                 var referanser = dokumentasjonSomDokumentererUttaksperiode(vedlegg, new ÅpenPeriodeDto(periode.fom(), periode.tom()));
@@ -232,6 +230,9 @@ public class V3ForeldrepengerDomainMapper  {
     }
 
     private static LukketPeriodeMedVedlegg lukketPeriodeFra(UttakDto søker) {
+        if (søker.utsettelseÅrsak() == null && søker.kontoType() == null) {
+            throw new IllegalArgumentException("Søkerperiode må ha konto eller utsettelsesårsak");
+        }
         if (søker.utsettelseÅrsak() != null) {
             return utsettelseFra(søker);
         }
@@ -239,6 +240,18 @@ public class V3ForeldrepengerDomainMapper  {
             return overføringFra(søker);
         }
         return uttakFra(søker);
+    }
+
+    private static Oppholdsperiode oppholdFra(UttakDto annenPart) {
+        var xml = new Oppholdsperiode();
+        xml.setAarsak(oppholdsÅrsakFra(switch (annenPart.kontoType()) {
+            case MØDREKVOTE -> Oppholdsårsak.UTTAK_MØDREKVOTE_ANNEN_FORELDER;
+            case FEDREKVOTE -> Oppholdsårsak.UTTAK_FEDREKVOTE_ANNEN_FORELDER;
+            case FELLESPERIODE -> Oppholdsårsak.UTTAK_FELLESP_ANNEN_FORELDER;
+            case FORELDREPENGER -> Oppholdsårsak.UTTAK_FORELDREPENGER_ANNEN_FORELDER;
+            case FORELDREPENGER_FØR_FØDSEL -> throw new IllegalArgumentException("Foreldrepenger før fødsel kan ikke være oppholdsårsak");
+        }));
+        return xml;
     }
 
     private static Utsettelsesperiode utsettelseFra(UttakDto søker) {

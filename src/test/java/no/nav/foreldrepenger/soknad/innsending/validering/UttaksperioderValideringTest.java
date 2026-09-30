@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -48,21 +49,51 @@ class UttaksperioderValideringTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
-    void ny_liste_er_uavhengig_av_gammel_og_tillater_overlapp_med_annen_part(boolean endring) {
-        var periode = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, null, null);
-        var annenPart = new UttakPeriodeDto(START, START.plusDays(4), null, UTTAK, null);
-        var søknad = søknad(endring, List.of(GAMMEL.getFirst(), GAMMEL.getFirst()), List.of(periode, annenPart));
+    void ny_liste_er_uavhengig_av_gammel(boolean endring) {
+        var periode = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, UTTAK, null);
+        var søknad = søknad(endring, List.of(GAMMEL.getFirst(), GAMMEL.getFirst()), List.of(periode));
         assertThatCode(() -> UttaksperioderValidering.valider(søknad)).doesNotThrowAnyException();
         assertThatCode(() -> UttaksperioderValidering.valider(søknad(endring, null, List.of(periode))))
             .doesNotThrowAnyException();
     }
 
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void annen_parts_perioder_erstatter_ikke_søkers_perioder(boolean endring) {
+    @Test
+    void førstegangssøknad_tillater_overlapp_med_annen_parts_perioder() {
+        var periode = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, null, null);
         var annenPart = new UttakPeriodeDto(START, START.plusDays(4), null, UTTAK, null);
-        var søknadMedKunAnnenPartsPerioder = søknad(endring, GAMMEL, List.of(annenPart));
+        assertThatCode(() -> UttaksperioderValidering.valider(søknad(false, null, List.of(periode, annenPart))))
+            .doesNotThrowAnyException();
+    }
+
+    @Test
+    void endringssøknad_avviser_overlapp_mellom_søkers_periode_og_opphold() {
+        var periode = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, null, null);
+        var annenPart = new UttakPeriodeDto(START, START.plusDays(4), null, UTTAK, null);
+        var søknadMedOverlapp = søknad(true, null, List.of(periode, annenPart));
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknadMedOverlapp))
+            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("overlappende");
+    }
+
+    @Test
+    void førstegangssøknad_med_bare_annen_parts_perioder_avvises() {
+        var annenPart = new UttakPeriodeDto(START, START.plusDays(4), null, UTTAK, null);
+        var søknadMedKunAnnenPartsPerioder = søknad(false, GAMMEL, List.of(annenPart));
         assertThatThrownBy(() -> UttaksperioderValidering.valider(søknadMedKunAnnenPartsPerioder))
+            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("minst én");
+    }
+
+    @Test
+    void endringssøknad_der_søker_har_gitt_bort_resten_av_planen_godtas() {
+        var annenPart = new UttakPeriodeDto(START, START.plusDays(4), null, UTTAK, null);
+        assertThatCode(() -> UttaksperioderValidering.valider(søknad(true, null, List.of(annenPart))))
+            .doesNotThrowAnyException();
+    }
+
+    @Test
+    void endringssøknad_med_bare_annen_parts_utsettelse_avvises() {
+        var utsettelse = new UttakDto(Rolle.FAR_MEDMOR, null, UtsettelseÅrsak.ARBEID, null, null, null, null, false, null);
+        var søknadMedKunUtsettelse = søknad(true, null, List.of(new UttakPeriodeDto(START, START.plusDays(4), null, utsettelse, null)));
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknadMedKunUtsettelse))
             .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("minst én");
     }
 

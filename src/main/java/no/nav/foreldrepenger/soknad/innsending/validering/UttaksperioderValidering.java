@@ -1,5 +1,7 @@
 package no.nav.foreldrepenger.soknad.innsending.validering;
 
+import static no.nav.foreldrepenger.soknad.innsending.fordel.utils.FpsakUttaksperioder.perioderTilFpsak;
+
 import java.util.List;
 
 import no.nav.foreldrepenger.soknad.kontrakt.EndringssøknadForeldrepengerDto;
@@ -37,7 +39,7 @@ public final class UttaksperioderValidering {
 
         // Separate kodestier i expand-fasen; en tom ny liste skal ikke falle tilbake til den gamle.
         if (uttaksplan.perioder() != null) {
-            validerNyePerioder(uttaksplan.perioder(), søknadBeskrivelse);
+            validerNyePerioder(uttaksplan.perioder(), søknad instanceof EndringssøknadForeldrepengerDto, søknadBeskrivelse);
             return;
         }
 
@@ -51,11 +53,11 @@ public final class UttaksperioderValidering {
         requireIngenOverlapp(uttaksperioder, søknadBeskrivelse);
     }
 
-    private static void validerNyePerioder(List<UttakPeriodeDto> perioder, String søknadBeskrivelse) {
-        var søkerperioder = perioder.stream().filter(p -> p.søker() != null).toList();
-        requireMinstEnPeriode(søkerperioder, søknadBeskrivelse);
-        requireAntallPerioderUnderTerskel(søkerperioder, søknadBeskrivelse);
-        var ugyldigeDatoer = søkerperioder.stream()
+    private static void validerNyePerioder(List<UttakPeriodeDto> perioder, boolean erEndringssøknad, String søknadBeskrivelse) {
+        var fpsakperioder = perioderTilFpsak(perioder, erEndringssøknad);
+        requireMinstEnPeriode(fpsakperioder, søknadBeskrivelse);
+        requireAntallPerioderUnderTerskel(fpsakperioder, søknadBeskrivelse);
+        var ugyldigeDatoer = fpsakperioder.stream()
             .filter(p -> p.tom().isBefore(p.fom()))
             .map(p -> String.format("{fom=%s, tom=%s}", p.fom(), p.tom()))
             .toList();
@@ -64,16 +66,16 @@ public final class UttaksperioderValidering {
                 "Uttaksplan inneholder perioder der tom er før fom. Gjelder %s: %s",
                 søknadBeskrivelse, String.join(", ", ugyldigeDatoer)));
         }
-        for (var periode : søkerperioder) {
+        for (var periode : fpsakperioder) {
             var søker = periode.søker();
-            if (søker.utsettelseÅrsak() == null && søker.kontoType() == null) {
+            if (søker != null && søker.utsettelseÅrsak() == null && søker.kontoType() == null) {
                 throw new UttaksperioderValideringException(
                     "Søkerperiode må ha konto eller utsettelsesårsak. Gjelder " + søknadBeskrivelse);
             }
         }
         try {
-            var segmenter = søkerperioder.stream()
-                .map(p -> new LocalDateSegment<>(p.fom(), p.tom(), "søker"))
+            var segmenter = fpsakperioder.stream()
+                .map(p -> new LocalDateSegment<>(p.fom(), p.tom(), "fpsak"))
                 .toList();
             new LocalDateTimeline<>(segmenter);
         } catch (IllegalArgumentException e) {
