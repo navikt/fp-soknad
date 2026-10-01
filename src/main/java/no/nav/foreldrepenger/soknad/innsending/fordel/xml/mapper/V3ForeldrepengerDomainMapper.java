@@ -1,5 +1,6 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper;
 
+import static no.nav.foreldrepenger.soknad.innsending.fordel.utils.FpsakUttaksperioder.perioderTilFpsak;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.DokumentasjonReferanseMapper.dokumentasjonSomDokumentererBarn;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.DokumentasjonReferanseMapper.dokumentasjonSomDokumentererUttaksperiode;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.landFraLandkode;
@@ -38,6 +39,10 @@ import no.nav.foreldrepenger.soknad.kontrakt.barn.TerminDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.annenpart.AnnenForelderDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.annenpart.NorskForelderDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.annenpart.UtenlandskForelderDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Aktivitet.AktivitetType;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakPeriodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.OppholdsPeriodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.Oppholdsårsak;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.OverføringsPeriodeDto;
@@ -186,7 +191,10 @@ public class V3ForeldrepengerDomainMapper  {
 
     private static Fordeling fordelingFra(UttaksplanDto uttaksplan, AnnenForelderDto annenForelder, List<VedleggDto> vedlegg) {
         var fordelingXML = new Fordeling();
-        fordelingXML.getPerioder().addAll(perioderFra(uttaksplan.uttaksperioder(), vedlegg));
+        // Gammel kodesti beholdes bare i expand-fasen; nye perioder mappes direkte til XML.
+        fordelingXML.getPerioder().addAll(uttaksplan.perioder() != null
+            ? fellesPerioderFra(uttaksplan.perioder(), vedlegg)
+            : perioderFra(uttaksplan.uttaksperioder(), vedlegg));
         fordelingXML.setOenskerJustertVedFoedsel(uttaksplan.ønskerJustertUttakVedFødsel());
         fordelingXML.setOenskerKvoteOverfoert(overføringsÅrsakFra(UKJENT_KODEVERKSVERDI));
         fordelingXML.setAnnenForelderErInformert(toBooleanNullSafe(erAnnenpartInformert(annenForelder)));
@@ -204,6 +212,98 @@ public class V3ForeldrepengerDomainMapper  {
         return safeStream(perioder)
                 .map(periode -> lukketPeriodeFra(periode, vedlegg))
                 .toList();
+    }
+
+    private static List<LukketPeriodeMedVedlegg> fellesPerioderFra(List<UttakPeriodeDto> perioder, List<VedleggDto> vedlegg) {
+        return perioderTilFpsak(perioder).stream()
+            .map(periode -> {
+                var xml = periode.søker() != null ? lukketPeriodeFra(periode.søker()) : oppholdFra(periode.annenPart());
+                xml.setFom(periode.fom());
+                xml.setTom(periode.tom());
+                var referanser = dokumentasjonSomDokumentererUttaksperiode(vedlegg, new ÅpenPeriodeDto(periode.fom(), periode.tom()));
+                xml.getVedlegg().addAll(lukketPeriodeVedleggFra(referanser));
+                return xml;
+            })
+            .toList();
+    }
+
+    private static LukketPeriodeMedVedlegg lukketPeriodeFra(UttakDto søker) {
+        if (søker.utsettelseÅrsak() == null && søker.kontoType() == null) {
+            throw new IllegalArgumentException("Søkerperiode må ha konto eller utsettelsesårsak");
+        }
+        if (søker.utsettelseÅrsak() != null) {
+            return utsettelseFra(søker);
+        }
+        if (søker.overføringÅrsak() != null) {
+            return overføringFra(søker);
+        }
+        return uttakFra(søker);
+    }
+
+    private static Oppholdsperiode oppholdFra(UttakDto annenPart) {
+        var xml = new Oppholdsperiode();
+        xml.setAarsak(oppholdsÅrsakFra(switch (annenPart.kontoType()) {
+            case MØDREKVOTE -> Oppholdsårsak.UTTAK_MØDREKVOTE_ANNEN_FORELDER;
+            case FEDREKVOTE -> Oppholdsårsak.UTTAK_FEDREKVOTE_ANNEN_FORELDER;
+            case FELLESPERIODE -> Oppholdsårsak.UTTAK_FELLESP_ANNEN_FORELDER;
+            case FORELDREPENGER -> Oppholdsårsak.UTTAK_FORELDREPENGER_ANNEN_FORELDER;
+            case FORELDREPENGER_FØR_FØDSEL -> throw new IllegalArgumentException("Foreldrepenger før fødsel kan ikke være oppholdsårsak");
+        }));
+        return xml;
+    }
+
+    private static Utsettelsesperiode utsettelseFra(UttakDto søker) {
+        var xml = new Utsettelsesperiode();
+        xml.setErArbeidstaker(false);
+        xml.setMorsAktivitetIPerioden(morsAktivitetFra(søker.morsAktivitet(), søker.utsettelseÅrsak() == FellesUttaksplanDto.UtsettelseÅrsak.FRI));
+        xml.setAarsak(utsettelsesÅrsakFra(switch (søker.utsettelseÅrsak()) {
+            case SØKER_SYKDOM -> "SYKDOM";
+            case SØKER_INNLAGT -> "INSTITUSJONSOPPHOLD_SØKER";
+            case BARN_INNLAGT -> "INSTITUSJONSOPPHOLD_BARNET";
+            case HV_ØVELSE -> "HV_OVELSE";
+            case NAV_TILTAK -> "NAV_TILTAK";
+            case ARBEID -> "ARBEID";
+            case FERIE -> "FERIE";
+            case FRI -> "FRI";
+        }));
+        return xml;
+    }
+
+    private static Overfoeringsperiode overføringFra(UttakDto søker) {
+        var xml = new Overfoeringsperiode();
+        xml.setOverfoeringAv(uttaksperiodeTypeFra(søker.kontoType()));
+        xml.setAarsak(overføringsÅrsakFra(søker.overføringÅrsak().name()));
+        return xml;
+    }
+
+    private static Uttaksperiode uttakFra(UttakDto søker) {
+        var gradering = søker.gradering();
+        var xml = gradering != null ? graderingFra(gradering) : new Uttaksperiode();
+        xml.setType(uttaksperiodeTypeFra(søker.kontoType()));
+        xml.setMorsAktivitetIPerioden(morsAktivitetFra(søker.morsAktivitet()));
+        xml.setOenskerFlerbarnsdager(søker.flerbarnsdager());
+        var samtidig = søker.samtidigUttak();
+        setSamtidigUttaksprosent(xml, samtidig == null ? null : true,
+            samtidig == null || samtidig.value() == null ? null : samtidig.value().doubleValue());
+        return xml;
+    }
+
+    private static Gradering graderingFra(FellesUttaksplanDto.Gradering gradering) {
+        if (gradering.arbeidstidprosent() == null || gradering.arbeidstidprosent().value() == null) {
+            throw new IllegalArgumentException("Gradering må ha arbeidstidprosent");
+        }
+        var xml = new Gradering();
+        xml.setArbeidtidProsent(gradering.arbeidstidprosent().value().doubleValue());
+        xml.setArbeidsforholdSomSkalGraderes(true);
+        var aktivitet = gradering.aktivitet();
+        var type = aktivitet == null ? null : aktivitet.type();
+        xml.setErArbeidstaker(type == AktivitetType.ORDINÆRT_ARBEID);
+        xml.setErFrilanser(type == AktivitetType.FRILANS);
+        xml.setErSelvstNæringsdrivende(type == AktivitetType.SELVSTENDIG_NÆRINGSDRIVENDE);
+        if (aktivitet != null && aktivitet.arbeidsgiver() != null && aktivitet.arbeidsgiver().id() != null) {
+            xml.setArbeidsgiver(arbeidsgiverFra(aktivitet.arbeidsgiver().id()));
+        }
+        return xml;
     }
 
     private static List<JAXBElement<Object>> lukketPeriodeVedleggFra(List<UUID> vedlegg) {
