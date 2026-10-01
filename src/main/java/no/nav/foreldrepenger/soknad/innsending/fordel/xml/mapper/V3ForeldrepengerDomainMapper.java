@@ -138,7 +138,7 @@ public class V3ForeldrepengerDomainMapper  {
 
     private static JAXBElement<Endringssoeknad> endringssøknadFra(EndringssøknadForeldrepengerDto endring) {
         var endringssoeknad = new Endringssoeknad();
-        endringssoeknad.setFordeling(fordelingFra(endring.uttaksplan(), endring.annenForelder(), endring.vedlegg(), true));
+        endringssoeknad.setFordeling(fordelingFra(endring.uttaksplan(), endring.annenForelder(), endring.vedlegg()));
         endringssoeknad.setSaksnummer(endring.saksnummer().value());
         return ENDRING_FACTORY_V3.createEndringssoeknad(endringssoeknad);
     }
@@ -152,7 +152,7 @@ public class V3ForeldrepengerDomainMapper  {
         foreldrepenger.setDekningsgrad(dekningsgradFra(fp.dekningsgrad()));
         foreldrepenger.setMedlemskap(medlemsskapFra(fp.utenlandsopphold(), relasjonDato(fp.barn())));
         foreldrepenger.setOpptjening(opptjeningFra(fp.egenNæring(), fp.frilans(), fp.andreInntekterSiste10Mnd(), fp.vedlegg()));
-        foreldrepenger.setFordeling(fordelingFra(fp.uttaksplan(), fp.annenForelder(), fp.vedlegg(), false));
+        foreldrepenger.setFordeling(fordelingFra(fp.uttaksplan(), fp.annenForelder(), fp.vedlegg()));
         foreldrepenger.setRettigheter(rettigheterFra(fp.annenForelder()));
         foreldrepenger.setAnnenForelder(annenForelderFra(fp.annenForelder()));
         foreldrepenger.setRelasjonTilBarnet(relasjonFra(fp.barn(), dokumentasjonSomDokumentererBarn(fp.vedlegg())));
@@ -189,12 +189,11 @@ public class V3ForeldrepengerDomainMapper  {
         return dekningsgrader;
     }
 
-    private static Fordeling fordelingFra(UttaksplanDto uttaksplan, AnnenForelderDto annenForelder, List<VedleggDto> vedlegg,
-                                          boolean erEndringssøknad) {
+    private static Fordeling fordelingFra(UttaksplanDto uttaksplan, AnnenForelderDto annenForelder, List<VedleggDto> vedlegg) {
         var fordelingXML = new Fordeling();
         // Gammel kodesti beholdes bare i expand-fasen; nye perioder mappes direkte til XML.
         fordelingXML.getPerioder().addAll(uttaksplan.perioder() != null
-            ? fellesPerioderFra(uttaksplan.perioder(), vedlegg, erEndringssøknad)
+            ? fellesPerioderFra(uttaksplan.perioder(), vedlegg)
             : perioderFra(uttaksplan.uttaksperioder(), vedlegg));
         fordelingXML.setOenskerJustertVedFoedsel(uttaksplan.ønskerJustertUttakVedFødsel());
         fordelingXML.setOenskerKvoteOverfoert(overføringsÅrsakFra(UKJENT_KODEVERKSVERDI));
@@ -215,9 +214,8 @@ public class V3ForeldrepengerDomainMapper  {
                 .toList();
     }
 
-    private static List<LukketPeriodeMedVedlegg> fellesPerioderFra(List<UttakPeriodeDto> perioder, List<VedleggDto> vedlegg,
-                                                                   boolean erEndringssøknad) {
-        return perioderTilFpsak(perioder, erEndringssøknad).stream()
+    private static List<LukketPeriodeMedVedlegg> fellesPerioderFra(List<UttakPeriodeDto> perioder, List<VedleggDto> vedlegg) {
+        return perioderTilFpsak(perioder).stream()
             .map(periode -> {
                 var xml = periode.søker() != null ? lukketPeriodeFra(periode.søker()) : oppholdFra(periode.annenPart());
                 xml.setFom(periode.fom());

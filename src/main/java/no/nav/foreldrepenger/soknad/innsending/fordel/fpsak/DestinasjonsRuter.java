@@ -128,24 +128,29 @@ public class DestinasjonsRuter {
 
     private static Optional<LocalDate> hentFørsteUttaksdagFP(SøknadDto søknad) {
         return switch (søknad) {
-            case ForeldrepengesøknadDto fp -> Optional.of(førsteUttaksdatoFraPlan(fp.uttaksplan(), false));
-            case EndringssøknadForeldrepengerDto fp -> Optional.of(førsteUttaksdatoFraPlan(fp.uttaksplan(), true));
+            case ForeldrepengesøknadDto fp -> Optional.of(førsteUttaksdatoFraPlan(fp.uttaksplan()));
+            case EndringssøknadForeldrepengerDto fp -> Optional.of(førsteUttaksdatoFraPlan(fp.uttaksplan()));
             case EngangsstønadDto _ -> Optional.empty();
             case SvangerskapspengesøknadDto _ -> Optional.empty();
         };
     }
 
-    private static LocalDate førsteUttaksdatoFraPlan(UttaksplanDto uttaksplan, boolean erEndringssøknad) {
+    private static LocalDate førsteUttaksdatoFraPlan(UttaksplanDto uttaksplan) {
         // Gammel kodesti beholdes bare i expand-fasen.
         if (uttaksplan.perioder() != null) {
-            return perioderTilFpsak(uttaksplan.perioder(), erEndringssøknad).stream()
-                .map(UttakPeriodeDto::fom)
-                .min(LocalDate::compareTo)
+            var fpsakperioder = perioderTilFpsak(uttaksplan.perioder());
+            // FPSAK ser bort fra opphold ved start av uttak. Opphold brukes bare når søker har gitt bort resten av planen.
+            return førsteFom(fpsakperioder.stream().filter(p -> p.søker() != null))
+                .or(() -> førsteFom(fpsakperioder.stream()))
                 .orElseThrow(() -> new IllegalArgumentException("Uttaksplan mangler perioder til FPSAK"));
         }
         return uttaksplan.uttaksperioder().stream()
             .map(Uttaksplanperiode::fom)
             .min(LocalDate::compareTo)
             .orElseThrow();
+    }
+
+    private static Optional<LocalDate> førsteFom(Stream<UttakPeriodeDto> perioder) {
+        return perioder.map(UttakPeriodeDto::fom).min(LocalDate::compareTo);
     }
 }

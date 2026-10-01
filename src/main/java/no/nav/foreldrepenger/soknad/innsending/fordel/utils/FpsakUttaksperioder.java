@@ -7,17 +7,18 @@ import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUtt
 
 /**
  * Avgjør hvilke perioder i felles uttaksplan som skal sendes til FPSAK.
- * Søkers egne perioder sendes alltid. Ved endringssøknad sendes i tillegg perioder der bare annen part har uttak
- * som opphold, slik at FPSAK får riktig endringsdato og fjerner søkers tidligere uttak i perioden.
+ * Søkers egne perioder sendes alltid. Perioder der bare annen part har uttak sendes som opphold, slik at FPSAK får
+ * riktig endringsdato og fjerner søkers eventuelle tidligere uttak i perioden. FPSAK filtrerer bort opphold som ikke
+ * er relevante, og opphold påvirker ikke skjæringstidspunktet.
  */
 public final class FpsakUttaksperioder {
 
     private FpsakUttaksperioder() {
     }
 
-    public static List<UttakPeriodeDto> perioderTilFpsak(List<UttakPeriodeDto> perioder, boolean erEndringssøknad) {
+    public static List<UttakPeriodeDto> perioderTilFpsak(List<UttakPeriodeDto> perioder) {
         return perioder.stream()
-            .filter(p -> p.søker() != null || (erEndringssøknad && erOppholdsperiode(p)))
+            .filter(p -> p.søker() != null || erOppholdsperiode(p))
             .toList();
     }
 

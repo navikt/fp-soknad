@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -45,7 +46,7 @@ class DestinasjonsRuterTest {
     private Personoppslag personoppslag;
 
     @Test
-    void bruker_første_nye_søkerperiode_ikke_annen_part_eller_gammel_plan() {
+    void bruker_første_søkerperiode_selv_om_opphold_for_annen_part_starter_tidligere() {
         var uttak = new UttakDto(Rolle.MOR, MØDREKVOTE, null, null, null, null, null, false, null);
         var perioder = List.of(
             new UttakPeriodeDto(START.plusWeeks(1), START.plusWeeks(1), uttak, null, null),
@@ -76,19 +77,32 @@ class DestinasjonsRuterTest {
     }
 
     @Test
-    void endringssøknad_bruker_første_periode_søker_har_gitt_bort_til_annen_part() {
+    void endringssøknad_bruker_første_søkerperiode_selv_om_opphold_starter_tidligere() {
         var uttak = new UttakDto(Rolle.MOR, MØDREKVOTE, null, null, null, null, null, false, null);
         var perioder = List.of(
             new UttakPeriodeDto(START, START, null, uttak, null),
             new UttakPeriodeDto(START.plusWeeks(1), START.plusWeeks(1), uttak, null, null));
-        when(fpsak.vurderFagsystem(any())).thenReturn(new VurderFagsystemResultat(VurderFagsystemResultat.SendTil.FPSAK, "123456"));
 
+        assertThat(startdatoForEndringssøknad(perioder)).contains(START.plusWeeks(1));
+    }
+
+    @Test
+    void endringssøknad_der_søker_har_gitt_bort_resten_av_planen_bruker_første_opphold() {
+        var uttak = new UttakDto(Rolle.MOR, MØDREKVOTE, null, null, null, null, null, false, null);
+        var perioder = List.of(
+            new UttakPeriodeDto(START.plusWeeks(1), START.plusWeeks(1), null, uttak, null),
+            new UttakPeriodeDto(START, START, null, uttak, null));
+
+        assertThat(startdatoForEndringssøknad(perioder)).contains(START);
+    }
+
+    private Optional<LocalDate> startdatoForEndringssøknad(List<UttakPeriodeDto> perioder) {
+        when(fpsak.vurderFagsystem(any())).thenReturn(new VurderFagsystemResultat(VurderFagsystemResultat.SendTil.FPSAK, "123456"));
         var søknad = new EndringssøknadBuilder(new Saksnummer("123456")).medPerioder(perioder).build();
         rute(søknad, DokumentTypeId.I000050);
-
         var captor = ArgumentCaptor.forClass(VurderFagsystemDto.class);
         verify(fpsak).vurderFagsystem(captor.capture());
-        assertThat(captor.getValue().getStartDatoForeldrepengerInntektsmelding()).contains(START);
+        return captor.getValue().getStartDatoForeldrepengerInntektsmelding();
     }
 
     private void rute(List<UttakPeriodeDto> perioder) {

@@ -39,7 +39,7 @@ public final class UttaksperioderValidering {
 
         // Separate kodestier i expand-fasen; en tom ny liste skal ikke falle tilbake til den gamle.
         if (uttaksplan.perioder() != null) {
-            validerNyePerioder(uttaksplan.perioder(), søknad instanceof EndringssøknadForeldrepengerDto, søknadBeskrivelse);
+            validerNyePerioder(uttaksplan.perioder(), søknadBeskrivelse);
             return;
         }
 
@@ -53,8 +53,8 @@ public final class UttaksperioderValidering {
         requireIngenOverlapp(uttaksperioder, søknadBeskrivelse);
     }
 
-    private static void validerNyePerioder(List<UttakPeriodeDto> perioder, boolean erEndringssøknad, String søknadBeskrivelse) {
-        var fpsakperioder = perioderTilFpsak(perioder, erEndringssøknad);
+    private static void validerNyePerioder(List<UttakPeriodeDto> perioder, String søknadBeskrivelse) {
+        var fpsakperioder = perioderTilFpsak(perioder);
         requireMinstEnPeriode(fpsakperioder, søknadBeskrivelse);
         requireAntallPerioderUnderTerskel(fpsakperioder, søknadBeskrivelse);
         var ugyldigeDatoer = fpsakperioder.stream()
