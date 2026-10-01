@@ -263,7 +263,7 @@ public class V3ForeldrepengerDomainMapper  {
             case HV_ØVELSE -> "HV_OVELSE";
             case NAV_TILTAK -> "NAV_TILTAK";
             case ARBEID -> "ARBEID";
-            case FERIE -> "FERIE";
+            case FERIE -> "LOVBESTEMT_FERIE";
             case FRI -> "FRI";
         }));
         return xml;
