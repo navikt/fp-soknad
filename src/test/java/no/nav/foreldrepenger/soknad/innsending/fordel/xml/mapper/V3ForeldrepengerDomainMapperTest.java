@@ -339,18 +339,18 @@ class V3ForeldrepengerDomainMapperTest {
     @Test
     void endringssøknad_med_ny_plan_markeres_som_fullstendig() throws Exception {
         var plan = new UttaksplanDto(false, List.of(), List.of(periode(uttak(KontoType.MØDREKVOTE))));
-        assertThat(mapEndringssøknad(plan).isFullstendigPlan()).isTrue();
+        assertThat(mapEndringssøknad(plan).isErFullstendigPlan()).isTrue();
     }
 
     @Test
     void endringssøknad_med_tom_ny_plan_markeres_som_fullstendig() throws Exception {
-        assertThat(mapEndringssøknad(new UttaksplanDto(false, List.of(legacyUttak()), List.of())).isFullstendigPlan()).isTrue();
+        assertThat(mapEndringssøknad(new UttaksplanDto(false, List.of(legacyUttak()), List.of())).isErFullstendigPlan()).isTrue();
     }
 
     @Test
     void endringssøknad_med_legacy_plan_markeres_ikke() throws Exception {
         var plan = new UttaksplanDto(false, List.of(legacyUttak()), null);
-        assertThat(mapEndringssøknad(plan).isFullstendigPlan()).isNull();
+        assertThat(mapEndringssøknad(plan).isErFullstendigPlan()).isNull();
     }
 
     private static Endringssoeknad mapEndringssøknad(UttaksplanDto plan) throws Exception {

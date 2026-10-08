@@ -141,7 +141,7 @@ public class V3ForeldrepengerDomainMapper  {
         endringssoeknad.setFordeling(fordelingFra(endring.uttaksplan(), endring.annenForelder(), endring.vedlegg()));
         endringssoeknad.setSaksnummer(endring.saksnummer().value());
         if (endring.uttaksplan() != null && endring.uttaksplan().perioder() != null) {
-            endringssoeknad.setFullstendigPlan(true);
+            endringssoeknad.setErFullstendigPlan(true);
         }
         return ENDRING_FACTORY_V3.createEndringssoeknad(endringssoeknad);
     }
