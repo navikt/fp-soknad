@@ -336,6 +336,34 @@ class V3ForeldrepengerDomainMapperTest {
             new Dokumenterer(Dokumenterer.DokumentererType.UTTAK, null, List.of(new ÅpenPeriodeDto(fom, tom))));
     }
 
+    @Test
+    void endringssøknad_med_ny_plan_markeres_som_fullstendig() throws Exception {
+        var plan = new UttaksplanDto(false, List.of(), List.of(periode(uttak(KontoType.MØDREKVOTE))));
+        assertThat(mapEndringssøknad(plan).isFullstendigPlan()).isTrue();
+    }
+
+    @Test
+    void endringssøknad_med_tom_ny_plan_markeres_som_fullstendig() throws Exception {
+        assertThat(mapEndringssøknad(new UttaksplanDto(false, List.of(legacyUttak()), List.of())).isFullstendigPlan()).isTrue();
+    }
+
+    @Test
+    void endringssøknad_med_legacy_plan_markeres_ikke() throws Exception {
+        var plan = new UttaksplanDto(false, List.of(legacyUttak()), null);
+        assertThat(mapEndringssøknad(plan).isFullstendigPlan()).isNull();
+    }
+
+    private static Endringssoeknad mapEndringssøknad(UttaksplanDto plan) throws Exception {
+        var mottatt = LocalDateTime.of(2026, 9, 30, 12, 0);
+        var xml = MAPPER.tilXML(new EndringssøknadForeldrepengerDto(mottatt, new Saksnummer("123456789"), null,
+            BrukerRolle.MOR, Målform.NB, new FødselDto(1, FOM, FOM), null, plan, List.of()), mottatt, new AktørId("1234567890123"));
+        var context = JAXBContext.newInstance(Soeknad.class, Endringssoeknad.class,
+            no.nav.vedtak.felles.xml.soeknad.v3.ObjectFactory.class,
+            no.nav.vedtak.felles.xml.soeknad.endringssoeknad.v3.ObjectFactory.class);
+        var søknad = (Soeknad) ((JAXBElement<?>) context.createUnmarshaller().unmarshal(new StringReader(xml))).getValue();
+        return (Endringssoeknad) ((JAXBElement<?>) søknad.getOmYtelse().getAny().getFirst()).getValue();
+    }
+
     private static Fordeling map(UttaksplanDto plan, List<VedleggDto> vedlegg, boolean endring) throws Exception {
         var mottatt = LocalDateTime.of(2026, 9, 30, 12, 0);
         var barn = new FødselDto(1, FOM, FOM);
