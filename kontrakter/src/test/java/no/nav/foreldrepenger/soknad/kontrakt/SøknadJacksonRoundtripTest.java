@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import no.nav.foreldrepenger.kontrakter.felles.typer.Fødselsnummer;
 import no.nav.foreldrepenger.kontrakter.felles.typer.Orgnummer;
 import no.nav.foreldrepenger.kontrakter.felles.typer.Saksnummer;
+import no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType;
 import no.nav.foreldrepenger.soknad.kontrakt.barn.FødselDto;
 import no.nav.foreldrepenger.soknad.kontrakt.barn.TerminDto;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.AnnenforelderBuilder;
@@ -23,8 +24,10 @@ import no.nav.foreldrepenger.soknad.kontrakt.builder.EngangsstønadBuilder;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.ForeldrepengerBuilder;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.OpptjeningMaler;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.SvangerskapspengerBuilder;
-import no.nav.foreldrepenger.soknad.kontrakt.builder.UttakplanPeriodeBuilder;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.Dekningsgrad;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Rolle;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakPeriodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.svangerskapspenger.ArbeidsforholdDto;
 import no.nav.foreldrepenger.soknad.kontrakt.svangerskapspenger.TilretteleggingbehovDto;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.DokumentTypeId;
@@ -64,9 +67,9 @@ public class SøknadJacksonRoundtripTest {
                 .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
                 .medUttaksplan(
                         List.of(
-                                UttakplanPeriodeBuilder.uttak(FORELDREPENGER_FØR_FØDSEL, familehendelseDato.minusWeeks(3), familehendelseDato.minusDays(1)).build(),
-                                UttakplanPeriodeBuilder.uttak(MØDREKVOTE, familehendelseDato, familehendelseDato.plusWeeks(15).minusDays(1)).build(),
-                                UttakplanPeriodeBuilder.uttak(FELLESPERIODE, familehendelseDato.plusWeeks(15), familehendelseDato.plusWeeks(31).minusDays(1)).build()
+                                nyPeriode(FORELDREPENGER_FØR_FØDSEL, familehendelseDato.minusWeeks(3), familehendelseDato.minusDays(1)),
+                                nyPeriode(MØDREKVOTE, familehendelseDato, familehendelseDato.plusWeeks(15).minusDays(1)),
+                                nyPeriode(FELLESPERIODE, familehendelseDato.plusWeeks(15), familehendelseDato.plusWeeks(31).minusDays(1))
                         )
                 )
                 .medDekningsgrad(Dekningsgrad.HUNDRE)
@@ -120,9 +123,9 @@ public class SøknadJacksonRoundtripTest {
                 .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
                 .medUttaksplan(
                         List.of(
-                                UttakplanPeriodeBuilder.uttak(FORELDREPENGER_FØR_FØDSEL, familehendelseDato.minusWeeks(3), familehendelseDato.minusDays(1)).build(),
-                                UttakplanPeriodeBuilder.uttak(MØDREKVOTE, familehendelseDato, familehendelseDato.plusWeeks(15).minusDays(1)).build(),
-                                UttakplanPeriodeBuilder.uttak(FELLESPERIODE, familehendelseDato.plusWeeks(15), familehendelseDato.plusWeeks(31).minusDays(1)).build()
+                                nyPeriode(FORELDREPENGER_FØR_FØDSEL, familehendelseDato.minusWeeks(3), familehendelseDato.minusDays(1)),
+                                nyPeriode(MØDREKVOTE, familehendelseDato, familehendelseDato.plusWeeks(15).minusDays(1)),
+                                nyPeriode(FELLESPERIODE, familehendelseDato.plusWeeks(15), familehendelseDato.plusWeeks(31).minusDays(1))
                         )
                 )
                 .medAnnenForelder(AnnenforelderBuilder.norskMedRettighetNorge(new Fødselsnummer("0987654321")).build())
@@ -144,5 +147,9 @@ public class SøknadJacksonRoundtripTest {
         } catch (JacksonException e) {
             throw new RuntimeException("Feil ved serialisering/deserialisering av ForeldrepengesøknadDto", e);
         }
+    }
+
+    private static UttakPeriodeDto nyPeriode(KontoType konto, LocalDate fom, LocalDate tom) {
+        return new UttakPeriodeDto(fom, tom, new UttakDto(Rolle.MOR, konto, null, null, null, null, null, false, null), null, null);
     }
 }
