@@ -78,6 +78,20 @@ class UttaksperioderValideringTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
+    void avviser_overlapp_og_ugyldig_dato_på_annen_parts_perioder(boolean endring) {
+        var utsettelse = new UttakDto(Rolle.FAR_MEDMOR, null, UtsettelseÅrsak.ARBEID, null, null, null, null, false, null);
+        var søkersPeriode = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, utsettelse, null);
+        var overlappendeAnnenPart = new UttakPeriodeDto(START.plusDays(4), START.plusDays(8), null, utsettelse, null);
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad(endring, List.of(søkersPeriode, overlappendeAnnenPart))))
+            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("overlappende");
+
+        var ugyldigDatoAnnenPart = new UttakPeriodeDto(START.plusDays(10), START.plusDays(9), null, utsettelse, null);
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad(endring, List.of(søkersPeriode, ugyldigDatoAnnenPart))))
+            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("tom er før fom");
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
     void avviser_ugyldige_datoer_og_overlapp_i_ny_liste(boolean endring) {
         var feilDato = new UttakPeriodeDto(START, START.minusDays(1), UTTAK, null, null);
         var søknadMedFeilDato = søknad(endring, List.of(feilDato));

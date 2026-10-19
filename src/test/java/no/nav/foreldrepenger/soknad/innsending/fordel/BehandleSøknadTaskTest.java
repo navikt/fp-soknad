@@ -210,10 +210,41 @@ class BehandleSøknadTaskTest {
         validerProsesstaskOpprettet(forsendelseId, saksnummer.value());
     }
 
-    private void validerProsesstaskOpprettet(UUID forsendelseId, String saksnummer) {
+    @Test
+    void innsending_av_engangsstønad_oppretter_ikke_oversikt_task() {
+        var esSøknad = new no.nav.foreldrepenger.soknad.kontrakt.builder.EngangsstønadBuilder()
+            .medSøkerinfo(new SøkerDto(new Fødselsnummer("1234567890"), new SøkerDto.Navn("Per", null, "etternavn"), null))
+            .medBarn(new TerminDto(1, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
+            .medUtenlandsopphold(List.of())
+            .build();
+        var forsendelseId = UUID.randomUUID();
+        lagreForsendelseOgSøknad(esSøknad, forsendelseId, DokumentTypeId.I000003);
+
+        when(fpsakTjeneste.vurderFagsystem(any())).thenReturn(new VurderFagsystemResultat(VurderFagsystemResultat.SendTil.FPSAK, "123456"));
+        when(fpDokgenRestKlient.genererPdf(any())).thenReturn(new byte[]{1, 2, 3});
+        when(personoppslag.aktørId((String) any())).thenReturn(new AktørId("123"));
+        when(arkivtjeneste.forsøkEndeligJournalføring(any(), any(), any(), any(), any(), any())).thenReturn(new OpprettetJournalpost("123", true));
+
+        var prosessTaskData = ProsessTaskData.forProsessTask(BehandleSøknadTask.class);
+        prosessTaskData.setProperty(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
+        task.doTask(prosessTaskData);
+
         var captor = ArgumentCaptor.forClass(ProsessTaskData.class);
         verify(taskTjeneste, times(1)).lagre(captor.capture());
-        var vlklargjørtask = captor.getValue();
+        assertThat(captor.getValue().taskType().value()).isEqualTo("fordeling.klargjoering");
+    }
+
+    private void validerProsesstaskOpprettet(UUID forsendelseId, String saksnummer) {
+        var captor = ArgumentCaptor.forClass(ProsessTaskData.class);
+        verify(taskTjeneste, times(2)).lagre(captor.capture());
+        var tasks = captor.getAllValues();
+
+        var oversiktTask = tasks.getFirst();
+        assertThat(oversiktTask.taskType().value()).isEqualTo("fordeling.oversikt.soknad");
+        assertThat(oversiktTask.getPropertyValue(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY)).isEqualTo(forsendelseId.toString());
+        assertThat(oversiktTask.getPropertyValue(BehandleSøknadTask.SAKSNUMMER_PROPERTY)).isEqualTo(saksnummer);
+
+        var vlklargjørtask = tasks.get(1);
         assertThat(vlklargjørtask.taskType().value()).isEqualTo("fordeling.klargjoering");
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY)).isEqualTo(forsendelseId.toString());
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.SAKSNUMMER_PROPERTY)).isEqualTo(saksnummer);
@@ -223,6 +254,10 @@ class BehandleSøknadTaskTest {
     }
 
     private void lagreForsendelseOgSøknad(SøknadDto søknad, UUID forsendelseId) {
+        lagreForsendelseOgSøknad(søknad, forsendelseId, DokumentTypeId.I000005);
+    }
+
+    private void lagreForsendelseOgSøknad(SøknadDto søknad, UUID forsendelseId, DokumentTypeId dokumentTypeId) {
         var metadata = ForsendelseEntitet.builder()
             .setFødselsnummer(søknad.søkerinfo().fnr().value())
             .setSaksnummer(søknad instanceof EndringssøknadForeldrepengerDto endring ? endring.saksnummer().value() : null)
@@ -235,7 +270,7 @@ class BehandleSøknadTaskTest {
         var søknadDokument = DokumentEntitet.builder()
             .setDokumentInnhold(DefaultJsonMapper.getJsonMapper().writeValueAsBytes(søknad), ArkivFilType.JSON)
             .setForsendelseId(forsendelseId)
-            .setDokumentTypeId(DokumentTypeId.I000005)
+            .setDokumentTypeId(dokumentTypeId)
             .build();
         dokumentRepository.lagre(søknadDokument);
 

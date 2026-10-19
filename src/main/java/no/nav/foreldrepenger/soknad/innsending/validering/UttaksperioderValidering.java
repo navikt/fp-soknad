@@ -45,7 +45,7 @@ public final class UttaksperioderValidering {
         requireAntallUnderTerskel((int) antallSøkerperioder, MAKS_ANTALL_SØKERPERIODER, "søkerperioder");
         var fpsakperioder = perioderTilFpsak(perioder);
         requireMinstEnPeriode(fpsakperioder, søknadBeskrivelse);
-        var ugyldigeDatoer = fpsakperioder.stream()
+        var ugyldigeDatoer = perioder.stream()
             .filter(p -> p.tom().isBefore(p.fom()))
             .map(p -> String.format("{fom=%s, tom=%s}", p.fom(), p.tom()))
             .toList();
@@ -62,10 +62,15 @@ public final class UttaksperioderValidering {
             }
         }
         try {
-            var segmenter = fpsakperioder.stream()
+            var fpsakSegmenter = fpsakperioder.stream()
                 .map(p -> new LocalDateSegment<>(p.fom(), p.tom(), "fpsak"))
                 .toList();
-            new LocalDateTimeline<>(segmenter);
+            new LocalDateTimeline<>(fpsakSegmenter);
+            var annenPartSegmenter = perioder.stream()
+                .filter(p -> p.annenPart() != null)
+                .map(p -> new LocalDateSegment<>(p.fom(), p.tom(), "annenPart"))
+                .toList();
+            new LocalDateTimeline<>(annenPartSegmenter);
         } catch (IllegalArgumentException e) {
             throw new UttaksperioderValideringException(String.format(
                 "Uttaksplan inneholder overlappende perioder. Gjelder %s: %s", søknadBeskrivelse, e.getMessage()));

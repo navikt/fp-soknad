@@ -116,12 +116,26 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
             return; // Midlertidig journalført, plukkes opp av fp-mottak og avventer handling
         }
 
+        if (erForeldrepengesøknad(dokumentTypeId)) {
+            var oversiktTask = ProsessTaskData.forProsessTask(SendSøknadTilOversiktTask.class);
+            oversiktTask.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
+            oversiktTask.setProperty(SAKSNUMMER_PROPERTY, destinasjon.saksnummer());
+            taskTjeneste.lagre(oversiktTask);
+        }
+
         var task = ProsessTaskData.forProsessTask(VLKlargjørerTask.class);
         task.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
         task.setProperty(SAKSNUMMER_PROPERTY, destinasjon.saksnummer());
         task.setProperty(BEHANDLING_TEMA_PROPERTY, behandlingTema.getOffisiellKode());
         task.setProperty(DOKUMENT_TYPE_ID_PROPERTY, dokumentTypeId.name());
         taskTjeneste.lagre(task);
+    }
+
+    private static boolean erForeldrepengesøknad(DokumentTypeId dokumentTypeId) {
+        return switch (dokumentTypeId) {
+            case I000002, I000005, I000050 -> true;
+            default -> false;
+        };
     }
 
 }
