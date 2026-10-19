@@ -4,7 +4,6 @@ import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.FEDREKV
 import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.FELLESPERIODE;
 import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.FORELDREPENGER_FØR_FØDSEL;
 import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.MØDREKVOTE;
-import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.Overføringsårsak.SYKDOM_ANNEN_FORELDER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -26,6 +25,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import jakarta.persistence.EntityManager;
+import no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType;
 import no.nav.foreldrepenger.kontrakter.felles.typer.Fødselsnummer;
 import no.nav.foreldrepenger.kontrakter.felles.typer.Orgnummer;
 import no.nav.foreldrepenger.kontrakter.felles.typer.Saksnummer;
@@ -49,13 +49,16 @@ import no.nav.foreldrepenger.soknad.kontrakt.builder.EngangsstønadBuilder;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.ForeldrepengerBuilder;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.OpptjeningMaler;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.SvangerskapspengerBuilder;
-import no.nav.foreldrepenger.soknad.kontrakt.builder.UttakplanPeriodeBuilder;
 import no.nav.foreldrepenger.soknad.kontrakt.ettersendelse.BrukerTekstDto;
 import no.nav.foreldrepenger.soknad.kontrakt.ettersendelse.EttersendelseDto;
 import no.nav.foreldrepenger.soknad.kontrakt.ettersendelse.YtelseType;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.Dekningsgrad;
-import no.nav.foreldrepenger.soknad.kontrakt.svangerskapspenger.ArbeidsforholdDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.OverføringÅrsak;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Rolle;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakPeriodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.svangerskapspenger.TilretteleggingbehovDto;
+import no.nav.foreldrepenger.soknad.kontrakt.svangerskapspenger.ArbeidsforholdDto;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.Dokumenterer;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.InnsendingType;
@@ -96,13 +99,10 @@ class SøknadInnsendingTjenesteTest {
             .medRolle(BrukerRolle.MOR)
             .medSøkerinfo(new SøkerDto(fnr, new SøkerDto.Navn("Per", null, null), null))
             .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
-            .medUttaksplan(
-                List.of(
-                    UttakplanPeriodeBuilder.uttak(FORELDREPENGER_FØR_FØDSEL, familehendelseDato.minusWeeks(3), familehendelseDato.minusDays(1)).build(),
-                    UttakplanPeriodeBuilder.uttak(MØDREKVOTE, familehendelseDato, familehendelseDato.plusWeeks(15).minusDays(1)).build(),
-                    UttakplanPeriodeBuilder.uttak(FELLESPERIODE, familehendelseDato.plusWeeks(15), familehendelseDato.plusWeeks(31).minusDays(1)).build()
-                )
-            )
+            .medUttaksplan(List.of(
+                uttak(FORELDREPENGER_FØR_FØDSEL, familehendelseDato.minusWeeks(3), familehendelseDato.minusDays(1)),
+                uttak(MØDREKVOTE, familehendelseDato, familehendelseDato.plusWeeks(15).minusDays(1)),
+                uttak(FELLESPERIODE, familehendelseDato.plusWeeks(15), familehendelseDato.plusWeeks(31).minusDays(1))))
             .medDekningsgrad(Dekningsgrad.HUNDRE)
             .medUtenlandsopphold(List.of())
             .medAnnenForelder(AnnenforelderBuilder.norskMedRettighetNorge(new Fødselsnummer("0987654321")).build())
@@ -225,13 +225,10 @@ class SøknadInnsendingTjenesteTest {
             .medRolle(BrukerRolle.MOR)
             .medSøkerinfo(new SøkerDto(fnr, new SøkerDto.Navn("Per", null, null), null))
             .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
-            .medUttaksplan(
-                List.of(
-                    UttakplanPeriodeBuilder.uttak(FORELDREPENGER_FØR_FØDSEL, familehendelseDato.minusWeeks(3), familehendelseDato.minusDays(1)).build(),
-                    UttakplanPeriodeBuilder.uttak(MØDREKVOTE, familehendelseDato, familehendelseDato.plusWeeks(15).minusDays(1)).build(),
-                    UttakplanPeriodeBuilder.uttak(FELLESPERIODE, familehendelseDato.plusWeeks(15), familehendelseDato.plusWeeks(31).minusDays(1)).build()
-                )
-            )
+            .medUttaksplan(List.of(
+                uttak(FORELDREPENGER_FØR_FØDSEL, familehendelseDato.minusWeeks(3), familehendelseDato.minusDays(1)),
+                uttak(MØDREKVOTE, familehendelseDato, familehendelseDato.plusWeeks(15).minusDays(1)),
+                uttak(FELLESPERIODE, familehendelseDato.plusWeeks(15), familehendelseDato.plusWeeks(31).minusDays(1))))
             .medAnnenForelder(AnnenforelderBuilder.norskMedRettighetNorge(new Fødselsnummer("0987654321")).build())
             .build();
         when(innloggetBruker.brukerFraKontekst()).thenReturn(fnr.value());
@@ -378,13 +375,10 @@ class SøknadInnsendingTjenesteTest {
             .medRolle(BrukerRolle.MOR)
             .medSøkerinfo(new SøkerDto(fnr, new SøkerDto.Navn("Per", null, null), null))
             .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
-            .medUttaksplan(
-                List.of(
-                    UttakplanPeriodeBuilder.uttak(FORELDREPENGER_FØR_FØDSEL, familehendelseDato.minusWeeks(3), familehendelseDato.minusDays(1)).build(),
-                    UttakplanPeriodeBuilder.uttak(MØDREKVOTE, familehendelseDato, familehendelseDato.plusWeeks(15).minusDays(1)).build(),
-                    UttakplanPeriodeBuilder.uttak(FELLESPERIODE, familehendelseDato.plusWeeks(15), familehendelseDato.plusWeeks(31).minusDays(1)).build()
-                )
-            )
+            .medUttaksplan(List.of(
+                uttak(FORELDREPENGER_FØR_FØDSEL, familehendelseDato.minusWeeks(3), familehendelseDato.minusDays(1)),
+                uttak(MØDREKVOTE, familehendelseDato, familehendelseDato.plusWeeks(15).minusDays(1)),
+                uttak(FELLESPERIODE, familehendelseDato.plusWeeks(15), familehendelseDato.plusWeeks(31).minusDays(1))))
             .medDekningsgrad(Dekningsgrad.HUNDRE)
             .medUtenlandsopphold(List.of())
             .medAnnenForelder(AnnenforelderBuilder.norskMedRettighetNorge(new Fødselsnummer("0987654321")).build())
@@ -407,7 +401,7 @@ class SøknadInnsendingTjenesteTest {
             .medRolle(BrukerRolle.MOR)
             .medSøkerinfo(new SøkerDto(fnr, new SøkerDto.Navn("Per", null, null), null))
             .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
-            .medUttaksplan(List.of(UttakplanPeriodeBuilder.uttak(MØDREKVOTE, fom, tom).build()))
+            .medUttaksplan(List.of(uttak(MØDREKVOTE, fom, tom)))
             .medDekningsgrad(Dekningsgrad.HUNDRE)
             .medUtenlandsopphold(List.of())
             .medAnnenForelder(AnnenforelderBuilder.norskMedRettighetNorge(new Fødselsnummer("0987654321")).build())
@@ -426,10 +420,7 @@ class SøknadInnsendingTjenesteTest {
         // Arrange
         var now = LocalDate.now();
 
-        var uttaksplan = List.of(
-            UttakplanPeriodeBuilder.uttak(MØDREKVOTE, now, now).build(),
-            UttakplanPeriodeBuilder.uttak(MØDREKVOTE, now, now.plusDays(3)).build()
-        );
+        var uttaksplan = List.of(uttak(MØDREKVOTE, now, now), uttak(MØDREKVOTE, now, now.plusDays(3)));
 
         var søknad = (ForeldrepengesøknadDto) new ForeldrepengerBuilder().medUttaksplan(uttaksplan).build();
 
@@ -444,8 +435,9 @@ class SøknadInnsendingTjenesteTest {
         // Arrange
         var now = LocalDate.now();
         var uttaksplan = List.of(
-            UttakplanPeriodeBuilder.uttak(MØDREKVOTE, now, now.plusDays(10)).build(),
-            UttakplanPeriodeBuilder.overføring(SYKDOM_ANNEN_FORELDER, FEDREKVOTE, now.plusDays(2), now.plusDays(2)).build()
+            uttak(MØDREKVOTE, now, now.plusDays(10)),
+            new UttakPeriodeDto(now.plusDays(2), now.plusDays(2),
+                new UttakDto(Rolle.MOR, FEDREKVOTE, null, OverføringÅrsak.SYKDOM_ANNEN_FORELDER, null, null, null, false, null), null, null)
         );
         var søknad = (ForeldrepengesøknadDto) new ForeldrepengerBuilder().medUttaksplan(uttaksplan).build();
 
@@ -465,7 +457,7 @@ class SøknadInnsendingTjenesteTest {
             .medRolle(BrukerRolle.MOR)
             .medSøkerinfo(new SøkerDto(fnr, new SøkerDto.Navn("Per", null, null), null))
             .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
-            .medUttaksplan(List.of(UttakplanPeriodeBuilder.uttak(MØDREKVOTE, fom, tom).build()))
+            .medUttaksplan(List.of(uttak(MØDREKVOTE, fom, tom)))
             .medAnnenForelder(AnnenforelderBuilder.norskMedRettighetNorge(new Fødselsnummer("0987654321")).build())
             .build();
 
@@ -538,5 +530,9 @@ class SøknadInnsendingTjenesteTest {
         verify(prosessTaskTjeneste).lagre(taskDataCaptor.capture());
         assertThat(taskDataCaptor.getValue().getGruppe()).isEqualTo("bf05ae03af3662b1");
         assertThat(taskDataCaptor.getValue().getSekvens()).isNotBlank().isNotEqualTo("1");
+    }
+
+    private static UttakPeriodeDto uttak(KontoType konto, LocalDate fom, LocalDate tom) {
+        return new UttakPeriodeDto(fom, tom, new UttakDto(Rolle.MOR, konto, null, null, null, null, null, false, null), null, null);
     }
 }

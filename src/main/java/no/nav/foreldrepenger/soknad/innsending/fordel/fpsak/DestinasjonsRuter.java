@@ -1,6 +1,5 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.fpsak;
 
-
 import static no.nav.foreldrepenger.soknad.innsending.fordel.utils.FpsakUttaksperioder.perioderTilFpsak;
 
 import java.time.LocalDate;
@@ -31,7 +30,6 @@ import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.annenpart.AnnenForel
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.annenpart.NorskForelderDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakPeriodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttaksplanDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.Uttaksplanperiode;
 import no.nav.vedtak.konfig.Tid;
 
 @ApplicationScoped
@@ -136,18 +134,11 @@ public class DestinasjonsRuter {
     }
 
     private static LocalDate førsteUttaksdatoFraPlan(UttaksplanDto uttaksplan) {
-        // Gammel kodesti beholdes bare i expand-fasen.
-        if (uttaksplan.perioder() != null) {
-            var fpsakperioder = perioderTilFpsak(uttaksplan.perioder());
-            // FPSAK ser bort fra opphold ved start av uttak. Opphold brukes bare når søker har gitt bort resten av planen.
-            return førsteFom(fpsakperioder.stream().filter(p -> p.søker() != null))
-                .or(() -> førsteFom(fpsakperioder.stream()))
-                .orElseThrow(() -> new IllegalArgumentException("Uttaksplan mangler perioder til FPSAK"));
-        }
-        return uttaksplan.uttaksperioder().stream()
-            .map(Uttaksplanperiode::fom)
-            .min(LocalDate::compareTo)
-            .orElseThrow();
+        var fpsakperioder = perioderTilFpsak(uttaksplan.perioder());
+        // FPSAK ser bort fra opphold ved start av uttak. Opphold brukes bare når søker har gitt bort resten av planen.
+        return førsteFom(fpsakperioder.stream().filter(p -> p.søker() != null))
+            .or(() -> førsteFom(fpsakperioder.stream()))
+            .orElseThrow(() -> new IllegalArgumentException("Uttaksplan mangler perioder til FPSAK"));
     }
 
     private static Optional<LocalDate> førsteFom(Stream<UttakPeriodeDto> perioder) {

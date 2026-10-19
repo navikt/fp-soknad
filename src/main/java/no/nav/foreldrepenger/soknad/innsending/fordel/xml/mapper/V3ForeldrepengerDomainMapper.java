@@ -25,7 +25,6 @@ import jakarta.inject.Inject;
 import jakarta.xml.bind.JAXBElement;
 import no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType;
 import no.nav.foreldrepenger.kontrakter.felles.kodeverk.MorsAktivitet;
-import no.nav.foreldrepenger.kontrakter.felles.kodeverk.Overføringsårsak;
 import no.nav.foreldrepenger.kontrakter.felles.typer.AktørId;
 import no.nav.foreldrepenger.soknad.innsending.fordel.pdl.Personoppslag;
 import no.nav.foreldrepenger.soknad.innsending.fordel.xml.jaxb.FPV3JAXBUtil;
@@ -43,14 +42,8 @@ import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUtt
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Aktivitet.AktivitetType;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakPeriodeDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.OppholdsPeriodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.Oppholdsårsak;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.OverføringsPeriodeDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UtsettelsesPeriodeDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UtsettelsesÅrsak;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttaksPeriodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttaksplanDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.Uttaksplanperiode;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.VedleggDto;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.ÅpenPeriodeDto;
 import no.nav.vedtak.felles.xml.soeknad.endringssoeknad.v3.Endringssoeknad;
@@ -191,10 +184,7 @@ public class V3ForeldrepengerDomainMapper  {
 
     private static Fordeling fordelingFra(UttaksplanDto uttaksplan, AnnenForelderDto annenForelder, List<VedleggDto> vedlegg) {
         var fordelingXML = new Fordeling();
-        // Gammel kodesti beholdes bare i expand-fasen; nye perioder mappes direkte til XML.
-        fordelingXML.getPerioder().addAll(uttaksplan.perioder() != null
-            ? fellesPerioderFra(uttaksplan.perioder(), vedlegg)
-            : perioderFra(uttaksplan.uttaksperioder(), vedlegg));
+        fordelingXML.getPerioder().addAll(fellesPerioderFra(uttaksplan.perioder(), vedlegg));
         fordelingXML.setOenskerJustertVedFoedsel(uttaksplan.ønskerJustertUttakVedFødsel());
         fordelingXML.setOenskerKvoteOverfoert(overføringsÅrsakFra(UKJENT_KODEVERKSVERDI));
         fordelingXML.setAnnenForelderErInformert(toBooleanNullSafe(erAnnenpartInformert(annenForelder)));
@@ -206,12 +196,6 @@ public class V3ForeldrepengerDomainMapper  {
             return false;
         }
         return annenForelderDto.rettigheter().erInformertOmSøknaden();
-    }
-
-    private static List<LukketPeriodeMedVedlegg> perioderFra(List<Uttaksplanperiode> perioder, List<VedleggDto> vedlegg) {
-        return safeStream(perioder)
-                .map(periode -> lukketPeriodeFra(periode, vedlegg))
-                .toList();
     }
 
     private static List<LukketPeriodeMedVedlegg> fellesPerioderFra(List<UttakPeriodeDto> perioder, List<VedleggDto> vedlegg) {
@@ -313,101 +297,11 @@ public class V3ForeldrepengerDomainMapper  {
                 .toList();
     }
 
-    private static LukketPeriodeMedVedlegg lukketPeriodeFra(Uttaksplanperiode periode, List<VedleggDto> vedlegg) {
-        var vedleggreferanser = dokumentasjonSomDokumentererUttaksperiode(vedlegg, new ÅpenPeriodeDto(periode.fom(), periode.tom()));
-        return switch (periode) {
-            case UttaksPeriodeDto uttak -> uttak.gradering() != null ? createGradertUttaksperiode(uttak, vedleggreferanser) : createUttaksperiode(uttak, vedleggreferanser);
-            case OppholdsPeriodeDto opphold -> createOppholsperiode(opphold, vedleggreferanser);
-            case UtsettelsesPeriodeDto utsettelse -> UtsettelsesÅrsak.FRI.equals(utsettelse.årsak()) ? createFriUtsettelsesPeriode(utsettelse, vedleggreferanser) : createUtsettelsesperiode(utsettelse, vedleggreferanser);
-            case OverføringsPeriodeDto overføring -> createOverføringsperiode(overføring, vedleggreferanser);
-        };
-    }
-
-    private static LukketPeriodeMedVedlegg createOverføringsperiode(OverføringsPeriodeDto o, List<UUID> vedleggreferanser) {
-        var overfoeringsperiode = new Overfoeringsperiode();
-        overfoeringsperiode.setFom(o.fom());
-        overfoeringsperiode.setTom(o.tom());
-        overfoeringsperiode.setOverfoeringAv(uttaksperiodeTypeFra(o.konto()));
-        overfoeringsperiode.setAarsak(påkrevdOverføringsÅrsakFra(o.årsak()));
-        overfoeringsperiode.getVedlegg().addAll(lukketPeriodeVedleggFra(vedleggreferanser));
-        return overfoeringsperiode;
-    }
-
-    private static LukketPeriodeMedVedlegg createOppholsperiode(OppholdsPeriodeDto o, List<UUID> vedleggreferanser) {
-        var oppholdsperiode = new Oppholdsperiode();
-        oppholdsperiode.setFom(o.fom());
-        oppholdsperiode.setTom(o.tom());
-        oppholdsperiode.setAarsak(oppholdsÅrsakFra(o.årsak()));
-        oppholdsperiode.getVedlegg().addAll(lukketPeriodeVedleggFra(vedleggreferanser));
-        return oppholdsperiode;
-    }
-
-    private static LukketPeriodeMedVedlegg createUtsettelsesperiode(UtsettelsesPeriodeDto u, List<UUID> vedleggreferanser) {
-        var utsettelsesperiode = new Utsettelsesperiode();
-        utsettelsesperiode.setFom(u.fom());
-        utsettelsesperiode.setTom(u.tom());
-        utsettelsesperiode.setErArbeidstaker(u.erArbeidstaker());
-        utsettelsesperiode.setMorsAktivitetIPerioden(morsAktivitetFra(u.morsAktivitetIPerioden()));
-        utsettelsesperiode.setAarsak(utsettelsesÅrsakFra(u.årsak()));
-        utsettelsesperiode.getVedlegg().addAll(lukketPeriodeVedleggFra(vedleggreferanser));
-        return utsettelsesperiode;
-    }
-
-    private static LukketPeriodeMedVedlegg createFriUtsettelsesPeriode(UtsettelsesPeriodeDto p, List<UUID> vedleggreferanser) {
-        var utsettelsesperiode = new Utsettelsesperiode();
-        utsettelsesperiode.setFom(p.fom());
-        utsettelsesperiode.setTom(p.tom());
-        utsettelsesperiode.setMorsAktivitetIPerioden(morsAktivitetFra(p.morsAktivitetIPerioden(), true));
-        utsettelsesperiode.setAarsak(utsettelsesÅrsakFra(p.årsak()));
-        utsettelsesperiode.getVedlegg().addAll(lukketPeriodeVedleggFra(vedleggreferanser));
-        return utsettelsesperiode;
-    }
-
-    private static LukketPeriodeMedVedlegg createGradertUttaksperiode(UttaksPeriodeDto g, List<UUID> vedleggreferanser) {
-        var graderingDTO = g.gradering();
-        var gradering = new Gradering();
-        gradering.setFom(g.fom());
-        gradering.setTom(g.tom());
-        gradering.setType(uttaksperiodeTypeFra(g.konto()));
-        gradering.setMorsAktivitetIPerioden(morsAktivitetFra(g.morsAktivitetIPerioden()));
-        gradering.setOenskerFlerbarnsdager(g.ønskerFlerbarnsdager());
-        gradering.setArbeidtidProsent(graderingDTO.stillingsprosent());
-        gradering.setArbeidsgiver(arbeidsgiverFra(graderingDTO.orgnumre()));
-        gradering.setArbeidsforholdSomSkalGraderes(true);
-        Optional.ofNullable(graderingDTO.erArbeidstaker()).ifPresent(gradering::setErArbeidstaker);
-        Optional.ofNullable(graderingDTO.erFrilanser()).ifPresent(gradering::setErFrilanser);
-        Optional.ofNullable(graderingDTO.erSelvstendig()).ifPresent(gradering::setErSelvstNæringsdrivende);
-        gradering.getVedlegg().addAll(lukketPeriodeVedleggFra(vedleggreferanser));
-        setSamtidigUttaksprosent(gradering, g.ønskerSamtidigUttak(), g.samtidigUttakProsent());
-        return gradering;
-    }
-
-    private static LukketPeriodeMedVedlegg createUttaksperiode(UttaksPeriodeDto u, List<UUID> vedleggreferanser) {
-        var uttaksperiode = new Uttaksperiode();
-        uttaksperiode.setFom(u.fom());
-        uttaksperiode.setTom(u.tom());
-        uttaksperiode.setOenskerFlerbarnsdager(u.ønskerFlerbarnsdager());
-        uttaksperiode.setType(uttaksperiodeTypeFra(u.konto()));
-        setSamtidigUttaksprosent(uttaksperiode, u.ønskerSamtidigUttak(), u.samtidigUttakProsent());
-        uttaksperiode.setMorsAktivitetIPerioden(morsAktivitetFra(u.morsAktivitetIPerioden()));
-        uttaksperiode.getVedlegg().addAll(lukketPeriodeVedleggFra(vedleggreferanser));
-        return uttaksperiode;
-    }
-
     private static void setSamtidigUttaksprosent(Uttaksperiode uttaksperiode, Boolean ønskerSamtidigUttak, Double samtidigUttakProsent) {
         uttaksperiode.setOenskerSamtidigUttak(ønskerSamtidigUttak);
         if (Boolean.TRUE.equals(ønskerSamtidigUttak)) {
             uttaksperiode.setSamtidigUttakProsent(samtidigUttakProsent);
         }
-    }
-
-    private static Arbeidsgiver arbeidsgiverFra(List<String> arbeidsgiver) {
-        if (arbeidsgiver == null || arbeidsgiver.isEmpty()) {
-            return null;
-        }
-        return Optional.ofNullable(arbeidsgiver.get(0))
-                .map(V3ForeldrepengerDomainMapper::arbeidsgiverFra)
-                .orElse(null);
     }
 
     private static Arbeidsgiver arbeidsgiverFra(String id) {
@@ -461,13 +355,6 @@ public class V3ForeldrepengerDomainMapper  {
         return morsAktivitet;
     }
 
-    private static Utsettelsesaarsaker utsettelsesÅrsakFra(UtsettelsesÅrsak årsak) {
-        return Optional.ofNullable(årsak)
-                .map(UtsettelsesÅrsak::name)
-                .map(V3ForeldrepengerDomainMapper::utsettelsesÅrsakFra)
-                .orElse(null);
-    }
-
     private static Utsettelsesaarsaker utsettelsesÅrsakFra(String årsak) {
         var utsettelsesÅrsak = new Utsettelsesaarsaker();
         utsettelsesÅrsak.setKode(årsak);
@@ -487,13 +374,6 @@ public class V3ForeldrepengerDomainMapper  {
         oppholdsÅrsak.setKode(årsak);
         oppholdsÅrsak.setKodeverk(oppholdsÅrsak.getKodeverk());
         return oppholdsÅrsak;
-    }
-
-    private static Overfoeringsaarsaker påkrevdOverføringsÅrsakFra(Overføringsårsak årsak) {
-        return Optional.ofNullable(årsak)
-                .map(Overføringsårsak::name)
-                .map(V3ForeldrepengerDomainMapper::overføringsÅrsakFra)
-                .orElseThrow(() -> new IllegalStateException("Oppholdsårsak må være satt"));
     }
 
     private static Overfoeringsaarsaker overføringsÅrsakFra(String årsak) {

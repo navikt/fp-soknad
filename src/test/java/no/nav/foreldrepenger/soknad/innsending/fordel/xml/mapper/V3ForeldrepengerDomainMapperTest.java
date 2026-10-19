@@ -10,13 +10,11 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import jakarta.xml.bind.JAXBContext;
@@ -35,11 +33,7 @@ import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUtt
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Aktivitet;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakPeriodeDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UtsettelsesPeriodeDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UtsettelsesÅrsak;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttaksPeriodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttaksplanDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.Uttaksplanperiode;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.Dokumenterer;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.InnsendingType;
@@ -66,7 +60,7 @@ class V3ForeldrepengerDomainMapperTest {
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
     void avviser_søkerperiode_uten_konto_eller_utsettelse(boolean endring) {
-        var plan = new UttaksplanDto(false, null, List.of(periode(uttak(null))));
+        var plan = new UttaksplanDto(false, List.of(periode(uttak(null))));
         assertThatThrownBy(() -> map(plan, List.of(), endring))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Søkerperiode må ha konto eller utsettelsesårsak");
@@ -80,7 +74,7 @@ class V3ForeldrepengerDomainMapperTest {
         for (var gradering : graderinger) {
             var søker = new UttakDto(FellesUttaksplanDto.Rolle.MOR, KontoType.FELLESPERIODE,
                 null, null, gradering, null, null, false, null);
-            var plan = new UttaksplanDto(false, null, List.of(periode(søker)));
+            var plan = new UttaksplanDto(false, List.of(periode(søker)));
             assertThatThrownBy(() -> map(plan, List.of(), endring))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Gradering må ha arbeidstidprosent");
@@ -90,31 +84,23 @@ class V3ForeldrepengerDomainMapperTest {
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
     void ignorerer_ikke_null_elementer_i_ny_plan(boolean endring) {
-        var plan = new UttaksplanDto(false, null, Collections.singletonList(null));
+        var plan = new UttaksplanDto(false, Collections.singletonList(null));
         assertThatThrownBy(() -> map(plan, List.of(), endring)).isInstanceOf(NullPointerException.class);
     }
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
-    void bruker_legacy_bare_når_nye_perioder_er_null(boolean endring) throws Exception {
-        var xml = map(new UttaksplanDto(true, List.of(legacyUttak()), null), List.of(), endring);
-        assertThat(xml.getPerioder()).singleElement().isInstanceOfSatisfying(Uttaksperiode.class,
-            periode -> assertThat(periode.getType().getKode()).isEqualTo("FEDREKVOTE"));
-        assertThat(xml.isOenskerJustertVedFoedsel()).isTrue();
+    void tom_liste_gir_tomme_xml_perioder(boolean endring) throws Exception {
+        assertThat(map(new UttaksplanDto(false, List.of()), List.of(), endring).getPerioder()).isEmpty();
     }
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
-    void tom_ny_liste_er_autoritativ(boolean endring) throws Exception {
-        assertThat(map(new UttaksplanDto(false, List.of(legacyUttak()), List.of()), List.of(), endring).getPerioder()).isEmpty();
-    }
-
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void sender_periode_der_bare_annen_part_har_uttak_som_opphold_og_overstyrer_legacy(boolean endring) throws Exception {
+    void sender_periode_der_bare_annen_part_har_uttak_som_opphold(boolean endring) throws Exception {
         var vedlegg = vedlegg(TOM.plusDays(1), TOM.plusDays(5), InnsendingType.LASTET_OPP);
-        var xml = map(new UttaksplanDto(false, List.of(legacyUttak()), søkerAnnenPartOgEøs()), List.of(vedlegg), endring);
+        var xml = map(new UttaksplanDto(true, søkerAnnenPartOgEøs()), List.of(vedlegg), endring);
         assertThat(xml.getPerioder()).hasSize(2);
+        assertThat(xml.isOenskerJustertVedFoedsel()).isTrue();
         assertThat(xml.getPerioder().getFirst()).isInstanceOfSatisfying(Uttaksperiode.class, periode -> {
             assertThat(periode.getType().getKode()).isEqualTo("FELLESPERIODE");
             assertThat(periode.getFom()).isEqualTo(FOM);
@@ -134,7 +120,7 @@ class V3ForeldrepengerDomainMapperTest {
     void fars_førstegangssøknad_sender_mors_kvote_som_opphold_før_eget_uttak() throws Exception {
         var perioder = List.of(new UttakPeriodeDto(FOM, TOM, null, uttak(KontoType.MØDREKVOTE), null),
             new UttakPeriodeDto(TOM.plusDays(1), TOM.plusDays(5), uttak(KontoType.FEDREKVOTE), null, null));
-        var xml = map(new UttaksplanDto(false, null, perioder), List.of(), false);
+        var xml = map(new UttaksplanDto(false, perioder), List.of(), false);
         assertThat(xml.getPerioder()).hasSize(2);
         assertThat(xml.getPerioder().getFirst()).isInstanceOfSatisfying(Oppholdsperiode.class, opphold -> {
             assertThat(opphold.getAarsak().getKode()).isEqualTo("UTTAK_MØDREKVOTE_ANNEN_FORELDER");
@@ -153,7 +139,7 @@ class V3ForeldrepengerDomainMapperTest {
         "FELLESPERIODE, UTTAK_FELLESP_ANNEN_FORELDER", "FORELDREPENGER, UTTAK_FORELDREPENGER_ANNEN_FORELDER"
     })
     void periode_med_bare_annen_parts_uttak_sendes_som_opphold_i_begge_søknadstyper(KontoType konto, String årsak) throws Exception {
-        var plan = new UttaksplanDto(false, null, List.of(new UttakPeriodeDto(FOM, TOM, null, uttak(konto), null)));
+        var plan = new UttaksplanDto(false, List.of(new UttakPeriodeDto(FOM, TOM, null, uttak(konto), null)));
         for (var endring : List.of(false, true)) {
             assertThat(map(plan, List.of(), endring).getPerioder()).singleElement().isInstanceOfSatisfying(Oppholdsperiode.class,
                 opphold -> assertThat(opphold.getAarsak().getKode()).isEqualTo(årsak));
@@ -168,7 +154,7 @@ class V3ForeldrepengerDomainMapperTest {
         var perioder = List.of(new UttakPeriodeDto(FOM, TOM, null, uttak(KontoType.FORELDREPENGER_FØR_FØDSEL), null),
             new UttakPeriodeDto(TOM.plusDays(1), TOM.plusDays(5), null, utsettelse, null),
             new UttakPeriodeDto(TOM.plusDays(6), TOM.plusDays(10), uttak(KontoType.FELLESPERIODE), null, null));
-        var xml = map(new UttaksplanDto(false, null, perioder), List.of(), endring);
+        var xml = map(new UttaksplanDto(false, perioder), List.of(), endring);
         assertThat(xml.getPerioder()).singleElement().isInstanceOf(Uttaksperiode.class);
     }
 
@@ -188,7 +174,7 @@ class V3ForeldrepengerDomainMapperTest {
     })
     void videresender_alle_utsettelser_i_begge_søknadstyper(FellesUttaksplanDto.UtsettelseÅrsak årsak, String kode) throws Exception {
         var søker = new UttakDto(FellesUttaksplanDto.Rolle.MOR, null, årsak, null, null, MorsAktivitet.ARBEID, null, false, null);
-        var plan = new UttaksplanDto(false, null, List.of(periode(søker)));
+        var plan = new UttaksplanDto(false, List.of(periode(søker)));
         for (var endring : List.of(false, true)) {
             assertThat(map(plan, List.of(), endring).getPerioder()).singleElement().isInstanceOfSatisfying(Utsettelsesperiode.class, xml -> {
                 assertThat(xml.getAarsak().getKode()).isEqualTo(kode);
@@ -204,7 +190,7 @@ class V3ForeldrepengerDomainMapperTest {
     void mapper_overføring_direkte(FellesUttaksplanDto.OverføringÅrsak årsak) throws Exception {
         var søker = new UttakDto(FellesUttaksplanDto.Rolle.MOR, KontoType.FEDREKVOTE, null, årsak, null, null, null, false, null);
         for (var endring : List.of(false, true)) {
-            var xml = map(new UttaksplanDto(false, null, List.of(periode(søker))), List.of(), endring);
+            var xml = map(new UttaksplanDto(false, List.of(periode(søker))), List.of(), endring);
             assertThat(xml.getPerioder()).singleElement().isInstanceOfSatisfying(Overfoeringsperiode.class, overføring -> {
                 assertThat(overføring.getAarsak().getKode()).isEqualTo(årsak.name());
                 assertThat(overføring.getOverfoeringAv().getKode()).isEqualTo("FEDREKVOTE");
@@ -222,7 +208,7 @@ class V3ForeldrepengerDomainMapperTest {
             new FellesUttaksplanDto.SamtidigUttak(new BigDecimal("59.5")), true, null);
         var vedlegg = vedlegg(FOM, TOM, InnsendingType.LASTET_OPP);
         for (var endring : List.of(false, true)) {
-            var xml = map(new UttaksplanDto(false, null, List.of(periode(søker))),
+            var xml = map(new UttaksplanDto(false, List.of(periode(søker))),
                 List.of(vedlegg, vedlegg(FOM.plusDays(1), TOM, InnsendingType.LASTET_OPP), vedlegg(FOM, TOM, InnsendingType.AUTOMATISK)), endring);
             assertThat(xml.getPerioder()).singleElement().isInstanceOfSatisfying(Gradering.class, gradert -> {
                 assertThat(gradert.getArbeidtidProsent()).isEqualTo(40.5);
@@ -253,7 +239,7 @@ class V3ForeldrepengerDomainMapperTest {
         var overføring = new UttakDto(FellesUttaksplanDto.Rolle.MOR, KontoType.FEDREKVOTE, null,
             FellesUttaksplanDto.OverføringÅrsak.ALENEOMSORG, null, null, null, false, null);
         var vedlegg = vedlegg(FOM, TOM, InnsendingType.LASTET_OPP);
-        var plan = new UttaksplanDto(false, null, List.of(periode(samtidig), periode(fri), periode(overføring)));
+        var plan = new UttaksplanDto(false, List.of(periode(samtidig), periode(fri), periode(overføring)));
         var xml = map(plan, List.of(vedlegg), endring);
         assertThat(xml.getPerioder()).hasSize(3).allSatisfy(periode ->
             assertThat(periode.getVedlegg()).singleElement().satisfies(referanse ->
@@ -276,7 +262,7 @@ class V3ForeldrepengerDomainMapperTest {
             new FellesUttaksplanDto.Arbeidsgiver("99999999999", FellesUttaksplanDto.Arbeidsgiver.ArbeidsgiverType.PRIVAT), null);
         var gradering = new FellesUttaksplanDto.Gradering(new FellesUttaksplanDto.Arbeidstidprosent(BigDecimal.TEN), aktivitet);
         var søker = new UttakDto(FellesUttaksplanDto.Rolle.MOR, KontoType.FELLESPERIODE, null, null, gradering, null, null, false, null);
-        var xml = map(new UttaksplanDto(false, null, List.of(periode(søker))), List.of(), endring);
+        var xml = map(new UttaksplanDto(false, List.of(periode(søker))), List.of(), endring);
         assertThat(xml.getPerioder()).singleElement().isInstanceOfSatisfying(Gradering.class, gradert -> {
             assertThat(gradert.getArbeidsgiver()).isInstanceOfSatisfying(Person.class,
                 arbeidsgiver -> assertThat(arbeidsgiver.getIdentifikator()).isEqualTo("99999999999"));
@@ -291,36 +277,13 @@ class V3ForeldrepengerDomainMapperTest {
     void gradering_uten_aktivitet_har_ingen_arbeidsgiver_eller_aktivitetstype(boolean endring) throws Exception {
         var gradering = new FellesUttaksplanDto.Gradering(new FellesUttaksplanDto.Arbeidstidprosent(BigDecimal.TEN), null);
         var søker = new UttakDto(FellesUttaksplanDto.Rolle.MOR, KontoType.FELLESPERIODE, null, null, gradering, null, null, false, null);
-        var xml = map(new UttaksplanDto(false, null, List.of(periode(søker))), List.of(), endring);
+        var xml = map(new UttaksplanDto(false, List.of(periode(søker))), List.of(), endring);
         assertThat(xml.getPerioder()).singleElement().isInstanceOfSatisfying(Gradering.class, gradert -> {
             assertThat(gradert.getArbeidsgiver()).isNull();
             assertThat(gradert.isErArbeidstaker()).isFalse();
             assertThat(gradert.isErFrilanser()).isFalse();
             assertThat(gradert.isErSelvstNæringsdrivende()).isFalse();
         });
-    }
-
-    @ParameterizedTest
-    @MethodSource("legacyPlaner")
-    void endring_viderefører_historikk_og_avslag_uavhengig_av_legacy(List<Uttaksplanperiode> legacy) throws Exception {
-        var avslag = new FellesUttaksplanDto.VedtattResultat(false, false, false, FellesUttaksplanDto.VedtattResultat.Årsak.ANNET);
-        var innvilget = new FellesUttaksplanDto.VedtattResultat(true, false, true, FellesUttaksplanDto.VedtattResultat.Årsak.ANNET);
-        var avslåttUttak = new UttakDto(FellesUttaksplanDto.Rolle.MOR, KontoType.FELLESPERIODE, null, null, null, null, null, false, avslag);
-        var historiskUttak = new UttakDto(FellesUttaksplanDto.Rolle.MOR, KontoType.MØDREKVOTE, null, null, null, null, null, false, innvilget);
-        var perioder = List.of(new UttakPeriodeDto(FOM.minusYears(1), TOM.minusYears(1), historiskUttak, null, null),
-            periode(avslåttUttak), new UttakPeriodeDto(FOM.plusMonths(3), TOM.plusMonths(3), uttak(KontoType.FELLESPERIODE), null, null));
-        var xml = map(new UttaksplanDto(false, legacy, perioder), List.of(), true);
-        assertThat(xml.getPerioder()).hasSize(3).allSatisfy(periode -> assertThat(periode).isExactlyInstanceOf(Uttaksperiode.class));
-        assertThat(xml.getPerioder()).extracting(periode -> periode.getFom()).containsExactly(FOM.minusYears(1), FOM, FOM.plusMonths(3));
-    }
-
-    private static Stream<List<Uttaksplanperiode>> legacyPlaner() {
-        return Stream.of(null, List.of(), List.of(legacyUttak()),
-            List.of(new UtsettelsesPeriodeDto(FOM.plusMonths(2), TOM.plusMonths(2), UtsettelsesÅrsak.FRI, null, false)));
-    }
-
-    private static UttaksPeriodeDto legacyUttak() {
-        return new UttaksPeriodeDto(FOM.plusMonths(1), TOM.plusMonths(1), KontoType.FEDREKVOTE, null, false, null, false, false, null);
     }
 
     private static UttakDto uttak(KontoType konto) {
