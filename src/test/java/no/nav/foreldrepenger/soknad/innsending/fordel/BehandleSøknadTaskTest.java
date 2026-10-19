@@ -27,7 +27,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import jakarta.persistence.EntityManager;
-import no.nav.foreldrepenger.kontrakter.felles.kodeverk.Overføringsårsak;
+import no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType;
 import no.nav.foreldrepenger.kontrakter.felles.typer.AktørId;
 import no.nav.foreldrepenger.kontrakter.felles.typer.Fødselsnummer;
 import no.nav.foreldrepenger.kontrakter.felles.typer.Saksnummer;
@@ -59,8 +59,10 @@ import no.nav.foreldrepenger.soknad.kontrakt.barn.TerminDto;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.AnnenforelderBuilder;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.EndringssøknadBuilder;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.ForeldrepengerBuilder;
-import no.nav.foreldrepenger.soknad.kontrakt.builder.UttakplanPeriodeBuilder;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.Dekningsgrad;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakPeriodeDto;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.DokumentTypeId;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.Dokumenterer;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.InnsendingType;
@@ -108,10 +110,9 @@ class BehandleSøknadTaskTest {
             .medSøkerinfo(new SøkerDto(new Fødselsnummer("1234567890"), new SøkerDto.Navn("Per", null, "etternavn"), null))
             .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
             .medUttaksplan(List.of(
-                UttakplanPeriodeBuilder.uttak(FORELDREPENGER_FØR_FØDSEL, familehendelseDato.minusWeeks(3), familehendelseDato.minusDays(1)).build(),
-                UttakplanPeriodeBuilder.uttak(MØDREKVOTE, familehendelseDato, familehendelseDato.plusWeeks(15).minusDays(1)).build(),
-                UttakplanPeriodeBuilder.uttak(FELLESPERIODE, familehendelseDato.plusWeeks(15), familehendelseDato.plusWeeks(31).minusDays(1))
-                    .build()))
+                uttak(FORELDREPENGER_FØR_FØDSEL, familehendelseDato.minusWeeks(3), familehendelseDato.minusDays(1)),
+                uttak(MØDREKVOTE, familehendelseDato, familehendelseDato.plusWeeks(15).minusDays(1)),
+                uttak(FELLESPERIODE, familehendelseDato.plusWeeks(15), familehendelseDato.plusWeeks(31).minusDays(1))))
             .medDekningsgrad(Dekningsgrad.HUNDRE)
             .medUtenlandsopphold(List.of())
             .medAnnenForelder(AnnenforelderBuilder.norskMedRettighetNorge(new Fødselsnummer("0987654321")).build())
@@ -162,11 +163,17 @@ class BehandleSøknadTaskTest {
             .medSøkerinfo(new SøkerDto(new Fødselsnummer("1234567890"), new SøkerDto.Navn("Per", null, "etternavn"), null))
             .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
             .medUttaksplan(List.of(
-                UttakplanPeriodeBuilder.uttak(FORELDREPENGER_FØR_FØDSEL, familehendelseDato.minusWeeks(3), familehendelseDato.minusDays(1)).build(),
-                UttakplanPeriodeBuilder.gradert(MØDREKVOTE, familehendelseDato, familehendelseDato.plusWeeks(15).minusDays(1), 43.2).build(),
-                UttakplanPeriodeBuilder.friUtsettelse(familehendelseDato.plusWeeks(15), familehendelseDato.plusWeeks(20).minusDays(1)).build(),
-                UttakplanPeriodeBuilder.overføring(Overføringsårsak.SYKDOM_ANNEN_FORELDER, FEDREKVOTE, familehendelseDato.plusWeeks(20),
-                    familehendelseDato.plusWeeks(31).minusDays(1)).build()))
+                uttak(FORELDREPENGER_FØR_FØDSEL, familehendelseDato.minusWeeks(3), familehendelseDato.minusDays(1)),
+                new UttakPeriodeDto(familehendelseDato, familehendelseDato.plusWeeks(15).minusDays(1),
+                    new UttakDto(FellesUttaksplanDto.Rolle.MOR, MØDREKVOTE, null, null,
+                        new FellesUttaksplanDto.Gradering(new FellesUttaksplanDto.Arbeidstidprosent(new java.math.BigDecimal("43.2")), null),
+                        null, null, false, null), null, null),
+                new UttakPeriodeDto(familehendelseDato.plusWeeks(15), familehendelseDato.plusWeeks(20).minusDays(1),
+                    new UttakDto(FellesUttaksplanDto.Rolle.MOR, null, FellesUttaksplanDto.UtsettelseÅrsak.FRI, null,
+                        null, null, null, false, null), null, null),
+                new UttakPeriodeDto(familehendelseDato.plusWeeks(20), familehendelseDato.plusWeeks(31).minusDays(1),
+                    new UttakDto(FellesUttaksplanDto.Rolle.MOR, FEDREKVOTE, null,
+                        FellesUttaksplanDto.OverføringÅrsak.SYKDOM_ANNEN_FORELDER, null, null, null, false, null), null, null)))
             .medAnnenForelder(AnnenforelderBuilder.norskMedRettighetNorge(new Fødselsnummer("0987654321")).build())
             .build();
         var forsendelseId = UUID.randomUUID();
@@ -241,5 +248,9 @@ class BehandleSøknadTaskTest {
             dokumentRepository.lagre(vedleggEntitet);
         }
     }
-}
 
+    private static UttakPeriodeDto uttak(KontoType konto, LocalDate fom, LocalDate tom) {
+        return new UttakPeriodeDto(fom, tom,
+            new UttakDto(FellesUttaksplanDto.Rolle.MOR, konto, null, null, null, null, null, false, null), null, null);
+    }
+}

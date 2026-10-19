@@ -30,7 +30,6 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.pdl.Personoppslag;
 import no.nav.foreldrepenger.soknad.kontrakt.SøknadDto;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.EndringssøknadBuilder;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.ForeldrepengerBuilder;
-import no.nav.foreldrepenger.soknad.kontrakt.builder.UttakplanPeriodeBuilder;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Rolle;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakPeriodeDto;
@@ -62,16 +61,7 @@ class DestinasjonsRuterTest {
     }
 
     @Test
-    void null_ny_liste_bruker_gammel_plan() {
-        when(fpsak.vurderFagsystem(any())).thenReturn(new VurderFagsystemResultat(VurderFagsystemResultat.SendTil.FPSAK, "123456"));
-        rute(null);
-        var captor = ArgumentCaptor.forClass(VurderFagsystemDto.class);
-        verify(fpsak).vurderFagsystem(captor.capture());
-        assertThat(captor.getValue().getStartDatoForeldrepengerInntektsmelding()).contains(START.minusMonths(1));
-    }
-
-    @Test
-    void tom_ny_liste_faller_ikke_tilbake_til_gammel_plan() {
+    void tom_liste_avvises() {
         assertThatThrownBy(() -> rute(List.of())).isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("mangler perioder til FPSAK");
     }
@@ -106,9 +96,7 @@ class DestinasjonsRuterTest {
     }
 
     private void rute(List<UttakPeriodeDto> perioder) {
-        var søknad = new ForeldrepengerBuilder()
-            .medUttaksplan(List.of(UttakplanPeriodeBuilder.uttak(MØDREKVOTE, START.minusMonths(1), START.minusDays(1)).build()))
-            .medPerioder(perioder).build();
+        var søknad = new ForeldrepengerBuilder().medUttaksplan(perioder).build();
         rute(søknad, DokumentTypeId.I000005);
     }
 

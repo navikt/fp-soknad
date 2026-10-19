@@ -8,17 +8,13 @@ import no.nav.foreldrepenger.soknad.kontrakt.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.soknad.kontrakt.ForeldrepengesøknadDto;
 import no.nav.foreldrepenger.soknad.kontrakt.SøknadDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakPeriodeDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.OppholdsPeriodeDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.OverføringsPeriodeDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UtsettelsesPeriodeDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttaksPeriodeDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.Uttaksplanperiode;
 import no.nav.fpsak.tidsserie.LocalDateSegment;
 import no.nav.fpsak.tidsserie.LocalDateTimeline;
 
 public final class UttaksperioderValidering {
 
-    private static final int MAKS_ANTALL_PERIODER = 200;
+    private static final int MAKS_ANTALL_PERIODER_TOTALT = 400;
+    private static final int MAKS_ANTALL_SØKERPERIODER = 240;
 
     private UttaksperioderValidering() {
     }
@@ -37,26 +33,18 @@ public final class UttaksperioderValidering {
         var søknadBeskrivelse = søknad instanceof EndringssøknadForeldrepengerDto endring ?
             "endringssøknad (saksnummer " + endring.saksnummer().value() + ")" : "førstegangssøknad";
 
-        // Separate kodestier i expand-fasen; en tom ny liste skal ikke falle tilbake til den gamle.
-        if (uttaksplan.perioder() != null) {
-            validerNyePerioder(uttaksplan.perioder(), søknadBeskrivelse);
-            return;
-        }
-
-        var uttaksperioder = uttaksplan.uttaksperioder();
-        if (uttaksperioder == null) {
+        if (uttaksplan.perioder() == null) {
             throw new UttaksperioderValideringException("Uttaksplan mangler perioder. Gjelder " + søknadBeskrivelse);
         }
-        requireMinstEnPeriode(uttaksperioder, søknadBeskrivelse);
-        requireAntallPerioderUnderTerskel(uttaksperioder, søknadBeskrivelse);
-        requireFomFørTom(uttaksperioder, søknadBeskrivelse);
-        requireIngenOverlapp(uttaksperioder, søknadBeskrivelse);
+        validerPerioder(uttaksplan.perioder(), søknadBeskrivelse);
     }
 
-    private static void validerNyePerioder(List<UttakPeriodeDto> perioder, String søknadBeskrivelse) {
+    private static void validerPerioder(List<UttakPeriodeDto> perioder, String søknadBeskrivelse) {
+        requireAntallUnderTerskel(perioder.size(), MAKS_ANTALL_PERIODER_TOTALT, "perioder totalt");
+        var antallSøkerperioder = perioder.stream().filter(p -> p.søker() != null).count();
+        requireAntallUnderTerskel((int) antallSøkerperioder, MAKS_ANTALL_SØKERPERIODER, "søkerperioder");
         var fpsakperioder = perioderTilFpsak(perioder);
         requireMinstEnPeriode(fpsakperioder, søknadBeskrivelse);
-        requireAntallPerioderUnderTerskel(fpsakperioder, søknadBeskrivelse);
         var ugyldigeDatoer = fpsakperioder.stream()
             .filter(p -> p.tom().isBefore(p.fom()))
             .map(p -> String.format("{fom=%s, tom=%s}", p.fom(), p.tom()))
@@ -91,46 +79,11 @@ public final class UttaksperioderValidering {
         }
     }
 
-    private static void requireAntallPerioderUnderTerskel(List<?> uttaksperioder, String søknadBeskrivelse) {
-        if (uttaksperioder.size() > MAKS_ANTALL_PERIODER) {
-            var msg = String.format("Uttaksplan kan ikke inneholde mer enn %s perioder. Gjelder %s med %s uttaksperioder", MAKS_ANTALL_PERIODER, søknadBeskrivelse, uttaksperioder.size());
+    private static void requireAntallUnderTerskel(int antall, int grense, String periodeType) {
+        if (antall > grense) {
+            var msg = String.format("Uttaksplan kan ikke inneholde mer enn %s %s (antall: %s)", grense, periodeType, antall);
             throw new UttaksperioderValideringException(msg);
         }
     }
 
-    private static void requireFomFørTom(List<Uttaksplanperiode> uttaksperioder, String søknadBeskrivelse) {
-        var perioderDerTomErFørFom = uttaksperioder.stream()
-            .filter(p -> p.tom().isBefore(p.fom()))
-            .map(UttaksperioderValidering::formatPeriode)
-            .toList();
-
-        if (!perioderDerTomErFørFom.isEmpty()) {
-            var msg = String.format("Uttaksplan inneholder perioder der tom er før fom. Gjelder %s: %s", søknadBeskrivelse,
-                String.join(", ", perioderDerTomErFørFom));
-            throw new UttaksperioderValideringException(msg);
-        }
-    }
-
-    private static void requireIngenOverlapp(List<Uttaksplanperiode> uttaksperioder, String søknadBeskrivelse) {
-        try {
-            var segmenter = uttaksperioder.stream().map(p -> new LocalDateSegment<>(p.fom(), p.tom(), formatPeriodetype(p))).toList();
-            new LocalDateTimeline<>(segmenter);
-        } catch (IllegalArgumentException e) {
-            var msg = String.format("Uttaksplan inneholder overlappende perioder. Gjelder %s: %s", søknadBeskrivelse, e.getMessage());
-            throw new UttaksperioderValideringException(msg);
-        }
-    }
-
-    private static String formatPeriode(Uttaksplanperiode periode) {
-        return String.format("{type=%s, fom=%s, tom=%s}", formatPeriodetype(periode), periode.fom(), periode.tom());
-    }
-
-    private static String formatPeriodetype(Uttaksplanperiode periode) {
-        return switch (periode) {
-            case UttaksPeriodeDto _ -> "uttak";
-            case OverføringsPeriodeDto _ -> "overføring";
-            case OppholdsPeriodeDto _ -> "opphold";
-            case UtsettelsesPeriodeDto _ -> "utsettelse";
-        };
-    }
 }
