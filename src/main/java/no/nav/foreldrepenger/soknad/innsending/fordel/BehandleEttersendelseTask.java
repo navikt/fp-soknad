@@ -2,6 +2,7 @@ package no.nav.foreldrepenger.soknad.innsending.fordel;
 
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus.FPSAK;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -22,6 +23,7 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.pdf.PdfTjeneste;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.DokumentTypeId;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
+import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 
@@ -99,12 +101,19 @@ public class BehandleEttersendelseTask implements ProsessTaskHandler {
             return; // Midlertidig journalført, avventer handling
         }
 
-        var task = ProsessTaskData.forProsessTask(VLKlargjørerTask.class);
-        task.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
-        task.setProperty(SAKSNUMMER_PROPERTY, destinasjon.saksnummer());
-        task.setProperty(BEHANDLING_TEMA_PROPERTY, behandlingTema.getOffisiellKode());
-        task.setProperty(DOKUMENT_TYPE_ID_PROPERTY, dokumentTypeId.name());
-        taskTjeneste.lagre(task);
+        var klargjørTask = ProsessTaskData.forProsessTask(VLKlargjørerTask.class);
+        klargjørTask.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
+        klargjørTask.setProperty(SAKSNUMMER_PROPERTY, destinasjon.saksnummer());
+        klargjørTask.setProperty(BEHANDLING_TEMA_PROPERTY, behandlingTema.getOffisiellKode());
+        klargjørTask.setProperty(DOKUMENT_TYPE_ID_PROPERTY, dokumentTypeId.name());
+
+        var slettTask = ProsessTaskData.forProsessTask(SlettForsendelseTask.class);
+        slettTask.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
+        slettTask.setNesteKjøringEtter(LocalDateTime.now().plusHours(2));
+
+        var gruppe = new ProsessTaskGruppe(klargjørTask);
+        gruppe.addNesteSekvensiell(slettTask);
+        taskTjeneste.lagre(gruppe);
     }
 
 }

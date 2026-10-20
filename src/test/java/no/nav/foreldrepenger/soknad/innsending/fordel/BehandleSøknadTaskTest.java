@@ -68,6 +68,7 @@ import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.Dokumenterer;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.InnsendingType;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.VedleggDto;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
+import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 
@@ -229,28 +230,42 @@ class BehandleSøknadTaskTest {
         prosessTaskData.setProperty(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
         task.doTask(prosessTaskData);
 
-        var captor = ArgumentCaptor.forClass(ProsessTaskData.class);
+        var captor = ArgumentCaptor.forClass(ProsessTaskGruppe.class);
         verify(taskTjeneste, times(1)).lagre(captor.capture());
-        assertThat(captor.getValue().taskType().value()).isEqualTo("fordeling.klargjoering");
+        var entries = captor.getValue().getTasks();
+        assertThat(entries).hasSize(2);
+        assertThat(entries.getFirst().sekvens()).isEqualTo("1");
+        assertThat(entries.getFirst().task().taskType().value()).isEqualTo("fordeling.klargjoering");
+        assertThat(entries.get(1).sekvens()).isEqualTo("2");
+        assertThat(entries.get(1).task().taskType().value()).isEqualTo("fordeling.slettForsendelse");
     }
 
     private void validerProsesstaskOpprettet(UUID forsendelseId, String saksnummer) {
-        var captor = ArgumentCaptor.forClass(ProsessTaskData.class);
-        verify(taskTjeneste, times(2)).lagre(captor.capture());
-        var tasks = captor.getAllValues();
+        var captor = ArgumentCaptor.forClass(ProsessTaskGruppe.class);
+        verify(taskTjeneste, times(1)).lagre(captor.capture());
+        var entries = captor.getValue().getTasks();
+        assertThat(entries).hasSize(3);
 
-        var oversiktTask = tasks.getFirst();
+        assertThat(entries.getFirst().sekvens()).isEqualTo("1");
+        var oversiktTask = entries.getFirst().task();
         assertThat(oversiktTask.taskType().value()).isEqualTo("fordeling.oversikt.soknad");
         assertThat(oversiktTask.getPropertyValue(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY)).isEqualTo(forsendelseId.toString());
         assertThat(oversiktTask.getPropertyValue(BehandleSøknadTask.SAKSNUMMER_PROPERTY)).isEqualTo(saksnummer);
 
-        var vlklargjørtask = tasks.get(1);
+        assertThat(entries.get(1).sekvens()).isEqualTo("1");
+        var vlklargjørtask = entries.get(1).task();
         assertThat(vlklargjørtask.taskType().value()).isEqualTo("fordeling.klargjoering");
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY)).isEqualTo(forsendelseId.toString());
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.SAKSNUMMER_PROPERTY)).isEqualTo(saksnummer);
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.BEHANDLING_TEMA_PROPERTY)).isEqualTo(
             BehandlingTema.FORELDREPENGER_FØDSEL.getOffisiellKode());
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.DOKUMENT_TYPE_ID_PROPERTY)).isEqualTo(DokumentTypeId.I000005.getKode());
+
+        assertThat(entries.get(2).sekvens()).isEqualTo("2");
+        var slettTask = entries.get(2).task();
+        assertThat(slettTask.taskType().value()).isEqualTo("fordeling.slettForsendelse");
+        assertThat(slettTask.getPropertyValue(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY)).isEqualTo(forsendelseId.toString());
+        assertThat(slettTask.getNesteKjøringEtter()).isAfter(LocalDateTime.now().plusHours(1));
     }
 
     private void lagreForsendelseOgSøknad(SøknadDto søknad, UUID forsendelseId) {

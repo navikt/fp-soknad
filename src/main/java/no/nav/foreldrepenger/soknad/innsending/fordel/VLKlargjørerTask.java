@@ -1,6 +1,5 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -14,7 +13,6 @@ import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.DokumentTypeId;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
-import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 
 /*
  * Sender dokument til fpsak og evt til fptilbake
@@ -25,17 +23,15 @@ public class VLKlargjørerTask implements ProsessTaskHandler {
 
     private DokumentRepository dokumentRepository;
     private VLKlargjører klargjører;
-    private ProsessTaskTjeneste taskTjeneste;
 
     public VLKlargjørerTask() {
         // CDI
     }
 
     @Inject
-    public VLKlargjørerTask(DokumentRepository dokumentRepository, VLKlargjører klargjører, ProsessTaskTjeneste taskTjeneste) {
+    public VLKlargjørerTask(DokumentRepository dokumentRepository, VLKlargjører klargjører) {
         this.dokumentRepository = dokumentRepository;
         this.klargjører = klargjører;
-        this.taskTjeneste = taskTjeneste;
     }
 
     @Override
@@ -53,14 +49,5 @@ public class VLKlargjørerTask implements ProsessTaskHandler {
         var xml = hoverdDokument.map(DokumentEntitet::getKlartekstDokument).orElse(null);
 
         klargjører.klargjør(xml, saksnummer, arkivId, dokumenttypeId, metadata.getForsendelseMottatt(), behandlingsTema, forsendelseId);
-
-        slettForsendelseTask(forsendelseId);
-    }
-
-    private void slettForsendelseTask(UUID forsendelseId) {
-        var task = ProsessTaskData.forProsessTask(SlettForsendelseTask.class);
-        task.setProperty(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
-        task.setNesteKjøringEtter(LocalDateTime.now().plusHours(2));
-        taskTjeneste.lagre(task);
     }
 }
