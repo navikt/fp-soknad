@@ -27,6 +27,7 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepositor
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus;
 import no.nav.foreldrepenger.soknad.innsending.fordel.fpoversikt.OversiktSøknadDto;
+import no.nav.foreldrepenger.soknad.innsending.fordel.fpoversikt.SøknadType;
 import no.nav.foreldrepenger.soknad.kontrakt.BrukerRolle;
 import no.nav.foreldrepenger.soknad.kontrakt.SøkerDto;
 import no.nav.foreldrepenger.soknad.kontrakt.SøknadDto;
@@ -83,7 +84,10 @@ class SendSøknadTilOversiktTaskTest {
             new Saksnummer("123456"),
             MOTTATT.atZone(ZoneId.systemDefault()).toOffsetDateTime(),
             forventetRolle,
+            SøknadType.FØRSTEGANGSSØKNAD,
             perioder));
+        assertThat(DefaultJsonMapper.getJsonMapper().writeValueAsString(sendt.getFirst()))
+            .contains("\"søknadType\":\"FØRSTEGANGSSØKNAD\"");
     }
 
     @Test
@@ -104,7 +108,10 @@ class SendSøknadTilOversiktTaskTest {
             new Saksnummer("999888"),
             MOTTATT.atZone(ZoneId.systemDefault()).toOffsetDateTime(),
             Rolle.FAR_MEDMOR,
+            SøknadType.ENDRINGSSØKNAD,
             perioder));
+        assertThat(DefaultJsonMapper.getJsonMapper().writeValueAsString(sendt.getFirst()))
+            .contains("\"søknadType\":\"ENDRINGSSØKNAD\"");
     }
 
     private UUID lagreForsendelse(SøknadDto søknad, DokumentTypeId dokumentTypeId) {
