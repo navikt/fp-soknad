@@ -252,7 +252,7 @@ class BehandleSøknadTaskTest {
         assertThat(oversiktTask.getPropertyValue(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY)).isEqualTo(forsendelseId.toString());
         assertThat(oversiktTask.getPropertyValue(BehandleSøknadTask.SAKSNUMMER_PROPERTY)).isEqualTo(saksnummer);
 
-        assertThat(entries.get(1).sekvens()).isEqualTo("1");
+        assertThat(entries.get(1).sekvens()).isEqualTo("2");
         var vlklargjørtask = entries.get(1).task();
         assertThat(vlklargjørtask.taskType().value()).isEqualTo("fordeling.klargjoering");
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY)).isEqualTo(forsendelseId.toString());
@@ -261,7 +261,7 @@ class BehandleSøknadTaskTest {
             BehandlingTema.FORELDREPENGER_FØDSEL.getOffisiellKode());
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.DOKUMENT_TYPE_ID_PROPERTY)).isEqualTo(DokumentTypeId.I000005.getKode());
 
-        assertThat(entries.get(2).sekvens()).isEqualTo("2");
+        assertThat(entries.get(2).sekvens()).isEqualTo("3");
         var slettTask = entries.get(2).task();
         assertThat(slettTask.taskType().value()).isEqualTo("fordeling.slettForsendelse");
         assertThat(slettTask.getPropertyValue(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY)).isEqualTo(forsendelseId.toString());

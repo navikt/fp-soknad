@@ -136,7 +136,11 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
             var oversiktTask = ProsessTaskData.forProsessTask(SendSøknadTilOversiktTask.class);
             oversiktTask.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
             oversiktTask.setProperty(SAKSNUMMER_PROPERTY, destinasjon.saksnummer());
-            gruppe.addNesteParallell(oversiktTask, klargjørTask);
+            // Oversikt må fullføre før fp-sak mottar søknaden: endringssøknader får historikk fra felles uttaksplan,
+            // og et nytt vedtak fra behandlingen kan endre dette grunnlaget. Feil i oversikt skal blokkere videre sending.
+            // Når frontend sender hele planen og oversikt lagrer den uten å hente historikk, bortfaller denne avhengigheten.
+            gruppe.addNesteSekvensiell(oversiktTask);
+            gruppe.addNesteSekvensiell(klargjørTask);
         } else {
             gruppe.addNesteSekvensiell(klargjørTask);
         }
