@@ -20,7 +20,7 @@ import no.nav.vedtak.felles.integrasjon.rest.TokenFlow;
 )
 public class FpOversiktRestKlient implements FpOversiktTjeneste {
 
-    private static final String SØKNAD_PATH = "/api/soknad";
+    private static final String SØKNADSUTTAKSPLAN_PATH = "/api/soknadsuttaksplan";
 
     private final RestClient klient;
     private final RestConfig restConfig;
@@ -33,7 +33,7 @@ public class FpOversiktRestKlient implements FpOversiktTjeneste {
     public FpOversiktRestKlient(RestClient klient) {
         this.klient = klient;
         this.restConfig = RestConfig.forClient(FpOversiktRestKlient.class);
-        this.endpoint = UriBuilder.fromUri(restConfig.endpoint()).path(SØKNAD_PATH).build();
+        this.endpoint = UriBuilder.fromUri(restConfig.endpoint()).path(SØKNADSUTTAKSPLAN_PATH).build();
     }
 
     @Override
