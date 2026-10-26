@@ -22,7 +22,7 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
 
 @ApplicationScoped
-@ProsessTask(value = "fordeling.oversikt.soknad", maxFailedRuns = 4, firstDelay = 10, thenDelay = 30)
+@ProsessTask(value = "fordeling.oversikt.soknad", maxFailedRuns = 4, firstDelay = 1, thenDelay = 30)
 public class SendSøknadTilOversiktTask implements ProsessTaskHandler {
 
     private DokumentRepository dokumentRepository;
