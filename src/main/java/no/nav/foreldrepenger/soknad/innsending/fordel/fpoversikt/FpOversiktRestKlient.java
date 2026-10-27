@@ -20,7 +20,7 @@ import no.nav.vedtak.felles.integrasjon.rest.TokenFlow;
 )
 public class FpOversiktRestKlient implements FpOversiktTjeneste {
 
-    private static final String SØKNADSPLAN_PATH = "/api/soknadsplan";
+    private static final String SØKNADSPLAN_PATH = "/backend/api/soknadsplan";
 
     private final RestClient klient;
     private final RestConfig restConfig;
