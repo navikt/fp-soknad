@@ -3,6 +3,9 @@ package no.nav.foreldrepenger.soknad.innsending.fordel;
 import java.time.ZoneId;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import no.nav.foreldrepenger.kontrakter.felles.typer.Saksnummer;
@@ -25,6 +28,8 @@ import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
 @ProsessTask(value = "fordeling.oversikt.soknad", maxFailedRuns = 4, firstDelay = 1, thenDelay = 30)
 public class SendSøknadTilOversiktTask implements ProsessTaskHandler {
 
+    private static final Logger LOG = LoggerFactory.getLogger(SendSøknadTilOversiktTask.class);
+
     private DokumentRepository dokumentRepository;
     private FpOversiktTjeneste fpOversiktTjeneste;
 
@@ -40,23 +45,28 @@ public class SendSøknadTilOversiktTask implements ProsessTaskHandler {
 
     @Override
     public void doTask(ProsessTaskData prosessTaskData) {
-        var forsendelseId = UUID.fromString(prosessTaskData.getPropertyValue(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY));
-        var saksnummer = new Saksnummer(prosessTaskData.getPropertyValue(BehandleSøknadTask.SAKSNUMMER_PROPERTY));
+        try {
+            var forsendelseId = UUID.fromString(prosessTaskData.getPropertyValue(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY));
+            var saksnummer = new Saksnummer(prosessTaskData.getPropertyValue(BehandleSøknadTask.SAKSNUMMER_PROPERTY));
 
-        var metadata = dokumentRepository.hentEksaktDokumentMetadata(forsendelseId);
-        var søknadDokument = dokumentRepository.hentDokumenter(forsendelseId, ArkivFilType.JSON).stream()
-            .filter(DokumentEntitet::erSøknad)
-            .findFirst()
-            .orElseThrow();
-        var søknad = SøknadJsonMapper.deseraliserSøknad(søknadDokument);
-        var mottattTidspunkt = metadata.getForsendelseMottatt().atZone(ZoneId.systemDefault()).toOffsetDateTime();
+            var metadata = dokumentRepository.hentEksaktDokumentMetadata(forsendelseId);
+            var søknadDokument = dokumentRepository.hentDokumenter(forsendelseId, ArkivFilType.JSON).stream()
+                .filter(DokumentEntitet::erSøknad)
+                .findFirst()
+                .orElseThrow();
+            var søknad = SøknadJsonMapper.deseraliserSøknad(søknadDokument);
+            var mottattTidspunkt = metadata.getForsendelseMottatt().atZone(ZoneId.systemDefault()).toOffsetDateTime();
 
-        switch (søknad) {
-            case ForeldrepengesøknadDto fp -> fpOversiktTjeneste.send(
-                new OversiktSøknadDto(saksnummer, mottattTidspunkt, mapRolle(fp.rolle()), SøknadType.FØRSTEGANGSSØKNAD, fp.uttaksplan().perioder()));
-            case EndringssøknadForeldrepengerDto endring -> fpOversiktTjeneste.send(
-                new OversiktSøknadDto(saksnummer, mottattTidspunkt, mapRolle(endring.rolle()), SøknadType.ENDRINGSSØKNAD, endring.uttaksplan().perioder()));
-            default -> throw new IllegalArgumentException("Uventet søknadstype for sending til oversikt: " + søknadDokument.getDokumentTypeId());
+            switch (søknad) {
+                case ForeldrepengesøknadDto fp -> fpOversiktTjeneste.send(
+                    new OversiktSøknadDto(saksnummer, mottattTidspunkt, mapRolle(fp.rolle()), SøknadType.FØRSTEGANGSSØKNAD, fp.uttaksplan().perioder()));
+                case EndringssøknadForeldrepengerDto endring -> fpOversiktTjeneste.send(
+                    new OversiktSøknadDto(saksnummer, mottattTidspunkt, mapRolle(endring.rolle()), SøknadType.ENDRINGSSØKNAD, endring.uttaksplan().perioder()));
+                default -> throw new IllegalArgumentException("Uventet søknadstype for sending til oversikt: " + søknadDokument.getDokumentTypeId());
+            }
+        } catch (Exception e) {
+            // Logger bare exception-type fordi meldingen og cause-kjeden kan inneholde personopplysninger fra søknaden.
+            LOG.warn("Sending til fp-oversikt feilet, men innsending til fp-sak fortsetter (exception-type={})", e.getClass().getName());
         }
     }
 
