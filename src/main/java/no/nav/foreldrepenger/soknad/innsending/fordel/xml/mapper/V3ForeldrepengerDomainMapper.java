@@ -1,5 +1,6 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper;
 
+import no.nav.foreldrepenger.soknad.innsending.fordel.utils.EndringsdatoFilter;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.utils.FpsakUttaksperioder.perioderTilFpsak;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.DokumentasjonReferanseMapper.dokumentasjonSomDokumentererBarn;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.DokumentasjonReferanseMapper.dokumentasjonSomDokumentererUttaksperiode;
@@ -131,7 +132,7 @@ public class V3ForeldrepengerDomainMapper  {
 
     private static JAXBElement<Endringssoeknad> endringssøknadFra(EndringssøknadForeldrepengerDto endring) {
         var endringssoeknad = new Endringssoeknad();
-        endringssoeknad.setFordeling(fordelingFra(endring.uttaksplan(), endring.annenForelder(), endring.vedlegg()));
+        endringssoeknad.setFordeling(fordelingFra(EndringsdatoFilter.uttaksplanFraEndringsdato(endring), endring.annenForelder(), endring.vedlegg()));
         endringssoeknad.setSaksnummer(endring.saksnummer().value());
         return ENDRING_FACTORY_V3.createEndringssoeknad(endringssoeknad);
     }

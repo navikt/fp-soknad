@@ -57,6 +57,31 @@ class V3ForeldrepengerDomainMapperTest {
     private static final LocalDate TOM = FOM.plusDays(10);
     private static final V3ForeldrepengerDomainMapper MAPPER = new V3ForeldrepengerDomainMapper();
 
+    @Test
+    void endringssøknad_sender_bare_perioder_fra_endringsdato_til_fpsak() throws Exception {
+        var før = new UttakPeriodeDto(FOM, TOM, uttak(KontoType.MØDREKVOTE), null, null);
+        var endringsdato = TOM.plusDays(1);
+        var etter = new UttakPeriodeDto(endringsdato, endringsdato.plusDays(5), uttak(KontoType.FELLESPERIODE), null, null);
+        var mottatt = LocalDateTime.of(2026, 9, 30, 12, 0);
+        var søknad = new EndringssøknadForeldrepengerDto(mottatt, new Saksnummer("123456789"), null, BrukerRolle.MOR, Målform.NB,
+            new FødselDto(1, FOM, FOM), null, new UttaksplanDto(false, List.of(før, etter)), List.of(), endringsdato);
+
+        var perioder = unmarshalEndring(MAPPER.tilXML(søknad, mottatt, new AktørId("1234567890123"))).getFordeling().getPerioder();
+
+        assertThat(perioder).hasSize(1);
+        assertThat(perioder.getFirst().getFom()).isEqualTo(endringsdato);
+        assertThat(søknad.uttaksplan().perioder()).hasSize(2);
+    }
+
+    private static Endringssoeknad unmarshalEndring(String xml) throws Exception {
+        var context = JAXBContext.newInstance(Soeknad.class, Foreldrepenger.class, Endringssoeknad.class,
+            no.nav.vedtak.felles.xml.soeknad.v3.ObjectFactory.class,
+            no.nav.vedtak.felles.xml.soeknad.foreldrepenger.v3.ObjectFactory.class,
+            no.nav.vedtak.felles.xml.soeknad.endringssoeknad.v3.ObjectFactory.class);
+        var søknad = (Soeknad) ((JAXBElement<?>) context.createUnmarshaller().unmarshal(new StringReader(xml))).getValue();
+        return (Endringssoeknad) ((JAXBElement<?>) søknad.getOmYtelse().getAny().getFirst()).getValue();
+    }
+
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
     void avviser_søkerperiode_uten_konto_eller_utsettelse(boolean endring) {
@@ -306,7 +331,7 @@ class V3ForeldrepengerDomainMapperTest {
         String xml;
         if (endring) {
             xml = MAPPER.tilXML(new EndringssøknadForeldrepengerDto(mottatt, new Saksnummer("123456789"), null,
-                BrukerRolle.MOR, Målform.NB, barn, null, plan, vedlegg), mottatt, aktør);
+                BrukerRolle.MOR, Målform.NB, barn, null, plan, vedlegg, null), mottatt, aktør);
         } else {
             xml = MAPPER.tilXML(new ForeldrepengesøknadDto(mottatt, null, BrukerRolle.MOR, Målform.NB, barn,
                 null, null, List.of(), null, Dekningsgrad.HUNDRE, plan, List.of(), vedlegg), mottatt, aktør);

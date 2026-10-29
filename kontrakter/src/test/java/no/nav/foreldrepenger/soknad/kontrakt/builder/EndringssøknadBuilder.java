@@ -26,6 +26,7 @@ public class EndringssøknadBuilder implements SøknadBuilder<EngangsstønadBuil
     private AnnenForelderDto annenForelder;
     private UttaksplanDto uttaksplan;
     private List<VedleggDto> vedlegg;
+    private LocalDate endringsdato;
 
     public EndringssøknadBuilder(Saksnummer saksnummer) {
         this.saksnummer = saksnummer;
@@ -91,10 +92,15 @@ public class EndringssøknadBuilder implements SøknadBuilder<EngangsstønadBuil
         return this;
     }
 
+    public EndringssøknadBuilder medEndringsdato(LocalDate endringsdato) {
+        this.endringsdato = endringsdato;
+        return this;
+    }
+
     public EndringssøknadForeldrepengerDto build() {
         if (mottattdato == null) {
             mottattdato = LocalDateTime.now();
         }
-        return new EndringssøknadForeldrepengerDto(mottattdato, saksnummer, søkerinfo, rolle, språkkode, barn, annenForelder, uttaksplan, vedlegg);
+        return new EndringssøknadForeldrepengerDto(mottattdato, saksnummer, søkerinfo, rolle, språkkode, barn, annenForelder, uttaksplan, vedlegg, endringsdato);
     }
 }

@@ -1,7 +1,9 @@
 package no.nav.foreldrepenger.soknad.innsending.validering;
 
+import static no.nav.foreldrepenger.soknad.innsending.fordel.utils.EndringsdatoFilter.perioderFraEndringsdato;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.utils.FpsakUttaksperioder.perioderTilFpsak;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import no.nav.foreldrepenger.soknad.kontrakt.EndringssøknadForeldrepengerDto;
@@ -37,6 +39,18 @@ public final class UttaksperioderValidering {
             throw new UttaksperioderValideringException("Uttaksplan mangler perioder. Gjelder " + søknadBeskrivelse);
         }
         validerPerioder(uttaksplan.perioder(), søknadBeskrivelse);
+        if (søknad instanceof EndringssøknadForeldrepengerDto endring && endring.endringsdato() != null) {
+            validerEndringsdato(uttaksplan.perioder(), endring.endringsdato(), søknadBeskrivelse);
+        }
+    }
+
+    private static void validerEndringsdato(List<UttakPeriodeDto> perioder, LocalDate endringsdato, String søknadBeskrivelse) {
+        // Periodene overlapper ikke, så når endringsdato er lik fom på en periode, kan ingen periode krysse den.
+        if (perioder.stream().noneMatch(p -> p.fom().isEqual(endringsdato))) {
+            throw new UttaksperioderValideringException(String.format(
+                "Endringsdato %s er ikke lik fom på noen periode. Gjelder %s", endringsdato, søknadBeskrivelse));
+        }
+        requireMinstEnPeriode(perioderTilFpsak(perioderFraEndringsdato(perioder, endringsdato)), søknadBeskrivelse);
     }
 
     private static void validerPerioder(List<UttakPeriodeDto> perioder, String søknadBeskrivelse) {

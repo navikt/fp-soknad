@@ -143,6 +143,62 @@ class UttaksperioderValideringTest {
             .doesNotThrowAnyException();
     }
 
+    @org.junit.jupiter.api.Test
+    void endringsdato_lik_fom_på_periode_godtas() {
+        var før = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, null, null);
+        var etter = new UttakPeriodeDto(START.plusDays(7), START.plusDays(11), UTTAK, null, null);
+        assertThatCode(() -> UttaksperioderValidering.valider(endringssøknad(etter.fom(), før, etter))).doesNotThrowAnyException();
+    }
+
+    @org.junit.jupiter.api.Test
+    void endringsdato_som_ikke_er_fom_på_noen_periode_avvises() {
+        var før = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, null, null);
+        var etter = new UttakPeriodeDto(START.plusDays(7), START.plusDays(11), UTTAK, null, null);
+        var søknad = endringssøknad(START.plusDays(5), før, etter);
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad))
+            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("ikke lik fom");
+    }
+
+    @org.junit.jupiter.api.Test
+    void endringsdato_etter_siste_periode_avvises() {
+        var periode = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, null, null);
+        var søknad = endringssøknad(START.plusDays(10), periode);
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad))
+            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("ikke lik fom");
+    }
+
+    @org.junit.jupiter.api.Test
+    void endringsdato_inne_i_periode_avvises() {
+        var kryssendeAnnenPart = new UttakPeriodeDto(START, START.plusDays(9), null, UTTAK, null);
+        var søker = new UttakPeriodeDto(START.plusDays(10), START.plusDays(14), UTTAK, null, null);
+        var søknad = endringssøknad(START.plusDays(5), kryssendeAnnenPart, søker);
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad))
+            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("ikke lik fom");
+    }
+
+    @org.junit.jupiter.api.Test
+    void endringsdato_lik_tom_avvises() {
+        var før = new UttakPeriodeDto(START, START.plusDays(7), UTTAK, null, null);
+        var etter = new UttakPeriodeDto(START.plusDays(8), START.plusDays(11), UTTAK, null, null);
+        var søknad = endringssøknad(START.plusDays(7), før, etter);
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad))
+            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("ikke lik fom");
+    }
+
+    @org.junit.jupiter.api.Test
+    void ingen_fpsak_periode_fra_endringsdato_avvises() {
+        var søker = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, null, null);
+        var utsettelse = new UttakDto(Rolle.FAR_MEDMOR, null, UtsettelseÅrsak.ARBEID, null, null, null, null, false, null);
+        var annenPartsUtsettelse = new UttakPeriodeDto(START.plusDays(7), START.plusDays(11), null, utsettelse, null);
+        var søknad = endringssøknad(annenPartsUtsettelse.fom(), søker, annenPartsUtsettelse);
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad))
+            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("minst én");
+    }
+
+    private static SøknadDto endringssøknad(LocalDate endringsdato, UttakPeriodeDto... perioder) {
+        return new EndringssøknadBuilder(new Saksnummer("123456")).medUttaksplan(List.of(perioder)).medEndringsdato(endringsdato).build();
+    }
+
     private static SøknadDto søknad(boolean endring, List<UttakPeriodeDto> perioder) {
         return endring
             ? new EndringssøknadBuilder(new Saksnummer("123456")).medUttaksplan(perioder).build()

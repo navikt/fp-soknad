@@ -1,5 +1,6 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.pdf;
 
+import no.nav.foreldrepenger.soknad.innsending.fordel.utils.EndringsdatoFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +55,8 @@ public class PdfTjeneste {
     }
 
     private FpDokgenRequest mapTilDokgenRequest(ForsendelseEntitet metadata, SøknadDto søknadDto) {
-        var dokgenDto = new DokgenSøknadDto(metadata.getForsendelseMottatt(), søknadDto);
+        var søknadTilPdf = søknadDto instanceof EndringssøknadForeldrepengerDto endring ? EndringsdatoFilter.fraEndringsdato(endring) : søknadDto;
+        var dokgenDto = new DokgenSøknadDto(metadata.getForsendelseMottatt(), søknadTilPdf);
 
         return new FpDokgenRequest(utledTemplate(søknadDto), utledSpråk(søknadDto.språkkode()), FpDokgenRequest.CssStyling.PDF,
             DefaultJsonMapper.toJson(dokgenDto));

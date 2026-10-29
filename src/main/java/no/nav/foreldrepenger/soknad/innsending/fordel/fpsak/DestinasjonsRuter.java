@@ -1,5 +1,6 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.fpsak;
 
+import no.nav.foreldrepenger.soknad.innsending.fordel.utils.EndringsdatoFilter;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.utils.FpsakUttaksperioder.perioderTilFpsak;
 
 import java.time.LocalDate;
@@ -127,7 +128,7 @@ public class DestinasjonsRuter {
     private static Optional<LocalDate> hentFørsteUttaksdagFP(SøknadDto søknad) {
         return switch (søknad) {
             case ForeldrepengesøknadDto fp -> Optional.of(førsteUttaksdatoFraPlan(fp.uttaksplan()));
-            case EndringssøknadForeldrepengerDto fp -> Optional.of(førsteUttaksdatoFraPlan(fp.uttaksplan()));
+            case EndringssøknadForeldrepengerDto fp -> Optional.of(førsteUttaksdatoFraPlan(EndringsdatoFilter.uttaksplanFraEndringsdato(fp)));
             case EngangsstønadDto _ -> Optional.empty();
             case SvangerskapspengesøknadDto _ -> Optional.empty();
         };
