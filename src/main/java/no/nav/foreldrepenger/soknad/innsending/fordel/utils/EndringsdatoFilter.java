@@ -9,8 +9,8 @@ import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.Uttakspla
 
 /**
  * En endringssøknad inneholder hele uttaksplanen, som lagres i fp-oversikt. FPSAK, PDF og ruting skal bare ha perioder
- * fra og med endringsdato. Valideringen sikrer at endringsdato er lik fom på en periode. Periodene overlapper
- * ikke, så ingen periode krysser endringsdato, og filteret trenger ikke dele perioder.
+ * fra og med endringsdato. Valideringen sikrer at endringsdato er lik fom på en periode som sendes til FPSAK.
+ * FPSAK-periodene overlapper ikke, så ingen av dem krysser endringsdato, og filteret trenger ikke dele perioder.
  * Uten endringsdato (eldre klienter) returneres planen uendret.
  */
 public final class EndringsdatoFilter {

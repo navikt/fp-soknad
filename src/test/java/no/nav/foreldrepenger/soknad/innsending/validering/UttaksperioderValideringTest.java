@@ -186,13 +186,46 @@ class UttaksperioderValideringTest {
     }
 
     @org.junit.jupiter.api.Test
+    void endringsdato_på_annen_parts_utsettelse_avvises_selv_med_senere_søkerperiode() {
+        var utsettelse = new UttakDto(Rolle.FAR_MEDMOR, null, UtsettelseÅrsak.ARBEID, null, null, null, null, false, null);
+        var annenPartsUtsettelse = new UttakPeriodeDto(START, START.plusDays(4), null, utsettelse, null);
+        var søker = new UttakPeriodeDto(START.plusDays(7), START.plusDays(11), UTTAK, null, null);
+        var søknad = endringssøknad(annenPartsUtsettelse.fom(), annenPartsUtsettelse, søker);
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad))
+            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("sendes til FPSAK");
+    }
+
+    @org.junit.jupiter.api.Test
+    void endringsdato_på_annen_parts_fff_avvises() {
+        var fff = new UttakDto(Rolle.MOR, no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.FORELDREPENGER_FØR_FØDSEL,
+            null, null, null, null, null, false, null);
+        var annenPartsFff = new UttakPeriodeDto(START, START.plusDays(4), null, fff, null);
+        var søker = new UttakPeriodeDto(START.plusDays(7), START.plusDays(11), UTTAK, null, null);
+        var søknad = endringssøknad(annenPartsFff.fom(), annenPartsFff, søker);
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad))
+            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("sendes til FPSAK");
+    }
+
+    @org.junit.jupiter.api.Test
+    void endringsdato_på_opphold_eller_fri_utsettelse_godtas() {
+        var søker = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, null, null);
+        var opphold = new UttakPeriodeDto(START.plusDays(7), START.plusDays(11), null, UTTAK, null);
+        assertThatCode(() -> UttaksperioderValidering.valider(endringssøknad(opphold.fom(), søker, opphold))).doesNotThrowAnyException();
+
+        var fri = new UttakDto(Rolle.MOR, null, UtsettelseÅrsak.FRI, null, null, null, null, false, null);
+        var friUtsettelse = new UttakPeriodeDto(START.plusDays(7), START.plusDays(11), fri, null, null);
+        assertThatCode(() -> UttaksperioderValidering.valider(endringssøknad(friUtsettelse.fom(), søker, friUtsettelse)))
+            .doesNotThrowAnyException();
+    }
+
+    @org.junit.jupiter.api.Test
     void ingen_fpsak_periode_fra_endringsdato_avvises() {
         var søker = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, null, null);
         var utsettelse = new UttakDto(Rolle.FAR_MEDMOR, null, UtsettelseÅrsak.ARBEID, null, null, null, null, false, null);
         var annenPartsUtsettelse = new UttakPeriodeDto(START.plusDays(7), START.plusDays(11), null, utsettelse, null);
         var søknad = endringssøknad(annenPartsUtsettelse.fom(), søker, annenPartsUtsettelse);
         assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad))
-            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("minst én");
+            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("sendes til FPSAK");
     }
 
     private static SøknadDto endringssøknad(LocalDate endringsdato, UttakPeriodeDto... perioder) {

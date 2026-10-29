@@ -16,6 +16,8 @@ public final class FpsakUttaksperioder {
     private FpsakUttaksperioder() {
     }
 
+    // TODO: Avklar om perioder der bare annen part har uttak skal sendes som fri utsettelse i stedet for opphold, som nå.
+    // TODO: Avklar om utsettelsestyper som FPSAK ikke bruker, skal konverteres til fri utsettelse før innsending.
     public static List<UttakPeriodeDto> perioderTilFpsak(List<UttakPeriodeDto> perioder) {
         return perioder.stream()
             .filter(p -> p.søker() != null || erOppholdsperiode(p))

@@ -1,6 +1,5 @@
 package no.nav.foreldrepenger.soknad.innsending.validering;
 
-import static no.nav.foreldrepenger.soknad.innsending.fordel.utils.EndringsdatoFilter.perioderFraEndringsdato;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.utils.FpsakUttaksperioder.perioderTilFpsak;
 
 import java.time.LocalDate;
@@ -45,12 +44,14 @@ public final class UttaksperioderValidering {
     }
 
     private static void validerEndringsdato(List<UttakPeriodeDto> perioder, LocalDate endringsdato, String søknadBeskrivelse) {
-        // Periodene overlapper ikke, så når endringsdato er lik fom på en periode, kan ingen periode krysse den.
-        if (perioder.stream().noneMatch(p -> p.fom().isEqual(endringsdato))) {
+        // Endringsdato må starte en periode som sendes til FPSAK: søkers periode (også fri utsettelse) eller opphold.
+        // FPSAK utleder endringsdato fra første innsendte periode. Starter endringsdato på en periode der bare annen
+        // part har utsettelse eller FFF, må frontend sende fri utsettelse eller opphold på datoen.
+        // FPSAK-periodene er validert uten overlapp, så ingen av dem krysser endringsdato.
+        if (perioderTilFpsak(perioder).stream().noneMatch(p -> p.fom().isEqual(endringsdato))) {
             throw new UttaksperioderValideringException(String.format(
-                "Endringsdato %s er ikke lik fom på noen periode. Gjelder %s", endringsdato, søknadBeskrivelse));
+                "Endringsdato %s er ikke lik fom på noen periode som sendes til FPSAK. Gjelder %s", endringsdato, søknadBeskrivelse));
         }
-        requireMinstEnPeriode(perioderTilFpsak(perioderFraEndringsdato(perioder, endringsdato)), søknadBeskrivelse);
     }
 
     private static void validerPerioder(List<UttakPeriodeDto> perioder, String søknadBeskrivelse) {
