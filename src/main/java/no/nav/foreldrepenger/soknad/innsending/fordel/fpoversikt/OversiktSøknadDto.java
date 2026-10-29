@@ -10,7 +10,6 @@ import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUtt
 public record OversiktSøknadDto(Saksnummer saksnummer,
                                 OffsetDateTime mottattTidspunkt,
                                 Rolle rolle,
-                                SøknadType søknadType,
                                 List<UttakPeriodeDto> perioder) {
     @Override
     public String toString() {

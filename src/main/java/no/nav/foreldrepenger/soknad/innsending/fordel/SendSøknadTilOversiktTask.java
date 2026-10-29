@@ -11,7 +11,6 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentRepository;
 import no.nav.foreldrepenger.soknad.innsending.fordel.fpoversikt.FpOversiktTjeneste;
 import no.nav.foreldrepenger.soknad.innsending.fordel.fpoversikt.OversiktSøknadDto;
-import no.nav.foreldrepenger.soknad.innsending.fordel.fpoversikt.SøknadType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.utils.SøknadJsonMapper;
 import no.nav.foreldrepenger.soknad.kontrakt.BrukerRolle;
 import no.nav.foreldrepenger.soknad.kontrakt.EndringssøknadForeldrepengerDto;
@@ -53,9 +52,9 @@ public class SendSøknadTilOversiktTask implements ProsessTaskHandler {
 
         switch (søknad) {
             case ForeldrepengesøknadDto fp -> fpOversiktTjeneste.send(
-                new OversiktSøknadDto(saksnummer, mottattTidspunkt, mapRolle(fp.rolle()), SøknadType.FØRSTEGANGSSØKNAD, fp.uttaksplan().perioder()));
+                new OversiktSøknadDto(saksnummer, mottattTidspunkt, mapRolle(fp.rolle()), fp.uttaksplan().perioder()));
             case EndringssøknadForeldrepengerDto endring -> fpOversiktTjeneste.send(
-                new OversiktSøknadDto(saksnummer, mottattTidspunkt, mapRolle(endring.rolle()), SøknadType.ENDRINGSSØKNAD, endring.uttaksplan().perioder()));
+                new OversiktSøknadDto(saksnummer, mottattTidspunkt, mapRolle(endring.rolle()), endring.uttaksplan().perioder()));
             default -> throw new IllegalArgumentException("Uventet søknadstype for sending til oversikt: " + søknadDokument.getDokumentTypeId());
         }
     }
