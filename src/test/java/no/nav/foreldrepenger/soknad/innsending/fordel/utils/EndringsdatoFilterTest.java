@@ -9,8 +9,10 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import no.nav.foreldrepenger.kontrakter.felles.typer.Saksnummer;
+import no.nav.foreldrepenger.soknad.kontrakt.BrukerRolle;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.EndringssøknadBuilder;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Rolle;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UtsettelseÅrsak;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakPeriodeDto;
 
@@ -27,12 +29,51 @@ class EndringsdatoFilterTest {
 
     @Test
     void beholder_perioder_fra_og_med_endringsdato_for_begge_parter() {
-        assertThat(EndringsdatoFilter.perioderFraEndringsdato(PLAN, ENDRINGSDATO)).containsExactly(PÅ_ENDRINGSDATO, ETTER);
+        assertThat(EndringsdatoFilter.perioderFraEndringsdato(PLAN, ENDRINGSDATO, BrukerRolle.MOR)).containsExactly(PÅ_ENDRINGSDATO, ETTER);
     }
 
     @Test
     void uten_endringsdato_returneres_alle_perioder() {
-        assertThat(EndringsdatoFilter.perioderFraEndringsdato(PLAN, null)).containsExactlyElementsOf(PLAN);
+        assertThat(EndringsdatoFilter.perioderFraEndringsdato(PLAN, null, BrukerRolle.MOR)).containsExactlyElementsOf(PLAN);
+    }
+
+    @Test
+    void utsatt_oppstart_gir_fri_utsettelse_fram_til_neste_søkerperiode() {
+        var endringsdato = START.plusDays(10);
+
+        var perioder = EndringsdatoFilter.perioderFraEndringsdato(PLAN, endringsdato, BrukerRolle.FAR);
+
+        assertThat(perioder).containsExactly(fri(Rolle.FAR_MEDMOR, endringsdato, PÅ_ENDRINGSDATO.fom().minusDays(1)), PÅ_ENDRINGSDATO, ETTER);
+    }
+
+    @Test
+    void endringsdato_på_annen_parts_periode_gir_fri_utsettelse_for_søker() {
+        var endringsdato = ANNEN_PART_FØR.fom();
+
+        var perioder = EndringsdatoFilter.perioderFraEndringsdato(PLAN, endringsdato, BrukerRolle.MOR);
+
+        assertThat(perioder).containsExactly(fri(Rolle.MOR, endringsdato, PÅ_ENDRINGSDATO.fom().minusDays(1)), ANNEN_PART_FØR,
+            PÅ_ENDRINGSDATO, ETTER);
+    }
+
+    @Test
+    void slettet_siste_periode_gir_én_dag_fri_utsettelse() {
+        var endringsdato = START.plusDays(30);
+
+        var perioder = EndringsdatoFilter.perioderFraEndringsdato(List.of(FØR), endringsdato, BrukerRolle.MOR);
+
+        assertThat(perioder).containsExactly(fri(Rolle.MOR, endringsdato, endringsdato));
+    }
+
+    @Test
+    void ingen_senere_søkerperiode_gir_én_dag_fri_utsettelse_foran_annen_parts_perioder() {
+        var perioder = EndringsdatoFilter.perioderFraEndringsdato(PLAN, ETTER.fom(), BrukerRolle.MOR);
+
+        assertThat(perioder).containsExactly(fri(Rolle.MOR, ETTER.fom(), ETTER.fom()), ETTER);
+    }
+
+    private static UttakPeriodeDto fri(Rolle rolle, LocalDate fom, LocalDate tom) {
+        return new UttakPeriodeDto(fom, tom, new UttakDto(rolle, null, UtsettelseÅrsak.FRI, null, null, null, null, false, null), null, null);
     }
 
     @Test

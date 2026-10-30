@@ -14,6 +14,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import no.nav.foreldrepenger.kontrakter.felles.typer.Saksnummer;
 import no.nav.foreldrepenger.soknad.kontrakt.SøknadDto;
+import no.nav.foreldrepenger.soknad.kontrakt.BrukerRolle;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.EndringssøknadBuilder;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.ForeldrepengerBuilder;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Rolle;
@@ -51,20 +52,10 @@ class UttaksperioderValideringTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
-    void avviser_overlapp_mellom_søkers_periode_og_opphold(boolean endring) {
-        var periode = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, null, null);
+    void plan_med_bare_annen_parts_uttak_avvises(boolean endring) {
         var annenPart = new UttakPeriodeDto(START, START.plusDays(4), null, UTTAK, null);
-        var søknadMedOverlapp = søknad(endring, List.of(periode, annenPart));
-        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknadMedOverlapp))
-            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("overlappende");
-    }
-
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void plan_med_bare_annen_parts_uttak_godtas_som_opphold(boolean endring) {
-        var annenPart = new UttakPeriodeDto(START, START.plusDays(4), null, UTTAK, null);
-        assertThatCode(() -> UttaksperioderValidering.valider(søknad(endring, List.of(annenPart))))
-            .doesNotThrowAnyException();
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad(endring, List.of(annenPart))))
+            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("minst én");
     }
 
     @ParameterizedTest
@@ -151,85 +142,68 @@ class UttaksperioderValideringTest {
     }
 
     @org.junit.jupiter.api.Test
-    void endringsdato_som_ikke_er_fom_på_noen_periode_avvises() {
-        var før = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, null, null);
-        var etter = new UttakPeriodeDto(START.plusDays(7), START.plusDays(11), UTTAK, null, null);
-        var søknad = endringssøknad(START.plusDays(5), før, etter);
+    void endringsdato_inne_i_søkerperiode_avvises() {
+        var søker = new UttakPeriodeDto(START, START.plusDays(9), UTTAK, null, null);
+        var søknad = endringssøknad(START.plusDays(3), søker);
         assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad))
-            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("ikke lik fom");
+            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("inne i en søkerperiode");
     }
 
     @org.junit.jupiter.api.Test
-    void endringsdato_etter_siste_periode_avvises() {
-        var periode = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, null, null);
-        var søknad = endringssøknad(START.plusDays(10), periode);
-        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad))
-            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("ikke lik fom");
-    }
-
-    @org.junit.jupiter.api.Test
-    void endringsdato_inne_i_periode_avvises() {
-        var kryssendeAnnenPart = new UttakPeriodeDto(START, START.plusDays(9), null, UTTAK, null);
-        var søker = new UttakPeriodeDto(START.plusDays(10), START.plusDays(14), UTTAK, null, null);
-        var søknad = endringssøknad(START.plusDays(5), kryssendeAnnenPart, søker);
-        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad))
-            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("ikke lik fom");
-    }
-
-    @org.junit.jupiter.api.Test
-    void endringsdato_lik_tom_avvises() {
+    void endringsdato_lik_tom_på_søkerperiode_avvises() {
         var før = new UttakPeriodeDto(START, START.plusDays(7), UTTAK, null, null);
         var etter = new UttakPeriodeDto(START.plusDays(8), START.plusDays(11), UTTAK, null, null);
         var søknad = endringssøknad(START.plusDays(7), før, etter);
         assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad))
-            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("ikke lik fom");
+            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("inne i en søkerperiode");
     }
 
     @org.junit.jupiter.api.Test
-    void endringsdato_på_annen_parts_utsettelse_avvises_selv_med_senere_søkerperiode() {
-        var utsettelse = new UttakDto(Rolle.FAR_MEDMOR, null, UtsettelseÅrsak.ARBEID, null, null, null, null, false, null);
-        var annenPartsUtsettelse = new UttakPeriodeDto(START, START.plusDays(4), null, utsettelse, null);
-        var søker = new UttakPeriodeDto(START.plusDays(7), START.plusDays(11), UTTAK, null, null);
-        var søknad = endringssøknad(annenPartsUtsettelse.fom(), annenPartsUtsettelse, søker);
-        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad))
-            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("sendes til FPSAK");
-    }
-
-    @org.junit.jupiter.api.Test
-    void endringsdato_på_annen_parts_fff_avvises() {
-        var fff = new UttakDto(Rolle.MOR, no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.FORELDREPENGER_FØR_FØDSEL,
-            null, null, null, null, null, false, null);
-        var annenPartsFff = new UttakPeriodeDto(START, START.plusDays(4), null, fff, null);
-        var søker = new UttakPeriodeDto(START.plusDays(7), START.plusDays(11), UTTAK, null, null);
-        var søknad = endringssøknad(annenPartsFff.fom(), annenPartsFff, søker);
-        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad))
-            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("sendes til FPSAK");
-    }
-
-    @org.junit.jupiter.api.Test
-    void endringsdato_på_opphold_eller_fri_utsettelse_godtas() {
-        var søker = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, null, null);
-        var opphold = new UttakPeriodeDto(START.plusDays(7), START.plusDays(11), null, UTTAK, null);
-        assertThatCode(() -> UttaksperioderValidering.valider(endringssøknad(opphold.fom(), søker, opphold))).doesNotThrowAnyException();
-
-        var fri = new UttakDto(Rolle.MOR, null, UtsettelseÅrsak.FRI, null, null, null, null, false, null);
-        var friUtsettelse = new UttakPeriodeDto(START.plusDays(7), START.plusDays(11), fri, null, null);
-        assertThatCode(() -> UttaksperioderValidering.valider(endringssøknad(friUtsettelse.fom(), søker, friUtsettelse)))
+    void endringsdato_inne_i_annen_parts_periode_godtas() {
+        var annenPart = new UttakPeriodeDto(START, START.plusDays(9), null, UTTAK, null);
+        var søker = new UttakPeriodeDto(START.plusDays(10), START.plusDays(14), UTTAK, null, null);
+        assertThatCode(() -> UttaksperioderValidering.valider(endringssøknad(START.plusDays(3), annenPart, søker)))
             .doesNotThrowAnyException();
     }
 
-    @org.junit.jupiter.api.Test
-    void ingen_fpsak_periode_fra_endringsdato_avvises() {
-        var søker = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, null, null);
+    @ParameterizedTest
+    @ValueSource(ints = {0, 3, 7, 29})
+    void endringsdato_uten_søkerperiode_på_datoen_godtas(int dagerEtterStart) {
+        // Utsatt oppstart, annen parts periode, slettet periode og slettet siste periode. Fri utsettelse legges inn.
         var utsettelse = new UttakDto(Rolle.FAR_MEDMOR, null, UtsettelseÅrsak.ARBEID, null, null, null, null, false, null);
-        var annenPartsUtsettelse = new UttakPeriodeDto(START.plusDays(7), START.plusDays(11), null, utsettelse, null);
-        var søknad = endringssøknad(annenPartsUtsettelse.fom(), søker, annenPartsUtsettelse);
+        var søker = new UttakPeriodeDto(START.minusDays(10), START.minusDays(6), UTTAK, null, null);
+        var annenPartsUtsettelse = new UttakPeriodeDto(START, START.plusDays(4), null, utsettelse, null);
+        var annenPartsUttak = new UttakPeriodeDto(START.plusDays(7), START.plusDays(11), null, UTTAK, null);
+        var søknad = endringssøknad(START.plusDays(dagerEtterStart), søker, annenPartsUtsettelse, annenPartsUttak);
+        assertThatCode(() -> UttaksperioderValidering.valider(søknad)).doesNotThrowAnyException();
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {5, 6})
+    void endringsdato_i_helg_avvises(int dagerEtterMandag) {
+        var søker = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, null, null);
+        var søknad = endringssøknad(START.plusDays(dagerEtterMandag), søker);
         assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad))
-            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("sendes til FPSAK");
+            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("helg");
+    }
+
+    @org.junit.jupiter.api.Test
+    void endringssøknad_med_endringsdato_uten_rolle_avvises() {
+        var søker = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, null, null);
+        var søknad = new EndringssøknadBuilder(new Saksnummer("123456")).medUttaksplan(List.of(søker)).medEndringsdato(START).build();
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad))
+            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("mangler rolle");
+    }
+
+    @org.junit.jupiter.api.Test
+    void endringssøknad_med_endringsdato_uten_søkerperioder_godtas() {
+        var annenPart = new UttakPeriodeDto(START, START.plusDays(4), null, UTTAK, null);
+        assertThatCode(() -> UttaksperioderValidering.valider(endringssøknad(START, annenPart))).doesNotThrowAnyException();
     }
 
     private static SøknadDto endringssøknad(LocalDate endringsdato, UttakPeriodeDto... perioder) {
-        return new EndringssøknadBuilder(new Saksnummer("123456")).medUttaksplan(List.of(perioder)).medEndringsdato(endringsdato).build();
+        return new EndringssøknadBuilder(new Saksnummer("123456")).medRolle(BrukerRolle.MOR).medUttaksplan(List.of(perioder))
+            .medEndringsdato(endringsdato).build();
     }
 
     private static SøknadDto søknad(boolean endring, List<UttakPeriodeDto> perioder) {

@@ -1,7 +1,7 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.fpsak;
 
 import no.nav.foreldrepenger.soknad.innsending.fordel.utils.EndringsdatoFilter;
-import static no.nav.foreldrepenger.soknad.innsending.fordel.utils.FpsakUttaksperioder.perioderTilFpsak;
+import static no.nav.foreldrepenger.soknad.innsending.fordel.utils.FpsakUttaksperioder.søkersPerioder;
 
 import java.time.LocalDate;
 import java.util.Comparator;
@@ -85,6 +85,9 @@ public class DestinasjonsRuter {
         dto.setForsendelseMottattTidspunkt(metadata.getForsendelseMottatt());
         dto.setDokumentTypeIdOffisiellKode(søknad.getDokumentTypeId().getKode());
         dto.setOpprettSakVedBehov(true);
+        // Saksnummer settes bevisst ikke, heller ikke for endringssøknad. Saksnummeret i søknaden kommer fra frontend, og
+        // FPSAK sjekker ikke at saken tilhører brukeren når saksnummer er satt (VurderFagsystemFellesTjeneste). Uten
+        // saksnummer finner FPSAK saken ut fra brukerens aktørId, barn og familiehendelse.
 
         var søknadDto = SøknadJsonMapper.deseraliserSøknad(søknad);
         var barn = søknadDto.barn();
@@ -135,10 +138,7 @@ public class DestinasjonsRuter {
     }
 
     private static LocalDate førsteUttaksdatoFraPlan(UttaksplanDto uttaksplan) {
-        var fpsakperioder = perioderTilFpsak(uttaksplan.perioder());
-        // FPSAK ser bort fra opphold ved start av uttak. Opphold brukes bare når søker har gitt bort resten av planen.
-        return førsteFom(fpsakperioder.stream().filter(p -> p.søker() != null))
-            .or(() -> førsteFom(fpsakperioder.stream()))
+        return førsteFom(søkersPerioder(uttaksplan.perioder()).stream())
             .orElseThrow(() -> new IllegalArgumentException("Uttaksplan mangler perioder til FPSAK"));
     }
 
