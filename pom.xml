@@ -27,7 +27,7 @@
         <openapi-spec-utils.version>2.1.0</openapi-spec-utils.version>
         <tika.version>4.1.0</tika.version> <!-- Bedre måter å gjøre det på -->
         <pdfbox.version>3.0.8</pdfbox.version>
-        <gcp.storage.version>2.74.0</gcp.storage.version>
+        <gcp.storage.version>2.75.0</gcp.storage.version>
     </properties>
 
     <dependencyManagement>
