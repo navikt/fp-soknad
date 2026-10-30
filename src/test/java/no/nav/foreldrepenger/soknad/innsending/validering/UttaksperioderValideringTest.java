@@ -4,6 +4,7 @@ import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.MØDREK
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +17,10 @@ import no.nav.foreldrepenger.kontrakter.felles.typer.Saksnummer;
 import no.nav.foreldrepenger.soknad.kontrakt.SøknadDto;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.EndringssøknadBuilder;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.ForeldrepengerBuilder;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Aktivitet;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Arbeidsgiver;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Arbeidstidprosent;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Gradering;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Rolle;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakPeriodeDto;
@@ -127,6 +132,51 @@ class UttaksperioderValideringTest {
         var periode = new UttakPeriodeDto(START.minusYears(1), START.minusYears(1).plusDays(4), utsettelse, null, null);
         assertThatCode(() -> UttaksperioderValidering.valider(søknad(endring, List.of(periode))))
             .doesNotThrowAnyException();
+    }
+
+    private static UttakDto uttakMedGradering(Aktivitet aktivitet) {
+        var gradering = new Gradering(new Arbeidstidprosent(BigDecimal.valueOf(50)), aktivitet);
+        return new UttakDto(Rolle.MOR, MØDREKVOTE, null, null, gradering, null, null, false, null);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void søkers_gradering_uten_aktivitet_avvises(boolean endring) {
+        var søker = uttakMedGradering(null);
+        var periode = new UttakPeriodeDto(START, START.plusDays(4), søker, null, null);
+        var søknad = søknad(endring, List.of(periode));
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad))
+            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("må ha aktivitet");
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void søkers_gradering_med_ordinært_arbeid_uten_arbeidsgiver_avvises(boolean endring) {
+        var aktivitet = new Aktivitet(Aktivitet.AktivitetType.ORDINÆRT_ARBEID, null, null);
+        var søker = uttakMedGradering(aktivitet);
+        var periode = new UttakPeriodeDto(START, START.plusDays(4), søker, null, null);
+        var søknad = søknad(endring, List.of(periode));
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad))
+            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("må ha arbeidsgiver");
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void søkers_gradering_med_gyldig_aktivitet_godtas(boolean endring) {
+        var aktivitet = new Aktivitet(Aktivitet.AktivitetType.ORDINÆRT_ARBEID, new Arbeidsgiver("999999999", Arbeidsgiver.ArbeidsgiverType.ORGANISASJON), null);
+        var søker = uttakMedGradering(aktivitet);
+        var periode = new UttakPeriodeDto(START, START.plusDays(4), søker, null, null);
+        var søknad = søknad(endring, List.of(periode));
+        assertThatCode(() -> UttaksperioderValidering.valider(søknad)).doesNotThrowAnyException();
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void annen_parts_gradering_uten_aktivitet_godtas(boolean endring) {
+        var annenPart = uttakMedGradering(null);
+        var periode = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, annenPart, null);
+        var søknad = søknad(endring, List.of(periode));
+        assertThatCode(() -> UttaksperioderValidering.valider(søknad)).doesNotThrowAnyException();
     }
 
     private static SøknadDto søknad(boolean endring, List<UttakPeriodeDto> perioder) {

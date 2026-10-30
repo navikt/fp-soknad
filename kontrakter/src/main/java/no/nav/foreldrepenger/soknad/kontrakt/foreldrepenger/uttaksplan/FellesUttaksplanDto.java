@@ -83,7 +83,7 @@ public record FellesUttaksplanDto(LocalDate termindato,
     public record Aktivitet(@NotNull AktivitetType type, @Valid Arbeidsgiver arbeidsgiver, String arbeidsgiverNavn) {
 
         public enum AktivitetType {
-            FRILANS, ORDINÆRT_ARBEID, SELVSTENDIG_NÆRINGSDRIVENDE, ANNET
+            FRILANS, ORDINÆRT_ARBEID, SELVSTENDIG_NÆRINGSDRIVENDE
         }
     }
 
