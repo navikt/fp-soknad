@@ -68,6 +68,7 @@ import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.Dokumenterer;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.InnsendingType;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.VedleggDto;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
+import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 
@@ -210,19 +211,69 @@ class BehandleSøknadTaskTest {
         validerProsesstaskOpprettet(forsendelseId, saksnummer.value());
     }
 
-    private void validerProsesstaskOpprettet(UUID forsendelseId, String saksnummer) {
-        var captor = ArgumentCaptor.forClass(ProsessTaskData.class);
+    @Test
+    void innsending_av_engangsstønad_oppretter_ikke_oversikt_task() {
+        var esSøknad = new no.nav.foreldrepenger.soknad.kontrakt.builder.EngangsstønadBuilder()
+            .medSøkerinfo(new SøkerDto(new Fødselsnummer("1234567890"), new SøkerDto.Navn("Per", null, "etternavn"), null))
+            .medBarn(new TerminDto(1, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
+            .medUtenlandsopphold(List.of())
+            .build();
+        var forsendelseId = UUID.randomUUID();
+        lagreForsendelseOgSøknad(esSøknad, forsendelseId, DokumentTypeId.I000003);
+
+        when(fpsakTjeneste.vurderFagsystem(any())).thenReturn(new VurderFagsystemResultat(VurderFagsystemResultat.SendTil.FPSAK, "123456"));
+        when(fpDokgenRestKlient.genererPdf(any())).thenReturn(new byte[]{1, 2, 3});
+        when(personoppslag.aktørId((String) any())).thenReturn(new AktørId("123"));
+        when(arkivtjeneste.forsøkEndeligJournalføring(any(), any(), any(), any(), any(), any())).thenReturn(new OpprettetJournalpost("123", true));
+
+        var prosessTaskData = ProsessTaskData.forProsessTask(BehandleSøknadTask.class);
+        prosessTaskData.setProperty(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
+        task.doTask(prosessTaskData);
+
+        var captor = ArgumentCaptor.forClass(ProsessTaskGruppe.class);
         verify(taskTjeneste, times(1)).lagre(captor.capture());
-        var vlklargjørtask = captor.getValue();
+        var entries = captor.getValue().getTasks();
+        assertThat(entries).hasSize(2);
+        assertThat(entries.getFirst().sekvens()).isEqualTo("1");
+        assertThat(entries.getFirst().task().taskType().value()).isEqualTo("fordeling.klargjoering");
+        assertThat(entries.get(1).sekvens()).isEqualTo("2");
+        assertThat(entries.get(1).task().taskType().value()).isEqualTo("fordeling.slettForsendelse");
+    }
+
+    private void validerProsesstaskOpprettet(UUID forsendelseId, String saksnummer) {
+        var captor = ArgumentCaptor.forClass(ProsessTaskGruppe.class);
+        verify(taskTjeneste, times(1)).lagre(captor.capture());
+        var entries = captor.getValue().getTasks();
+        assertThat(entries).hasSize(3);
+
+        // Oversikt og klargjøring kjøres parallelt i samme steg, sletting etterpå
+        assertThat(entries.getFirst().sekvens()).startsWith("1");
+        assertThat(entries.get(1).sekvens()).startsWith("1");
+        var oversiktTask = entries.getFirst().task();
+        assertThat(oversiktTask.taskType().value()).isEqualTo("fordeling.oversikt.soknad");
+        assertThat(oversiktTask.getPropertyValue(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY)).isEqualTo(forsendelseId.toString());
+        assertThat(oversiktTask.getPropertyValue(BehandleSøknadTask.SAKSNUMMER_PROPERTY)).isEqualTo(saksnummer);
+
+        var vlklargjørtask = entries.get(1).task();
         assertThat(vlklargjørtask.taskType().value()).isEqualTo("fordeling.klargjoering");
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY)).isEqualTo(forsendelseId.toString());
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.SAKSNUMMER_PROPERTY)).isEqualTo(saksnummer);
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.BEHANDLING_TEMA_PROPERTY)).isEqualTo(
             BehandlingTema.FORELDREPENGER_FØDSEL.getOffisiellKode());
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.DOKUMENT_TYPE_ID_PROPERTY)).isEqualTo(DokumentTypeId.I000005.getKode());
+
+        assertThat(entries.get(2).sekvens()).isEqualTo("2");
+        var slettTask = entries.get(2).task();
+        assertThat(slettTask.taskType().value()).isEqualTo("fordeling.slettForsendelse");
+        assertThat(slettTask.getPropertyValue(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY)).isEqualTo(forsendelseId.toString());
+        assertThat(slettTask.getNesteKjøringEtter()).isAfter(LocalDateTime.now().plusHours(1));
     }
 
     private void lagreForsendelseOgSøknad(SøknadDto søknad, UUID forsendelseId) {
+        lagreForsendelseOgSøknad(søknad, forsendelseId, DokumentTypeId.I000005);
+    }
+
+    private void lagreForsendelseOgSøknad(SøknadDto søknad, UUID forsendelseId, DokumentTypeId dokumentTypeId) {
         var metadata = ForsendelseEntitet.builder()
             .setFødselsnummer(søknad.søkerinfo().fnr().value())
             .setSaksnummer(søknad instanceof EndringssøknadForeldrepengerDto endring ? endring.saksnummer().value() : null)
@@ -235,7 +286,7 @@ class BehandleSøknadTaskTest {
         var søknadDokument = DokumentEntitet.builder()
             .setDokumentInnhold(DefaultJsonMapper.getJsonMapper().writeValueAsBytes(søknad), ArkivFilType.JSON)
             .setForsendelseId(forsendelseId)
-            .setDokumentTypeId(DokumentTypeId.I000005)
+            .setDokumentTypeId(dokumentTypeId)
             .build();
         dokumentRepository.lagre(søknadDokument);
 

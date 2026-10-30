@@ -44,7 +44,6 @@ import no.nav.vedtak.felles.xml.soeknad.felles.v3.Vedlegg;
 import no.nav.vedtak.felles.xml.soeknad.foreldrepenger.v3.Foreldrepenger;
 import no.nav.vedtak.felles.xml.soeknad.uttak.v3.Fordeling;
 import no.nav.vedtak.felles.xml.soeknad.uttak.v3.Gradering;
-import no.nav.vedtak.felles.xml.soeknad.uttak.v3.Oppholdsperiode;
 import no.nav.vedtak.felles.xml.soeknad.uttak.v3.Overfoeringsperiode;
 import no.nav.vedtak.felles.xml.soeknad.uttak.v3.Person;
 import no.nav.vedtak.felles.xml.soeknad.uttak.v3.Utsettelsesperiode;
@@ -56,6 +55,31 @@ class V3ForeldrepengerDomainMapperTest {
     private static final LocalDate FOM = LocalDate.of(2026, 1, 1);
     private static final LocalDate TOM = FOM.plusDays(10);
     private static final V3ForeldrepengerDomainMapper MAPPER = new V3ForeldrepengerDomainMapper();
+
+    @Test
+    void endringssøknad_sender_bare_perioder_fra_endringsdato_til_fpsak() throws Exception {
+        var før = new UttakPeriodeDto(FOM, TOM, uttak(KontoType.MØDREKVOTE), null, null);
+        var endringsdato = TOM.plusDays(1);
+        var etter = new UttakPeriodeDto(endringsdato, endringsdato.plusDays(5), uttak(KontoType.FELLESPERIODE), null, null);
+        var mottatt = LocalDateTime.of(2026, 9, 30, 12, 0);
+        var søknad = new EndringssøknadForeldrepengerDto(mottatt, new Saksnummer("123456789"), null, BrukerRolle.MOR, Målform.NB,
+            new FødselDto(1, FOM, FOM), null, new UttaksplanDto(false, List.of(før, etter)), List.of(), endringsdato);
+
+        var perioder = unmarshalEndring(MAPPER.tilXML(søknad, mottatt, new AktørId("1234567890123"))).getFordeling().getPerioder();
+
+        assertThat(perioder).hasSize(1);
+        assertThat(perioder.getFirst().getFom()).isEqualTo(endringsdato);
+        assertThat(søknad.uttaksplan().perioder()).hasSize(2);
+    }
+
+    private static Endringssoeknad unmarshalEndring(String xml) throws Exception {
+        var context = JAXBContext.newInstance(Soeknad.class, Foreldrepenger.class, Endringssoeknad.class,
+            no.nav.vedtak.felles.xml.soeknad.v3.ObjectFactory.class,
+            no.nav.vedtak.felles.xml.soeknad.foreldrepenger.v3.ObjectFactory.class,
+            no.nav.vedtak.felles.xml.soeknad.endringssoeknad.v3.ObjectFactory.class);
+        var søknad = (Soeknad) ((JAXBElement<?>) context.createUnmarshaller().unmarshal(new StringReader(xml))).getValue();
+        return (Endringssoeknad) ((JAXBElement<?>) søknad.getOmYtelse().getAny().getFirst()).getValue();
+    }
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
@@ -96,59 +120,23 @@ class V3ForeldrepengerDomainMapperTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
-    void sender_periode_der_bare_annen_part_har_uttak_som_opphold(boolean endring) throws Exception {
-        var vedlegg = vedlegg(TOM.plusDays(1), TOM.plusDays(5), InnsendingType.LASTET_OPP);
+    void sender_bare_søkers_perioder_til_fpsak(boolean endring) throws Exception {
+        var vedlegg = vedlegg(FOM, TOM, InnsendingType.LASTET_OPP);
         var xml = map(new UttaksplanDto(true, søkerAnnenPartOgEøs()), List.of(vedlegg), endring);
-        assertThat(xml.getPerioder()).hasSize(2);
         assertThat(xml.isOenskerJustertVedFoedsel()).isTrue();
-        assertThat(xml.getPerioder().getFirst()).isInstanceOfSatisfying(Uttaksperiode.class, periode -> {
+        assertThat(xml.getPerioder()).singleElement().isInstanceOfSatisfying(Uttaksperiode.class, periode -> {
             assertThat(periode.getType().getKode()).isEqualTo("FELLESPERIODE");
             assertThat(periode.getFom()).isEqualTo(FOM);
             assertThat(periode.getTom()).isEqualTo(TOM);
-        });
-        assertThat(xml.getPerioder().get(1)).isInstanceOfSatisfying(Oppholdsperiode.class, opphold -> {
-            assertThat(opphold.getAarsak().getKode()).isEqualTo("UTTAK_FEDREKVOTE_ANNEN_FORELDER");
-            assertThat(opphold.getFom()).isEqualTo(TOM.plusDays(1));
-            assertThat(opphold.getTom()).isEqualTo(TOM.plusDays(5));
-            assertThat(opphold.getVedlegg()).singleElement().satisfies(referanse ->
+            assertThat(periode.getVedlegg()).singleElement().satisfies(referanse ->
                 assertThat(referanse.getValue()).isInstanceOfSatisfying(Vedlegg.class,
                     dokument -> assertThat(dokument.getId()).isEqualTo("V" + vedlegg.uuid())));
         });
     }
 
-    @Test
-    void fars_førstegangssøknad_sender_mors_kvote_som_opphold_før_eget_uttak() throws Exception {
-        var perioder = List.of(new UttakPeriodeDto(FOM, TOM, null, uttak(KontoType.MØDREKVOTE), null),
-            new UttakPeriodeDto(TOM.plusDays(1), TOM.plusDays(5), uttak(KontoType.FEDREKVOTE), null, null));
-        var xml = map(new UttaksplanDto(false, perioder), List.of(), false);
-        assertThat(xml.getPerioder()).hasSize(2);
-        assertThat(xml.getPerioder().getFirst()).isInstanceOfSatisfying(Oppholdsperiode.class, opphold -> {
-            assertThat(opphold.getAarsak().getKode()).isEqualTo("UTTAK_MØDREKVOTE_ANNEN_FORELDER");
-            assertThat(opphold.getFom()).isEqualTo(FOM);
-            assertThat(opphold.getTom()).isEqualTo(TOM);
-        });
-        assertThat(xml.getPerioder().get(1)).isInstanceOfSatisfying(Uttaksperiode.class, periode -> {
-            assertThat(periode.getType().getKode()).isEqualTo("FEDREKVOTE");
-            assertThat(periode.getFom()).isEqualTo(TOM.plusDays(1));
-        });
-    }
-
-    @ParameterizedTest
-    @CsvSource({
-        "MØDREKVOTE, UTTAK_MØDREKVOTE_ANNEN_FORELDER", "FEDREKVOTE, UTTAK_FEDREKVOTE_ANNEN_FORELDER",
-        "FELLESPERIODE, UTTAK_FELLESP_ANNEN_FORELDER", "FORELDREPENGER, UTTAK_FORELDREPENGER_ANNEN_FORELDER"
-    })
-    void periode_med_bare_annen_parts_uttak_sendes_som_opphold_i_begge_søknadstyper(KontoType konto, String årsak) throws Exception {
-        var plan = new UttaksplanDto(false, List.of(new UttakPeriodeDto(FOM, TOM, null, uttak(konto), null)));
-        for (var endring : List.of(false, true)) {
-            assertThat(map(plan, List.of(), endring).getPerioder()).singleElement().isInstanceOfSatisfying(Oppholdsperiode.class,
-                opphold -> assertThat(opphold.getAarsak().getKode()).isEqualTo(årsak));
-        }
-    }
-
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
-    void sender_ikke_opphold_for_annen_parts_utsettelse_eller_foreldrepenger_før_fødsel(boolean endring) throws Exception {
+    void sender_ikke_annen_parts_perioder_til_fpsak(boolean endring) throws Exception {
         var utsettelse = new UttakDto(FellesUttaksplanDto.Rolle.FAR_MEDMOR, null, FellesUttaksplanDto.UtsettelseÅrsak.ARBEID,
             null, null, null, null, false, null);
         var perioder = List.of(new UttakPeriodeDto(FOM, TOM, null, uttak(KontoType.FORELDREPENGER_FØR_FØDSEL), null),
@@ -306,7 +294,7 @@ class V3ForeldrepengerDomainMapperTest {
         String xml;
         if (endring) {
             xml = MAPPER.tilXML(new EndringssøknadForeldrepengerDto(mottatt, new Saksnummer("123456789"), null,
-                BrukerRolle.MOR, Målform.NB, barn, null, plan, vedlegg), mottatt, aktør);
+                BrukerRolle.MOR, Målform.NB, barn, null, plan, vedlegg, null), mottatt, aktør);
         } else {
             xml = MAPPER.tilXML(new ForeldrepengesøknadDto(mottatt, null, BrukerRolle.MOR, Målform.NB, barn,
                 null, null, List.of(), null, Dekningsgrad.HUNDRE, plan, List.of(), vedlegg), mottatt, aktør);

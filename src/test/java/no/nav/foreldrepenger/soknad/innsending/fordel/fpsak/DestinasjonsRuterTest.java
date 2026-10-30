@@ -28,6 +28,7 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseEntitet;
 import no.nav.foreldrepenger.soknad.innsending.fordel.pdl.Personoppslag;
 import no.nav.foreldrepenger.soknad.kontrakt.SøknadDto;
+import no.nav.foreldrepenger.soknad.kontrakt.BrukerRolle;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.EndringssøknadBuilder;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.ForeldrepengerBuilder;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Rolle;
@@ -77,13 +78,19 @@ class DestinasjonsRuterTest {
     }
 
     @Test
-    void endringssøknad_der_søker_har_gitt_bort_resten_av_planen_bruker_første_opphold() {
+    void endringssøknad_med_utsatt_oppstart_bruker_endringsdato() {
         var uttak = new UttakDto(Rolle.MOR, MØDREKVOTE, null, null, null, null, null, false, null);
         var perioder = List.of(
-            new UttakPeriodeDto(START.plusWeeks(1), START.plusWeeks(1), null, uttak, null),
-            new UttakPeriodeDto(START, START, null, uttak, null));
+            new UttakPeriodeDto(START, START.plusDays(4), null, uttak, null),
+            new UttakPeriodeDto(START.plusWeeks(2), START.plusWeeks(2).plusDays(4), uttak, null, null));
+        when(fpsak.vurderFagsystem(any())).thenReturn(new VurderFagsystemResultat(VurderFagsystemResultat.SendTil.FPSAK, "123456"));
+        var søknad = new EndringssøknadBuilder(new Saksnummer("123456")).medRolle(BrukerRolle.MOR).medPerioder(perioder).medEndringsdato(START).build();
 
-        assertThat(startdatoForEndringssøknad(perioder)).contains(START);
+        rute(søknad, DokumentTypeId.I000050);
+
+        var captor = ArgumentCaptor.forClass(VurderFagsystemDto.class);
+        verify(fpsak).vurderFagsystem(captor.capture());
+        assertThat(captor.getValue().getStartDatoForeldrepengerInntektsmelding()).contains(START);
     }
 
     private Optional<LocalDate> startdatoForEndringssøknad(List<UttakPeriodeDto> perioder) {
