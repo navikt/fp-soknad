@@ -9,6 +9,7 @@ import java.util.List;
 import no.nav.foreldrepenger.soknad.kontrakt.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.soknad.kontrakt.ForeldrepengesøknadDto;
 import no.nav.foreldrepenger.soknad.kontrakt.SøknadDto;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Aktivitet;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakPeriodeDto;
 import no.nav.fpsak.tidsserie.LocalDateSegment;
 import no.nav.fpsak.tidsserie.LocalDateTimeline;
@@ -82,6 +83,9 @@ public final class UttaksperioderValidering {
                 throw new UttaksperioderValideringException(
                     "Søkerperiode må ha konto eller utsettelsesårsak. Gjelder " + søknadBeskrivelse);
             }
+            if (søker != null && søker.gradering() != null) {
+                validerGraderingsaktivitet(søker.gradering().aktivitet(), søknadBeskrivelse);
+            }
         }
         try {
             var søkerSegmenter = søkerperioder.stream()
@@ -96,6 +100,21 @@ public final class UttaksperioderValidering {
         } catch (IllegalArgumentException e) {
             throw new UttaksperioderValideringException(String.format(
                 "Uttaksplan inneholder overlappende perioder. Gjelder %s: %s", søknadBeskrivelse, e.getMessage()));
+        }
+    }
+
+    /**
+     * Søkers gradering må ha aktivitet, ellers dropper FPSAK graderingen. Annen parts gradering valideres ikke,
+     * den sendes ikke til FPSAK.
+     */
+    private static void validerGraderingsaktivitet(Aktivitet aktivitet, String søknadBeskrivelse) {
+        if (aktivitet == null || aktivitet.type() == null) {
+            throw new UttaksperioderValideringException("Søkers gradering må ha aktivitet. Gjelder " + søknadBeskrivelse);
+        }
+        if (aktivitet.type() == Aktivitet.AktivitetType.ORDINÆRT_ARBEID
+            && (aktivitet.arbeidsgiver() == null || aktivitet.arbeidsgiver().id() == null)) {
+            throw new UttaksperioderValideringException(
+                "Søkers gradering med ordinært arbeid må ha arbeidsgiver. Gjelder " + søknadBeskrivelse);
         }
     }
 

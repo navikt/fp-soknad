@@ -4,6 +4,7 @@ import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.MØDREK
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +18,10 @@ import no.nav.foreldrepenger.soknad.kontrakt.SøknadDto;
 import no.nav.foreldrepenger.soknad.kontrakt.BrukerRolle;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.EndringssøknadBuilder;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.ForeldrepengerBuilder;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Aktivitet;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Arbeidsgiver;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Arbeidstidprosent;
+import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Gradering;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Rolle;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakPeriodeDto;
@@ -134,6 +139,7 @@ class UttaksperioderValideringTest {
             .doesNotThrowAnyException();
     }
 
+<<<<<<< HEAD
     @org.junit.jupiter.api.Test
     void endringsdato_lik_fom_på_periode_godtas() {
         var før = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, null, null);
@@ -173,10 +179,46 @@ class UttaksperioderValideringTest {
         var annenPartsUtsettelse = new UttakPeriodeDto(START, START.plusDays(4), null, utsettelse, null);
         var annenPartsUttak = new UttakPeriodeDto(START.plusDays(7), START.plusDays(11), null, UTTAK, null);
         var søknad = endringssøknad(START.plusDays(dagerEtterStart), søker, annenPartsUtsettelse, annenPartsUttak);
+=======
+    private static UttakDto uttakMedGradering(Aktivitet aktivitet) {
+        var gradering = new Gradering(new Arbeidstidprosent(BigDecimal.valueOf(50)), aktivitet);
+        return new UttakDto(Rolle.MOR, MØDREKVOTE, null, null, gradering, null, null, false, null);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void søkers_gradering_uten_aktivitet_avvises(boolean endring) {
+        var søker = uttakMedGradering(null);
+        var periode = new UttakPeriodeDto(START, START.plusDays(4), søker, null, null);
+        var søknad = søknad(endring, List.of(periode));
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad))
+            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("må ha aktivitet");
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void søkers_gradering_med_ordinært_arbeid_uten_arbeidsgiver_avvises(boolean endring) {
+        var aktivitet = new Aktivitet(Aktivitet.AktivitetType.ORDINÆRT_ARBEID, null, null);
+        var søker = uttakMedGradering(aktivitet);
+        var periode = new UttakPeriodeDto(START, START.plusDays(4), søker, null, null);
+        var søknad = søknad(endring, List.of(periode));
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad))
+            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("må ha arbeidsgiver");
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void søkers_gradering_med_gyldig_aktivitet_godtas(boolean endring) {
+        var aktivitet = new Aktivitet(Aktivitet.AktivitetType.ORDINÆRT_ARBEID, new Arbeidsgiver("999999999", Arbeidsgiver.ArbeidsgiverType.ORGANISASJON), null);
+        var søker = uttakMedGradering(aktivitet);
+        var periode = new UttakPeriodeDto(START, START.plusDays(4), søker, null, null);
+        var søknad = søknad(endring, List.of(periode));
+>>>>>>> origin/master
         assertThatCode(() -> UttaksperioderValidering.valider(søknad)).doesNotThrowAnyException();
     }
 
     @ParameterizedTest
+<<<<<<< HEAD
     @ValueSource(ints = {5, 6})
     void endringsdato_i_helg_avvises(int dagerEtterMandag) {
         var søker = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, null, null);
@@ -202,6 +244,14 @@ class UttaksperioderValideringTest {
     private static SøknadDto endringssøknad(LocalDate endringsdato, UttakPeriodeDto... perioder) {
         return new EndringssøknadBuilder(new Saksnummer("123456")).medRolle(BrukerRolle.MOR).medUttaksplan(List.of(perioder))
             .medEndringsdato(endringsdato).build();
+=======
+    @ValueSource(booleans = {false, true})
+    void annen_parts_gradering_uten_aktivitet_godtas(boolean endring) {
+        var annenPart = uttakMedGradering(null);
+        var periode = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, annenPart, null);
+        var søknad = søknad(endring, List.of(periode));
+        assertThatCode(() -> UttaksperioderValidering.valider(søknad)).doesNotThrowAnyException();
+>>>>>>> origin/master
     }
 
     private static SøknadDto søknad(boolean endring, List<UttakPeriodeDto> perioder) {
