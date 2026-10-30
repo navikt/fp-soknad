@@ -139,7 +139,6 @@ class UttaksperioderValideringTest {
             .doesNotThrowAnyException();
     }
 
-<<<<<<< HEAD
     @org.junit.jupiter.api.Test
     void endringsdato_lik_fom_på_periode_godtas() {
         var før = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, null, null);
@@ -179,7 +178,9 @@ class UttaksperioderValideringTest {
         var annenPartsUtsettelse = new UttakPeriodeDto(START, START.plusDays(4), null, utsettelse, null);
         var annenPartsUttak = new UttakPeriodeDto(START.plusDays(7), START.plusDays(11), null, UTTAK, null);
         var søknad = endringssøknad(START.plusDays(dagerEtterStart), søker, annenPartsUtsettelse, annenPartsUttak);
-=======
+        assertThatCode(() -> UttaksperioderValidering.valider(søknad)).doesNotThrowAnyException();
+    }
+
     private static UttakDto uttakMedGradering(Aktivitet aktivitet) {
         var gradering = new Gradering(new Arbeidstidprosent(BigDecimal.valueOf(50)), aktivitet);
         return new UttakDto(Rolle.MOR, MØDREKVOTE, null, null, gradering, null, null, false, null);
@@ -213,12 +214,19 @@ class UttaksperioderValideringTest {
         var søker = uttakMedGradering(aktivitet);
         var periode = new UttakPeriodeDto(START, START.plusDays(4), søker, null, null);
         var søknad = søknad(endring, List.of(periode));
->>>>>>> origin/master
         assertThatCode(() -> UttaksperioderValidering.valider(søknad)).doesNotThrowAnyException();
     }
 
     @ParameterizedTest
-<<<<<<< HEAD
+    @ValueSource(booleans = {false, true})
+    void annen_parts_gradering_uten_aktivitet_godtas(boolean endring) {
+        var annenPart = uttakMedGradering(null);
+        var periode = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, annenPart, null);
+        var søknad = søknad(endring, List.of(periode));
+        assertThatCode(() -> UttaksperioderValidering.valider(søknad)).doesNotThrowAnyException();
+    }
+
+    @ParameterizedTest
     @ValueSource(ints = {5, 6})
     void endringsdato_i_helg_avvises(int dagerEtterMandag) {
         var søker = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, null, null);
@@ -244,14 +252,6 @@ class UttaksperioderValideringTest {
     private static SøknadDto endringssøknad(LocalDate endringsdato, UttakPeriodeDto... perioder) {
         return new EndringssøknadBuilder(new Saksnummer("123456")).medRolle(BrukerRolle.MOR).medUttaksplan(List.of(perioder))
             .medEndringsdato(endringsdato).build();
-=======
-    @ValueSource(booleans = {false, true})
-    void annen_parts_gradering_uten_aktivitet_godtas(boolean endring) {
-        var annenPart = uttakMedGradering(null);
-        var periode = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, annenPart, null);
-        var søknad = søknad(endring, List.of(periode));
-        assertThatCode(() -> UttaksperioderValidering.valider(søknad)).doesNotThrowAnyException();
->>>>>>> origin/master
     }
 
     private static SøknadDto søknad(boolean endring, List<UttakPeriodeDto> perioder) {

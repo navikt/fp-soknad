@@ -18,8 +18,7 @@ import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.Uttakspla
 
 /**
  * En endringssøknad inneholder hele uttaksplanen, som lagres i fp-oversikt. FPSAK, PDF og ruting skal bare ha perioder
- * fra og med endringsdato. En periode som krysser endringsdato, kuttes slik at den starter på endringsdato. Frontend
- * skal dele alle perioder på endringsdato, så en kryssende periode logges som advarsel.
+ * fra og med endringsdato. En periode som krysser endringsdato, kuttes slik at den starter på endringsdato.
  *
  * FPSAK utleder endringsdato fra første innsendte periode. Starter ingen søkerperiode på endringsdato, for eksempel
  * ved utsatt oppstart, slettet periode eller når søker har fjernet sin del av samtidig uttak, legges det inn fri
@@ -79,7 +78,7 @@ public final class EndringsdatoFilter {
         if (!periode.fom().isBefore(endringsdato)) {
             return periode;
         }
-        LOG.warn("{} {} - {} krysser endringsdato {}. Kuttes til å starte på endringsdato.",
+        LOG.info("{} {} - {} krysser endringsdato {}. Kuttes til å starte på endringsdato.",
             periode.søker() != null ? "Søkerperiode" : "Annen parts periode", periode.fom(), periode.tom(), endringsdato);
         return new UttakPeriodeDto(endringsdato, periode.tom(), periode.søker(), periode.annenPart(), periode.annenPartEøs());
     }
