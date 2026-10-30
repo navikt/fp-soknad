@@ -87,7 +87,7 @@ class SendSøknadTilOversiktTaskTest {
     }
 
     @Test
-    void senderEndringssøknadTilOversikt() {
+    void senderIkkeEndringssøknadUtenEndringsdatoTilOversikt() {
         var perioder = List.of(new UttakPeriodeDto(DAG, DAG.plusDays(4),
             new UttakDto(Rolle.FAR_MEDMOR, FEDREKVOTE, null, null, null, null, null, false, null), null, null));
         var søknad = new EndringssøknadBuilder(new Saksnummer("999888"))
@@ -100,11 +100,7 @@ class SendSøknadTilOversiktTaskTest {
 
         task.doTask(taskData(forsendelseId, "999888"));
 
-        assertThat(sendt).containsExactly(new OversiktSøknadDto(
-            new Saksnummer("999888"),
-            MOTTATT.atZone(ZoneId.systemDefault()).toOffsetDateTime(),
-            Rolle.FAR_MEDMOR,
-            perioder));
+        assertThat(sendt).isEmpty();
     }
 
     @Test
@@ -124,7 +120,11 @@ class SendSøknadTilOversiktTaskTest {
 
         task.doTask(taskData(forsendelseId, "999888"));
 
-        assertThat(sendt.getFirst().perioder()).containsExactly(før, etter);
+        assertThat(sendt).containsExactly(new OversiktSøknadDto(
+            new Saksnummer("999888"),
+            MOTTATT.atZone(ZoneId.systemDefault()).toOffsetDateTime(),
+            Rolle.FAR_MEDMOR,
+            List.of(før, etter)));
     }
 
     private UUID lagreForsendelse(SøknadDto søknad, DokumentTypeId dokumentTypeId) {
