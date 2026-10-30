@@ -33,6 +33,37 @@ class EndringsdatoFilterTest {
     }
 
     @Test
+    void søkerperiode_som_krysser_endringsdato_kuttes_og_beholder_øvrige_felter() {
+        var medFlagg = new UttakDto(Rolle.MOR, MØDREKVOTE, null, null, null, null, null, true, null);
+        var kryssende = new UttakPeriodeDto(START, START.plusDays(9), medFlagg, null, null);
+        var endringsdato = START.plusDays(3);
+
+        var perioder = EndringsdatoFilter.perioderFraEndringsdato(List.of(kryssende), endringsdato, BrukerRolle.MOR);
+
+        assertThat(perioder).containsExactly(new UttakPeriodeDto(endringsdato, kryssende.tom(), medFlagg, null, null));
+    }
+
+    @Test
+    void søkerperiode_som_slutter_på_endringsdato_kuttes_til_én_dag() {
+        var kryssende = new UttakPeriodeDto(START, START.plusDays(3), UTTAK, null, null);
+        var endringsdato = kryssende.tom();
+
+        var perioder = EndringsdatoFilter.perioderFraEndringsdato(List.of(kryssende, ETTER), endringsdato, BrukerRolle.MOR);
+
+        assertThat(perioder).containsExactly(new UttakPeriodeDto(endringsdato, endringsdato, UTTAK, null, null), ETTER);
+    }
+
+    @Test
+    void annen_parts_periode_som_krysser_endringsdato_kuttes_og_søker_får_fri_utsettelse() {
+        var endringsdato = ANNEN_PART_FØR.fom().plusDays(2);
+
+        var perioder = EndringsdatoFilter.perioderFraEndringsdato(PLAN, endringsdato, BrukerRolle.MOR);
+
+        assertThat(perioder).containsExactly(fri(Rolle.MOR, endringsdato, PÅ_ENDRINGSDATO.fom().minusDays(1)),
+            new UttakPeriodeDto(endringsdato, ANNEN_PART_FØR.tom(), null, UTTAK, null), PÅ_ENDRINGSDATO, ETTER);
+    }
+
+    @Test
     void uten_endringsdato_returneres_alle_perioder() {
         assertThat(EndringsdatoFilter.perioderFraEndringsdato(PLAN, null, BrukerRolle.MOR)).containsExactlyElementsOf(PLAN);
     }
@@ -43,7 +74,8 @@ class EndringsdatoFilterTest {
 
         var perioder = EndringsdatoFilter.perioderFraEndringsdato(PLAN, endringsdato, BrukerRolle.FAR);
 
-        assertThat(perioder).containsExactly(fri(Rolle.FAR_MEDMOR, endringsdato, PÅ_ENDRINGSDATO.fom().minusDays(1)), PÅ_ENDRINGSDATO, ETTER);
+        assertThat(perioder).containsExactly(fri(Rolle.FAR_MEDMOR, endringsdato, PÅ_ENDRINGSDATO.fom().minusDays(1)),
+            new UttakPeriodeDto(endringsdato, ANNEN_PART_FØR.tom(), null, UTTAK, null), PÅ_ENDRINGSDATO, ETTER);
     }
 
     @Test

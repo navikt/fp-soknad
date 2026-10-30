@@ -46,25 +46,17 @@ public final class UttaksperioderValidering {
                 // Rollen trengs for å legge inn fri utsettelse på endringsdato
                 throw new UttaksperioderValideringException("Endringssøknad med endringsdato mangler rolle. Gjelder " + søknadBeskrivelse);
             }
-            validerEndringsdato(uttaksplan.perioder(), endring.endringsdato(), søknadBeskrivelse);
+            validerEndringsdato(endring.endringsdato(), søknadBeskrivelse);
         }
     }
 
-    private static void validerEndringsdato(List<UttakPeriodeDto> perioder, LocalDate endringsdato, String søknadBeskrivelse) {
+    private static void validerEndringsdato(LocalDate endringsdato, String søknadBeskrivelse) {
         // FPSAK fjerner perioder uten virkedager. Fri utsettelse på endringsdato må derfor starte på en virkedag.
         if (endringsdato.getDayOfWeek() == DayOfWeek.SATURDAY || endringsdato.getDayOfWeek() == DayOfWeek.SUNDAY) {
             throw new UttaksperioderValideringException(String.format(
                 "Endringsdato %s er i helg. Gjelder %s", endringsdato, søknadBeskrivelse));
         }
-        // Frontend deler perioder på endringsdato. Ingen søkerperiode kan krysse den, fordi EndringsdatoFilter ikke deler.
-        // Starter ingen søkerperiode på endringsdato, legger EndringsdatoFilter inn fri utsettelse.
-        var kryssende = søkersPerioder(perioder).stream()
-            .filter(p -> p.fom().isBefore(endringsdato) && !p.tom().isBefore(endringsdato))
-            .findAny();
-        if (kryssende.isPresent()) {
-            throw new UttaksperioderValideringException(String.format(
-                "Endringsdato %s ligger inne i en søkerperiode. Gjelder %s", endringsdato, søknadBeskrivelse));
-        }
+        // En søkerperiode som krysser endringsdato, kuttes i EndringsdatoFilter.
     }
 
     private static void validerPerioder(List<UttakPeriodeDto> perioder, String søknadBeskrivelse, boolean kreverSøkerperiode) {

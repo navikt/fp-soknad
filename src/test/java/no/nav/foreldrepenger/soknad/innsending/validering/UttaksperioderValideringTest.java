@@ -142,20 +142,18 @@ class UttaksperioderValideringTest {
     }
 
     @org.junit.jupiter.api.Test
-    void endringsdato_inne_i_søkerperiode_avvises() {
+    void endringsdato_inne_i_søkerperiode_godtas() {
         var søker = new UttakPeriodeDto(START, START.plusDays(9), UTTAK, null, null);
         var søknad = endringssøknad(START.plusDays(3), søker);
-        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad))
-            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("inne i en søkerperiode");
+        assertThatCode(() -> UttaksperioderValidering.valider(søknad)).doesNotThrowAnyException();
     }
 
     @org.junit.jupiter.api.Test
-    void endringsdato_lik_tom_på_søkerperiode_avvises() {
+    void endringsdato_lik_tom_på_søkerperiode_godtas() {
         var før = new UttakPeriodeDto(START, START.plusDays(7), UTTAK, null, null);
         var etter = new UttakPeriodeDto(START.plusDays(8), START.plusDays(11), UTTAK, null, null);
         var søknad = endringssøknad(START.plusDays(7), før, etter);
-        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad))
-            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("inne i en søkerperiode");
+        assertThatCode(() -> UttaksperioderValidering.valider(søknad)).doesNotThrowAnyException();
     }
 
     @org.junit.jupiter.api.Test
