@@ -124,9 +124,8 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
         klargjørTask.setProperty(BEHANDLING_TEMA_PROPERTY, behandlingTema.getOffisiellKode());
         klargjørTask.setProperty(DOKUMENT_TYPE_ID_PROPERTY, dokumentTypeId.name());
 
-        // TODO: Avklar før deploy når forsendelser skal slettes, hvorfor vi venter to timer og når fristen skal starte.
-        // Avklar også håndtering av eksisterende tasker og samtidig kjøring av gammel og ny versjon ved deploy/rollback.
-        // Gjelder også sletting i BehandleEttersendelseTask.
+        // Sletting kjører etter at resten av gruppen er ferdig. Feiler oversikt-tasken, blir forsendelsen liggende til
+        // tasken er kjørt på nytt. Det er bevisst: innsendingen til fp-sak stoppes ikke, og søknaden må finnes ved ny kjøring.
         var slettTask = ProsessTaskData.forProsessTask(SlettForsendelseTask.class);
         slettTask.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
         slettTask.setNesteKjøringEtter(LocalDateTime.now().plusHours(2));
