@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType;
 import no.nav.foreldrepenger.kontrakter.felles.typer.Saksnummer;
 import no.nav.foreldrepenger.soknad.kontrakt.BrukerRolle;
 import no.nav.foreldrepenger.soknad.kontrakt.builder.EndringssøknadBuilder;
@@ -124,5 +125,59 @@ class EndringsdatoFilterTest {
         var søknad = new EndringssøknadBuilder(new Saksnummer("123456")).medUttaksplan(PLAN).build();
         assertThat(EndringsdatoFilter.fraEndringsdato(søknad)).isSameAs(søknad);
         assertThat(EndringsdatoFilter.uttaksplanFraEndringsdato(søknad)).isSameAs(søknad.uttaksplan());
+    }
+
+    // Overgangsordning for eldre frontend uten endringsdato
+
+    @Test
+    void eldre_klient_med_søkerperiode_først_returneres_uendret() {
+        var søknad = new EndringssøknadBuilder(new Saksnummer("123456")).medRolle(BrukerRolle.MOR)
+            .medUttaksplan(List.of(PÅ_ENDRINGSDATO, ETTER)).build();
+
+        assertThat(EndringsdatoFilter.fraEndringsdato(søknad)).isSameAs(søknad);
+        assertThat(EndringsdatoFilter.uttaksplanFraEndringsdato(søknad)).isSameAs(søknad.uttaksplan());
+    }
+
+    @Test
+    void eldre_klient_der_planen_starter_med_annen_parts_periode_gir_fri_utsettelse_fra_tidligste_fom() {
+        // Søker har fjernet sin del av samtidig uttak. Eldre frontend sendte annen parts periode som opphold.
+        var søknad = new EndringssøknadBuilder(new Saksnummer("123456")).medRolle(BrukerRolle.FAR)
+            .medUttaksplan(List.of(ANNEN_PART_FØR, PÅ_ENDRINGSDATO, ETTER)).build();
+
+        var filtrert = EndringsdatoFilter.fraEndringsdato(søknad);
+
+        assertThat(filtrert.uttaksplan().perioder()).containsExactly(
+            fri(Rolle.FAR_MEDMOR, ANNEN_PART_FØR.fom(), PÅ_ENDRINGSDATO.fom().minusDays(1)), ANNEN_PART_FØR, PÅ_ENDRINGSDATO, ETTER);
+        assertThat(filtrert.endringsdato()).as("utledet dato skal ikke inn i søknaden, ellers sendes den til fp-oversikt").isNull();
+        assertThat(søknad.uttaksplan().perioder()).containsExactly(ANNEN_PART_FØR, PÅ_ENDRINGSDATO, ETTER);
+    }
+
+    @Test
+    void eldre_klient_uten_søkerperioder_etter_annen_part_gir_én_dag_fri_utsettelse() {
+        var søknad = new EndringssøknadBuilder(new Saksnummer("123456")).medRolle(BrukerRolle.MOR)
+            .medUttaksplan(List.of(ETTER)).build();
+
+        assertThat(EndringsdatoFilter.uttaksplanFraEndringsdato(søknad).perioder())
+            .containsExactly(fri(Rolle.MOR, ETTER.fom(), ETTER.fom()), ETTER);
+    }
+
+    @Test
+    void eldre_klient_med_annen_parts_fff_eller_utsettelse_først_returneres_uendret() {
+        // Eldre frontend sendte ikke slike perioder som opphold, så de sier ingenting om endringstidspunktet
+        var fff = new UttakDto(Rolle.MOR, KontoType.FORELDREPENGER_FØR_FØDSEL, null, null, null, null, null, false, null);
+        var utsettelse = new UttakDto(Rolle.MOR, null, UtsettelseÅrsak.ARBEID, null, null, null, null, false, null);
+        var søknad = new EndringssøknadBuilder(new Saksnummer("123456")).medRolle(BrukerRolle.FAR).medUttaksplan(List.of(
+            new UttakPeriodeDto(START, START.plusDays(4), null, fff, null),
+            new UttakPeriodeDto(START.plusDays(7), START.plusDays(11), null, utsettelse, null),
+            PÅ_ENDRINGSDATO)).build();
+
+        assertThat(EndringsdatoFilter.fraEndringsdato(søknad)).isSameAs(søknad);
+    }
+
+    @Test
+    void eldre_klient_uten_rolle_returneres_uendret() {
+        var søknad = new EndringssøknadBuilder(new Saksnummer("123456")).medUttaksplan(List.of(ANNEN_PART_FØR, PÅ_ENDRINGSDATO)).build();
+
+        assertThat(EndringsdatoFilter.fraEndringsdato(søknad)).isSameAs(søknad);
     }
 }

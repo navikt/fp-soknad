@@ -4,10 +4,12 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType;
 import no.nav.foreldrepenger.soknad.kontrakt.BrukerRolle;
 import no.nav.foreldrepenger.soknad.kontrakt.EndringssøknadForeldrepengerDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Rolle;
@@ -25,7 +27,7 @@ import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.Uttakspla
  * utsettelse for søker fra endringsdato til dagen før neste søkerperiode. Finnes ingen senere søkerperiode, varer
  * den frie utsettelsen én dag.
  *
- * Uten endringsdato (eldre klienter) returneres planen uendret.
+ * Uten endringsdato (eldre klienter) gjelder en overgangsordning, se {@link #utledEndringsdatoForEldreKlient}.
  */
 public final class EndringsdatoFilter {
 
@@ -59,19 +61,75 @@ public final class EndringsdatoFilter {
 
     public static UttaksplanDto uttaksplanFraEndringsdato(EndringssøknadForeldrepengerDto endringssøknad) {
         var uttaksplan = endringssøknad.uttaksplan();
-        if (endringssøknad.endringsdato() == null) {
+        var endringsdato = endringsdatoTilFpsak(endringssøknad);
+        if (endringsdato.isEmpty()) {
             return uttaksplan;
         }
         return new UttaksplanDto(uttaksplan.ønskerJustertUttakVedFødsel(),
-            perioderFraEndringsdato(uttaksplan.perioder(), endringssøknad.endringsdato(), endringssøknad.rolle()));
+            perioderFraEndringsdato(uttaksplan.perioder(), endringsdato.get(), endringssøknad.rolle()));
     }
 
+    /**
+     * Søknaden med periodene som skal til FPSAK og PDF. En endringsdato som utledes for eldre klienter, legges ikke
+     * inn i søknaden: {@code endringsdato()} er fortsatt null, slik at søknaden ikke sendes til fp-oversikt.
+     */
     public static EndringssøknadForeldrepengerDto fraEndringsdato(EndringssøknadForeldrepengerDto e) {
-        if (e.endringsdato() == null) {
+        if (endringsdatoTilFpsak(e).isEmpty()) {
             return e;
         }
         return new EndringssøknadForeldrepengerDto(e.mottattdato(), e.saksnummer(), e.søkerinfo(), e.rolle(), e.språkkode(), e.barn(),
             e.annenForelder(), uttaksplanFraEndringsdato(e), e.vedlegg(), e.endringsdato());
+    }
+
+    private static Optional<LocalDate> endringsdatoTilFpsak(EndringssøknadForeldrepengerDto endringssøknad) {
+        if (endringssøknad.endringsdato() != null) {
+            return Optional.of(endringssøknad.endringsdato());
+        }
+        return utledEndringsdatoForEldreKlient(endringssøknad);
+    }
+
+    /**
+     * OVERGANGSORDNING for eldre frontend som ikke sender endringsdato. Fjernes når alle klienter sender endringsdato,
+     * sammen med overgangskoden i SendSøknadTilOversiktTask. Endringsdato bør da bli påkrevd for endringssøknad.
+     *
+     * Eldre frontend kutter planen ved sitt eget endringstidspunkt og sender bare perioder som starter på eller etter
+     * det, eller som krysser det. Tidligste fom blant søkers perioder og annen parts opphold er derfor
+     * endringstidspunktet, eller starten på en periode som krysser det. Annen parts uttak ble sendt som opphold i stedet
+     * for fri utsettelse. Når søker har fjernet sin del av samtidig uttak, starter planen med en periode der bare annen
+     * part har uttak, og FPSAK ville fått for sen endringsdato når opphold ikke lenger sendes. Da utledes endringsdato
+     * som tidligste fom, slik at søker får fri utsettelse fram til neste søkerperiode.
+     *
+     * Starter en søkerperiode på tidligste fom, utledes ingenting og planen sendes uendret, som før.
+     */
+    private static Optional<LocalDate> utledEndringsdatoForEldreKlient(EndringssøknadForeldrepengerDto endringssøknad) {
+        var perioder = Optional.ofNullable(endringssøknad.uttaksplan()).map(UttaksplanDto::perioder).orElse(List.of());
+        if (perioder.isEmpty() || endringssøknad.rolle() == null) {
+            return Optional.empty();
+        }
+        var tidligsteFom = perioder.stream()
+            .filter(p -> p.søker() != null || varOppholdForEldreKlient(p))
+            .map(UttakPeriodeDto::fom)
+            .min(LocalDate::compareTo);
+        if (tidligsteFom.isEmpty()) {
+            return Optional.empty();
+        }
+        var søkerperiodePåTidligsteFom = perioder.stream().anyMatch(p -> p.søker() != null && p.fom().isEqual(tidligsteFom.get()));
+        if (søkerperiodePåTidligsteFom) {
+            return Optional.empty();
+        }
+        LOG.info("Overgangsordning: endringssøknad uten endringsdato starter uten søkerperiode. Bruker {} som endringsdato til FPSAK.",
+            tidligsteFom.get());
+        return tidligsteFom;
+    }
+
+    /**
+     * Annen parts uttak som eldre frontend sendte og som FPSAK fikk som opphold: uttak på en konto med oppholdsårsak,
+     * ikke foreldrepenger før fødsel og ikke utsettelse.
+     */
+    private static boolean varOppholdForEldreKlient(UttakPeriodeDto periode) {
+        var annenPart = periode.annenPart();
+        return periode.søker() == null && annenPart != null && annenPart.utsettelseÅrsak() == null && annenPart.kontoType() != null
+            && annenPart.kontoType() != KontoType.FORELDREPENGER_FØR_FØDSEL;
     }
 
     private static UttakPeriodeDto kuttVedEndringsdato(UttakPeriodeDto periode, LocalDate endringsdato) {
