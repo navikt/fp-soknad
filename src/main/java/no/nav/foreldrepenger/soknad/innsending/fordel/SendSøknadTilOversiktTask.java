@@ -1,14 +1,13 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel;
 
-import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
-
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import no.nav.foreldrepenger.kontrakter.felles.typer.Saksnummer;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ArkivFilType;
 import no.nav.foreldrepenger.soknad.innsending.fordel.dokument.DokumentEntitet;
@@ -54,7 +53,8 @@ public class SendSøknadTilOversiktTask implements ProsessTaskHandler {
             .findFirst()
             .orElseThrow();
         var søknad = SøknadJsonMapper.deseraliserSøknad(søknadDokument);
-        var mottattTidspunkt = metadata.getForsendelseMottatt().atZone(ZoneId.systemDefault()).toOffsetDateTime();
+        // fp-oversikt lagrer millisekunder. Avkorter her så retry gir likt tidspunkt og gjenkjennes.
+        var mottattTidspunkt = metadata.getForsendelseMottatt().truncatedTo(ChronoUnit.MILLIS);
 
         switch (søknad) {
             case ForeldrepengesøknadDto fp -> fpOversiktTjeneste.send(

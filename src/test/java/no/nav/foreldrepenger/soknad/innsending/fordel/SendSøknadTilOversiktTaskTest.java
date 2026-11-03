@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -45,7 +45,7 @@ import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 class SendSøknadTilOversiktTaskTest {
 
     private static final LocalDate DAG = LocalDate.of(2026, 11, 2);
-    private static final LocalDateTime MOTTATT = LocalDateTime.of(2026, 10, 1, 12, 0);
+    private static final LocalDateTime MOTTATT = LocalDateTime.of(2026, 10, 1, 12, 0, 0, 123_456_789);
 
     private final List<OversiktSøknadDto> sendt = new ArrayList<>();
     private DokumentRepository dokumentRepository;
@@ -81,7 +81,7 @@ class SendSøknadTilOversiktTaskTest {
 
         assertThat(sendt).containsExactly(new OversiktSøknadDto(
             new Saksnummer("123456"),
-            MOTTATT.atZone(ZoneId.systemDefault()).toOffsetDateTime(),
+            MOTTATT.truncatedTo(ChronoUnit.MILLIS),
             forventetRolle,
             perioder));
     }
@@ -122,7 +122,7 @@ class SendSøknadTilOversiktTaskTest {
 
         assertThat(sendt).containsExactly(new OversiktSøknadDto(
             new Saksnummer("999888"),
-            MOTTATT.atZone(ZoneId.systemDefault()).toOffsetDateTime(),
+            MOTTATT.truncatedTo(ChronoUnit.MILLIS),
             Rolle.FAR_MEDMOR,
             List.of(før, etter)));
     }
