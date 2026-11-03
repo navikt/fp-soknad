@@ -70,9 +70,8 @@ public final class UttaksperioderValidering {
         var antallSøkerperioder = perioder.stream().filter(p -> p.søker() != null).count();
         requireAntallUnderTerskel((int) antallSøkerperioder, MAKS_ANTALL_SØKERPERIODER, "søkerperioder");
         var søkerperioder = søkersPerioder(perioder);
-        if (kreverSøkerperiode) {
-            requireMinstEnPeriode(søkerperioder, søknadBeskrivelse);
-        }
+        // fp-oversikt lagrer bare planer med minst én periode. Uten endringsdato må det også være en søkerperiode.
+        requireMinstEnPeriode(kreverSøkerperiode ? søkerperioder : perioder, søknadBeskrivelse);
         var ugyldigeDatoer = perioder.stream()
             .filter(p -> p.tom().isBefore(p.fom()))
             .map(p -> String.format("{fom=%s, tom=%s}", p.fom(), p.tom()))

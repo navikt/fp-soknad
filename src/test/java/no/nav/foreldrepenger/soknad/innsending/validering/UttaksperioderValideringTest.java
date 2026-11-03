@@ -247,6 +247,12 @@ class UttaksperioderValideringTest {
     }
 
     @org.junit.jupiter.api.Test
+    void endringssøknad_med_endringsdato_og_tom_plan_avvises() {
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(endringssøknad(START)))
+            .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("minst én periode");
+    }
+
+    @org.junit.jupiter.api.Test
     void endringssøknad_med_endringsdato_uten_søkerperioder_godtas() {
         var annenPart = new UttakPeriodeDto(START, START.plusDays(4), null, UTTAK, null);
         assertThatCode(() -> UttaksperioderValidering.valider(endringssøknad(START, annenPart))).doesNotThrowAnyException();
