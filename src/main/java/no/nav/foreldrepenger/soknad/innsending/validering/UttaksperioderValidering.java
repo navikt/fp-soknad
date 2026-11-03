@@ -36,6 +36,15 @@ public final class UttaksperioderValidering {
         var søknadBeskrivelse = søknad instanceof EndringssøknadForeldrepengerDto endring ?
             "endringssøknad (saksnummer " + endring.saksnummer().value() + ")" : "førstegangssøknad";
 
+        var rolle = switch (søknad) {
+            case ForeldrepengesøknadDto fp -> fp.rolle();
+            case EndringssøknadForeldrepengerDto endring -> endring.rolle();
+            default -> null;
+        };
+        if (rolle == null) {
+            // Rollen trengs for å sende planen til fp-oversikt og for å legge inn fri utsettelse til FPSAK
+            throw new UttaksperioderValideringException("Søknaden mangler rolle. Gjelder " + søknadBeskrivelse);
+        }
         if (uttaksplan.perioder() == null) {
             throw new UttaksperioderValideringException("Uttaksplan mangler perioder. Gjelder " + søknadBeskrivelse);
         }
@@ -43,10 +52,6 @@ public final class UttaksperioderValidering {
         var harEndringsdato = søknad instanceof EndringssøknadForeldrepengerDto e && e.endringsdato() != null;
         validerPerioder(uttaksplan.perioder(), søknadBeskrivelse, !harEndringsdato);
         if (søknad instanceof EndringssøknadForeldrepengerDto endring && endring.endringsdato() != null) {
-            if (endring.rolle() == null) {
-                // Rollen trengs for å legge inn fri utsettelse på endringsdato
-                throw new UttaksperioderValideringException("Endringssøknad med endringsdato mangler rolle. Gjelder " + søknadBeskrivelse);
-            }
             validerEndringsdato(endring.endringsdato(), søknadBeskrivelse);
         }
     }

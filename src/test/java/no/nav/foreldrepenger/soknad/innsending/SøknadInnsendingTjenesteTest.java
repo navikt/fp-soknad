@@ -422,7 +422,7 @@ class SøknadInnsendingTjenesteTest {
 
         var uttaksplan = List.of(uttak(MØDREKVOTE, now, now), uttak(MØDREKVOTE, now, now.plusDays(3)));
 
-        var søknad = (ForeldrepengesøknadDto) new ForeldrepengerBuilder().medUttaksplan(uttaksplan).build();
+        var søknad = (ForeldrepengesøknadDto) new ForeldrepengerBuilder().medRolle(BrukerRolle.MOR).medUttaksplan(uttaksplan).build();
 
         // Act/Assert
         assertThatThrownBy(() -> søknadInnsendingTjeneste.lagreSøknadInnsending(søknad))
@@ -439,7 +439,7 @@ class SøknadInnsendingTjenesteTest {
             new UttakPeriodeDto(now.plusDays(2), now.plusDays(2),
                 new UttakDto(Rolle.MOR, FEDREKVOTE, null, OverføringÅrsak.SYKDOM_ANNEN_FORELDER, null, null, null, false, null), null, null)
         );
-        var søknad = (ForeldrepengesøknadDto) new ForeldrepengerBuilder().medUttaksplan(uttaksplan).build();
+        var søknad = (ForeldrepengesøknadDto) new ForeldrepengerBuilder().medRolle(BrukerRolle.MOR).medUttaksplan(uttaksplan).build();
 
         // Act/Assert
         assertThatThrownBy(() -> søknadInnsendingTjeneste.lagreSøknadInnsending(søknad))

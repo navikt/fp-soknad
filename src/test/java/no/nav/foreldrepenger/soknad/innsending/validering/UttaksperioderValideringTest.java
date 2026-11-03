@@ -235,10 +235,13 @@ class UttaksperioderValideringTest {
             .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("helg");
     }
 
-    @org.junit.jupiter.api.Test
-    void endringssøknad_med_endringsdato_uten_rolle_avvises() {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void søknad_uten_rolle_avvises(boolean endring) {
         var søker = new UttakPeriodeDto(START, START.plusDays(4), UTTAK, null, null);
-        var søknad = new EndringssøknadBuilder(new Saksnummer("123456")).medUttaksplan(List.of(søker)).medEndringsdato(START).build();
+        var søknad = endring
+            ? new EndringssøknadBuilder(new Saksnummer("123456")).medUttaksplan(List.of(søker)).build()
+            : new ForeldrepengerBuilder().medUttaksplan(List.of(søker)).build();
         assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad))
             .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("mangler rolle");
     }
@@ -256,8 +259,8 @@ class UttaksperioderValideringTest {
 
     private static SøknadDto søknad(boolean endring, List<UttakPeriodeDto> perioder) {
         return endring
-            ? new EndringssøknadBuilder(new Saksnummer("123456")).medUttaksplan(perioder).build()
-            : new ForeldrepengerBuilder().medUttaksplan(perioder).build();
+            ? new EndringssøknadBuilder(new Saksnummer("123456")).medRolle(BrukerRolle.MOR).medUttaksplan(perioder).build()
+            : new ForeldrepengerBuilder().medRolle(BrukerRolle.MOR).medUttaksplan(perioder).build();
     }
 
     private static List<UttakPeriodeDto> perioder(int antallSøker, int antallOpphold, int antallFiltrerte) {
