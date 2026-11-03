@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,12 +56,8 @@ public final class EndringsdatoFilter {
 
     public static UttaksplanDto uttaksplanFraEndringsdato(EndringssøknadForeldrepengerDto endringssøknad) {
         var uttaksplan = endringssøknad.uttaksplan();
-        var endringsdato = endringsdatoTilFpsak(endringssøknad);
-        if (endringsdato.isEmpty()) {
-            return uttaksplan;
-        }
         return new UttaksplanDto(uttaksplan.ønskerJustertUttakVedFødsel(),
-            perioderFraEndringsdato(uttaksplan.perioder(), endringsdato.get(), endringssøknad.rolle()));
+            perioderFraEndringsdato(uttaksplan.perioder(), gjeldendeEndringsdato(endringssøknad), endringssøknad.rolle()));
     }
 
     /**
@@ -70,16 +65,13 @@ public final class EndringsdatoFilter {
      * inn i søknaden: {@code endringsdato()} er fortsatt null, slik at søknaden ikke sendes til fp-oversikt.
      */
     public static EndringssøknadForeldrepengerDto fraEndringsdato(EndringssøknadForeldrepengerDto e) {
-        if (endringsdatoTilFpsak(e).isEmpty()) {
-            return e;
-        }
         return new EndringssøknadForeldrepengerDto(e.mottattdato(), e.saksnummer(), e.søkerinfo(), e.rolle(), e.språkkode(), e.barn(),
             e.annenForelder(), uttaksplanFraEndringsdato(e), e.vedlegg(), e.endringsdato());
     }
 
-    private static Optional<LocalDate> endringsdatoTilFpsak(EndringssøknadForeldrepengerDto endringssøknad) {
+    private static LocalDate gjeldendeEndringsdato(EndringssøknadForeldrepengerDto endringssøknad) {
         if (endringssøknad.endringsdato() != null) {
-            return Optional.of(endringssøknad.endringsdato());
+            return endringssøknad.endringsdato();
         }
         return utledEndringsdatoForEldreKlient(endringssøknad);
     }
@@ -91,14 +83,17 @@ public final class EndringsdatoFilter {
      * Eldre frontend kutter planen ved sitt eget endringstidspunkt og sender bare perioder som starter på eller etter
      * det, eller som krysser det. Annen parts perioder sendte den bare når de var uttak som FPSAK fikk som opphold.
      * Første dag i den innsendte planen er derfor endringstidspunktet, eller starten på en periode som krysser det, og
-     * brukes som endringsdato til FPSAK.
+     * brukes som endringsdato for FPSAK, ruting og PDF.
      *
      * Vanligvis starter søker en periode der, og FPSAK får det samme som før. Når søker har fjernet sin del av samtidig
      * uttak, starter planen med en periode der bare annen part har uttak. Den ble før sendt som opphold. Nå får søker
      * i stedet fri utsettelse fram til neste søkerperiode, slik at FPSAK ikke får for sen endringsdato.
+     *
+     * Planen er aldri tom her: UttaksperioderValidering krever minst én søkerperiode når endringsdato mangler.
      */
-    private static Optional<LocalDate> utledEndringsdatoForEldreKlient(EndringssøknadForeldrepengerDto endringssøknad) {
-        return endringssøknad.uttaksplan().perioder().stream().map(UttakPeriodeDto::fom).min(LocalDate::compareTo);
+    private static LocalDate utledEndringsdatoForEldreKlient(EndringssøknadForeldrepengerDto endringssøknad) {
+        return endringssøknad.uttaksplan().perioder().stream().map(UttakPeriodeDto::fom).min(LocalDate::compareTo)
+            .orElseThrow(() -> new IllegalStateException("Endringssøknad uten endringsdato mangler perioder"));
     }
 
     private static UttakPeriodeDto kuttVedEndringsdato(UttakPeriodeDto periode, LocalDate endringsdato) {

@@ -112,10 +112,10 @@ class V3ForeldrepengerDomainMapperTest {
         assertThatThrownBy(() -> map(plan, List.of(), endring)).isInstanceOf(NullPointerException.class);
     }
 
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void tom_liste_gir_tomme_xml_perioder(boolean endring) throws Exception {
-        assertThat(map(new UttaksplanDto(false, List.of()), List.of(), endring).getPerioder()).isEmpty();
+    @Test
+    void tom_liste_gir_tomme_xml_perioder() throws Exception {
+        // Endringssøknad med tom plan avvises av UttaksperioderValidering før mapping
+        assertThat(map(new UttaksplanDto(false, List.of()), List.of(), false).getPerioder()).isEmpty();
     }
 
     @ParameterizedTest
