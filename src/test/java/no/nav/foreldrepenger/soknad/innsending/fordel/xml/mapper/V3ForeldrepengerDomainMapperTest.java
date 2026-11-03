@@ -143,7 +143,9 @@ class V3ForeldrepengerDomainMapperTest {
             new UttakPeriodeDto(TOM.plusDays(1), TOM.plusDays(5), null, utsettelse, null),
             new UttakPeriodeDto(TOM.plusDays(6), TOM.plusDays(10), uttak(KontoType.FELLESPERIODE), null, null));
         var xml = map(new UttaksplanDto(false, perioder), List.of(), endring);
-        assertThat(xml.getPerioder()).singleElement().isInstanceOf(Uttaksperiode.class);
+        // For endringssøknad uten endringsdato kan overgangsordningen i EndringsdatoFilter legge inn fri utsettelse først
+        assertThat(xml.getPerioder()).filteredOn(Uttaksperiode.class::isInstance).singleElement();
+        assertThat(xml.getPerioder()).allMatch(p -> p instanceof Uttaksperiode || p instanceof Utsettelsesperiode);
     }
 
     private static List<UttakPeriodeDto> søkerAnnenPartOgEøs() {

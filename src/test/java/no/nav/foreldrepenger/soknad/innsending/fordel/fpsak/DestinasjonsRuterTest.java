@@ -68,13 +68,14 @@ class DestinasjonsRuterTest {
     }
 
     @Test
-    void endringssøknad_bruker_første_søkerperiode_selv_om_opphold_starter_tidligere() {
+    void eldre_klient_der_planen_starter_med_annen_parts_uttak_bruker_første_dag_i_planen() {
+        // Overgangsordning: søker får fri utsettelse fra første dag i planen, se EndringsdatoFilter
         var uttak = new UttakDto(Rolle.MOR, MØDREKVOTE, null, null, null, null, null, false, null);
         var perioder = List.of(
             new UttakPeriodeDto(START, START, null, uttak, null),
             new UttakPeriodeDto(START.plusWeeks(1), START.plusWeeks(1), uttak, null, null));
 
-        assertThat(startdatoForEndringssøknad(perioder)).contains(START.plusWeeks(1));
+        assertThat(startdatoForEndringssøknad(perioder)).contains(START);
     }
 
     @Test
@@ -95,7 +96,7 @@ class DestinasjonsRuterTest {
 
     private Optional<LocalDate> startdatoForEndringssøknad(List<UttakPeriodeDto> perioder) {
         when(fpsak.vurderFagsystem(any())).thenReturn(new VurderFagsystemResultat(VurderFagsystemResultat.SendTil.FPSAK, "123456"));
-        var søknad = new EndringssøknadBuilder(new Saksnummer("123456")).medPerioder(perioder).build();
+        var søknad = new EndringssøknadBuilder(new Saksnummer("123456")).medRolle(BrukerRolle.MOR).medPerioder(perioder).build();
         rute(søknad, DokumentTypeId.I000050);
         var captor = ArgumentCaptor.forClass(VurderFagsystemDto.class);
         verify(fpsak).vurderFagsystem(captor.capture());
