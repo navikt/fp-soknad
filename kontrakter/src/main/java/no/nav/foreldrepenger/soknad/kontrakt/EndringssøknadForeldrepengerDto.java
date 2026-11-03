@@ -1,5 +1,6 @@
 package no.nav.foreldrepenger.soknad.kontrakt;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +24,8 @@ public record EndringssøknadForeldrepengerDto(LocalDateTime mottattdato,
                                               @Valid @NotNull BarnDto barn,
                                               @Valid AnnenForelderDto annenForelder,
                                               @Valid @NotNull UttaksplanDto uttaksplan,
-                                              @VedlegglistestørrelseConstraint @Size(max = 100) List<@Valid @NotNull VedleggDto> vedlegg) implements SøknadDto {
+                                              @VedlegglistestørrelseConstraint @Size(max = 100) List<@Valid @NotNull VedleggDto> vedlegg,
+                                              LocalDate endringsdato) implements SøknadDto {
 
     public EndringssøknadForeldrepengerDto {
         vedlegg = Optional.ofNullable(vedlegg).map(ArrayList::new).orElse(new ArrayList<>());
