@@ -13,6 +13,7 @@ import javax.imageio.ImageIO;
 
 import org.junit.jupiter.api.Test;
 
+import no.nav.foreldrepenger.soknad.server.error.LokalFeilkode;
 import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningImageTooLargeException;
 import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningUnreadableException;
 
@@ -28,7 +29,9 @@ class ImageScalerTest {
 
         assertThatThrownBy(() -> ImageScaler.lesBilde(bombe, IMAGE_PNG))
             .isInstanceOf(VedleggOpplastningImageTooLargeException.class)
-            .hasMessageContaining("25000x25000");
+            .hasMessageContaining("25000x25000")
+            .extracting(e -> ((VedleggOpplastningImageTooLargeException) e).getFeilkode())
+            .isEqualTo(LokalFeilkode.MELLOMLAGRING_VEDLEGG_BILDE_FOR_STORT.name());
     }
 
     @Test
