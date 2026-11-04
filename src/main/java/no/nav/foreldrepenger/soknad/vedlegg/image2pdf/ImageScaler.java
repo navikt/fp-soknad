@@ -21,11 +21,16 @@ import org.slf4j.LoggerFactory;
 
 import jakarta.ws.rs.core.MediaType;
 import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningConversionException;
+import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningImageTooLargeException;
+import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningUnreadableException;
 
 class ImageScaler {
 
     private static final Logger LOG = LoggerFactory.getLogger(ImageScaler.class);
     private static final MediaType IMAGE_JPEG = MediaType.valueOf("image/jpeg");
+    // Gir plass til mobilkameraer på 200 MP. Grensen begrenser CPU-tiden det tar å pakke ut bildet, ikke minnet.
+    static final long MAKS_ANTALL_PIKSLER = 250_000_000L;
+    private static final long A4_300_DPI_PIKSLER = 2480L * 3508L;
 
     private ImageScaler() {
 
@@ -35,7 +40,7 @@ class ImageScaler {
         var pdPage = new PDPage(PDRectangle.A4);
         doc.addPage(pdPage);
         try (var pdPageContentStream = new PDPageContentStream(doc, pdPage)) {
-            var bufferedImage = ImageIO.read(new ByteArrayInputStream(image));
+            var bufferedImage = lesBilde(image, mediaType);
             var matrix = matrixFromImage(pdPage, bufferedImage);
             PDImageXObject pdImageXObject;
             if (mediaType.equals(IMAGE_JPEG)) {
@@ -47,6 +52,43 @@ class ImageScaler {
         } catch (IOException e) {
             throw new VedleggOpplastningConversionException(mediaType, e);
         }
+    }
+
+    /**
+     * Leser dimensjonene fra bildets header før pikslene pakkes ut. Et lite, komprimert bilde kan ha enorme dimensjoner
+     * og ta gigabytes i minnet når det pakkes ut. Store bilder leses derfor inn nedskalert (subsampling), slik at bare
+     * hver n-te piksel holdes i minnet. Bildet blir aldri mindre enn A4 i 300 dpi, siden det uansett skaleres ned til A4.
+     */
+    static BufferedImage lesBilde(byte[] image, MediaType mediaType) throws IOException {
+        try (var input = ImageIO.createImageInputStream(new ByteArrayInputStream(image))) {
+            var readers = input == null ? null : ImageIO.getImageReaders(input);
+            if (readers == null || !readers.hasNext()) {
+                throw new VedleggOpplastningUnreadableException("Fant ingen leser for bildet", mediaType);
+            }
+            var reader = readers.next();
+            try {
+                reader.setInput(input, true, true);
+                var bredde = reader.getWidth(0);
+                var høyde = reader.getHeight(0);
+                var antallPiksler = (long) bredde * høyde;
+                if (antallPiksler > MAKS_ANTALL_PIKSLER) {
+                    throw new VedleggOpplastningImageTooLargeException(bredde, høyde, MAKS_ANTALL_PIKSLER, mediaType);
+                }
+                var param = reader.getDefaultReadParam();
+                var subsampling = subsamplingFaktor(antallPiksler);
+                if (subsampling > 1) {
+                    LOG.info("Leser bilde på {}x{} piksler med subsampling {}", bredde, høyde, subsampling);
+                    param.setSourceSubsampling(subsampling, subsampling, 0, 0);
+                }
+                return reader.read(0, param);
+            } finally {
+                reader.dispose();
+            }
+        }
+    }
+
+    static int subsamplingFaktor(long antallPiksler) {
+        return Math.max(1, (int) Math.floor(Math.sqrt((double) antallPiksler / A4_300_DPI_PIKSLER)));
     }
 
     static Matrix matrixFromImage(PDPage pdPage, BufferedImage bufferedImage) {
