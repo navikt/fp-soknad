@@ -25,7 +25,7 @@ class ImageScalerTest {
         try (var is = getClass().getClassLoader().getResourceAsStream("vedlegg/dekompresjonsbombe-25000x25000.png")) {
             bombe = is.readAllBytes();
         }
-        assertThat(bombe.length).isLessThan(100_000);
+        assertThat(bombe).hasSizeLessThan(100_000);
 
         assertThatThrownBy(() -> ImageScaler.lesBilde(bombe, IMAGE_PNG))
             .isInstanceOf(VedleggOpplastningImageTooLargeException.class)
