@@ -4,6 +4,7 @@ import java.net.URI;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.UriBuilder;
+import no.nav.vedtak.felles.integrasjon.rest.FpApplication;
 import no.nav.vedtak.felles.integrasjon.rest.RestClient;
 import no.nav.vedtak.felles.integrasjon.rest.RestClientConfig;
 import no.nav.vedtak.felles.integrasjon.rest.RestConfig;
@@ -11,13 +12,7 @@ import no.nav.vedtak.felles.integrasjon.rest.RestRequest;
 import no.nav.vedtak.felles.integrasjon.rest.TokenFlow;
 
 @ApplicationScoped
-@RestClientConfig(
-    tokenConfig = TokenFlow.AZUREAD_CC,
-    endpointProperty = "fpoversikt.base.url",
-    endpointDefault = "http://fpoversikt.teamforeldrepenger/fpoversikt",
-    scopesProperty = "fpoversikt.scopes",
-    scopesDefault = "api://prod-gcp.teamforeldrepenger.fpoversikt/.default"
-)
+@RestClientConfig(tokenConfig = TokenFlow.AZUREAD_CC, application = FpApplication.FPOVERSIKT)
 public class FpOversiktRestKlient implements FpOversiktTjeneste {
 
     private static final String SØKNADSPLAN_PATH = "/backend/api/soknadsplan";
