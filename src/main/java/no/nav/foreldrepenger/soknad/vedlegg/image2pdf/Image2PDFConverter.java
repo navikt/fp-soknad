@@ -17,6 +17,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.core.MediaType;
 import no.nav.foreldrepenger.soknad.vedlegg.Vedlegg;
 import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningConversionException;
+import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningException;
 import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningTypeUnsupportedException;
 
 @ApplicationScoped
@@ -55,6 +56,8 @@ public class Image2PDFConverter {
             addPDFPageFromImage(doc, innhold, mediaType);
             doc.save(outputStream);
             return outputStream.toByteArray();
+        } catch (VedleggOpplastningException e) {
+            throw e;
         } catch (Exception e) {
             throw new VedleggOpplastningConversionException(mediaType, e);
         }
@@ -63,6 +66,8 @@ public class Image2PDFConverter {
     private static void addPDFPageFromImage(PDDocument doc, byte[] orig, MediaType mediaType) {
         try {
            pdfFraBilde(doc, orig, mediaType);
+        } catch (VedleggOpplastningException e) {
+            throw e;
         } catch (Exception e) {
             throw new VedleggOpplastningConversionException(mediaType, e);
         }

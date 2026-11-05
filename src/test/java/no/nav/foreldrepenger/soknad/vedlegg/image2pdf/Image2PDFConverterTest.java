@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import jakarta.ws.rs.core.MediaType;
 import no.nav.foreldrepenger.soknad.vedlegg.Vedlegg;
+import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningImageTooLargeException;
 import no.nav.foreldrepenger.soknad.vedlegg.error.VedleggOpplastningTypeUnsupportedException;
 
 class ImageByteArray2PDFConverterTest {
@@ -34,6 +35,12 @@ class ImageByteArray2PDFConverterTest {
     void gifFailsfWhenNotConfigured() {
         var vedlegg = hentVedleggFraResourcs("loading.gif", MediaType.valueOf("image/gif"));
         assertThrows(VedleggOpplastningTypeUnsupportedException.class, () -> converter.convert(vedlegg));
+    }
+
+    @Test
+    void bildeMedForMangePikslerAvvises() {
+        var vedlegg = hentVedleggFraResourcs("dekompresjonsbombe-25000x25000.png", IMAGE_PNG);
+        assertThrows(VedleggOpplastningImageTooLargeException.class, () -> converter.convert(vedlegg));
     }
 
     @Test
