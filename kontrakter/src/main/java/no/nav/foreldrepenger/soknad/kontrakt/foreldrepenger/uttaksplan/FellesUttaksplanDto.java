@@ -17,7 +17,8 @@ import no.nav.foreldrepenger.kontrakter.felles.kodeverk.MorsAktivitet;
 public record FellesUttaksplanDto(LocalDate termindato,
                                   @NotNull Integer antallBarn,
                                   @NotNull Dekningsgrad dekningsgrad,
-                                  @NotNull List<@Valid @NotNull UttakPeriodeDto> perioder) {
+                                  @NotNull List<@Valid @NotNull UttakPeriodeDto> perioder,
+                                  @NotNull boolean annenPartRedigerbar) {
 
     public record UttakPeriodeDto(@NotNull LocalDate fom,
                                   @NotNull LocalDate tom,
