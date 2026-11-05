@@ -33,6 +33,7 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.pdf.PdfTjeneste;
 import no.nav.foreldrepenger.soknad.innsending.fordel.pdf.v1.FpDokgenRestKlient;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.DokumentTypeId;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
+import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 
 
@@ -108,14 +109,23 @@ class BehandleEttersendelseTaskTest {
 
         verify(arkivtjeneste, times(1)).forsøkEndeligJournalføring(any(), eq(dokumenter), any(), any(), any(), any());
 
-        var captor = ArgumentCaptor.forClass(ProsessTaskData.class);
+        var captor = ArgumentCaptor.forClass(ProsessTaskGruppe.class);
         verify(taskTjeneste, times(1)).lagre(captor.capture());
-        var vlklargjørtask = captor.getValue();
+        var entries = captor.getValue().getTasks();
+        assertThat(entries).hasSize(2);
+
+        assertThat(entries.getFirst().sekvens()).isEqualTo("1");
+        var vlklargjørtask = entries.getFirst().task();
         assertThat(vlklargjørtask.taskType().value()).isEqualTo("fordeling.klargjoering");
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY)).isEqualTo(forsendelseId.toString());
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.SAKSNUMMER_PROPERTY)).isEqualTo(saksnummer);
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.BEHANDLING_TEMA_PROPERTY)).isEqualTo(BehandlingTema.FORELDREPENGER_FØDSEL.getOffisiellKode());
         assertThat(vlklargjørtask.getPropertyValue(BehandleSøknadTask.DOKUMENT_TYPE_ID_PROPERTY)).isEqualTo(DokumentTypeId.I000051.getKode());
 
+        assertThat(entries.get(1).sekvens()).isEqualTo("2");
+        var slettTask = entries.get(1).task();
+        assertThat(slettTask.taskType().value()).isEqualTo("fordeling.slettForsendelse");
+        assertThat(slettTask.getPropertyValue(BehandleSøknadTask.FORSENDELSE_ID_PROPERTY)).isEqualTo(forsendelseId.toString());
+        assertThat(slettTask.getNesteKjøringEtter()).isAfter(LocalDateTime.now().plusHours(1));
     }
 }

@@ -3,6 +3,7 @@ package no.nav.foreldrepenger.soknad.innsending.fordel;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.dokument.ForsendelseStatus.FPSAK;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.journalføring.ArkivUtil.behandlingstemaFraSøknadDokumentType;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -26,6 +27,7 @@ import no.nav.foreldrepenger.soknad.innsending.fordel.xml.StrukturertDokumentMap
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.DokumentTypeId;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTask;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskData;
+import no.nav.vedtak.felles.prosesstask.api.ProsessTaskGruppe;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskHandler;
 import no.nav.vedtak.felles.prosesstask.api.ProsessTaskTjeneste;
 
@@ -116,12 +118,38 @@ public class BehandleSøknadTask implements ProsessTaskHandler {
             return; // Midlertidig journalført, plukkes opp av fp-mottak og avventer handling
         }
 
-        var task = ProsessTaskData.forProsessTask(VLKlargjørerTask.class);
-        task.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
-        task.setProperty(SAKSNUMMER_PROPERTY, destinasjon.saksnummer());
-        task.setProperty(BEHANDLING_TEMA_PROPERTY, behandlingTema.getOffisiellKode());
-        task.setProperty(DOKUMENT_TYPE_ID_PROPERTY, dokumentTypeId.name());
-        taskTjeneste.lagre(task);
+        var klargjørTask = ProsessTaskData.forProsessTask(VLKlargjørerTask.class);
+        klargjørTask.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
+        klargjørTask.setProperty(SAKSNUMMER_PROPERTY, destinasjon.saksnummer());
+        klargjørTask.setProperty(BEHANDLING_TEMA_PROPERTY, behandlingTema.getOffisiellKode());
+        klargjørTask.setProperty(DOKUMENT_TYPE_ID_PROPERTY, dokumentTypeId.name());
+
+        // Sletting kjører etter at resten av gruppen er ferdig. Feiler oversikt-tasken, blir forsendelsen liggende til
+        // tasken er kjørt på nytt. Det er bevisst: innsendingen til fp-sak stoppes ikke, og søknaden må finnes ved ny kjøring.
+        var slettTask = ProsessTaskData.forProsessTask(SlettForsendelseTask.class);
+        slettTask.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
+        slettTask.setNesteKjøringEtter(LocalDateTime.now().plusHours(2));
+
+        var gruppe = new ProsessTaskGruppe();
+        if (erForeldrepengesøknad(dokumentTypeId)) {
+            var oversiktTask = ProsessTaskData.forProsessTask(SendSøknadTilOversiktTask.class);
+            oversiktTask.setProperty(FORSENDELSE_ID_PROPERTY, forsendelseId.toString());
+            oversiktTask.setProperty(SAKSNUMMER_PROPERTY, destinasjon.saksnummer());
+            // Oversikt og fp-sak er uavhengige: oversikt får hele planen, fp-sak bare perioder fra endringsdato.
+            // Sletting venter på begge, fordi begge leser søknaden fra databasen.
+            gruppe.addNesteParallell(oversiktTask, klargjørTask);
+        } else {
+            gruppe.addNesteSekvensiell(klargjørTask);
+        }
+        gruppe.addNesteSekvensiell(slettTask);
+        taskTjeneste.lagre(gruppe);
+    }
+
+    private static boolean erForeldrepengesøknad(DokumentTypeId dokumentTypeId) {
+        return switch (dokumentTypeId) {
+            case I000002, I000005, I000050 -> true;
+            default -> false;
+        };
     }
 
 }

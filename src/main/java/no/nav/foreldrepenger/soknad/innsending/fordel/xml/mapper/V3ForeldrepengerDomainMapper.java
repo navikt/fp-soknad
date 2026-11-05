@@ -1,6 +1,7 @@
 package no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper;
 
-import static no.nav.foreldrepenger.soknad.innsending.fordel.utils.FpsakUttaksperioder.perioderTilFpsak;
+import no.nav.foreldrepenger.soknad.innsending.fordel.utils.EndringsdatoFilter;
+import static no.nav.foreldrepenger.soknad.innsending.fordel.utils.FpsakUttaksperioder.søkersPerioder;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.DokumentasjonReferanseMapper.dokumentasjonSomDokumentererBarn;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.DokumentasjonReferanseMapper.dokumentasjonSomDokumentererUttaksperiode;
 import static no.nav.foreldrepenger.soknad.innsending.fordel.xml.mapper.V3DomainMapperCommon.landFraLandkode;
@@ -42,7 +43,6 @@ import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUtt
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.Aktivitet.AktivitetType;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakDto;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.FellesUttaksplanDto.UttakPeriodeDto;
-import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.Oppholdsårsak;
 import no.nav.foreldrepenger.soknad.kontrakt.foreldrepenger.uttaksplan.UttaksplanDto;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.VedleggDto;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.ÅpenPeriodeDto;
@@ -63,7 +63,6 @@ import no.nav.vedtak.felles.xml.soeknad.foreldrepenger.v3.ObjectFactory;
 import no.nav.vedtak.felles.xml.soeknad.kodeverk.v3.Dekningsgrader;
 import no.nav.vedtak.felles.xml.soeknad.kodeverk.v3.MorsAktivitetsTyper;
 import no.nav.vedtak.felles.xml.soeknad.kodeverk.v3.Omsorgsovertakelseaarsaker;
-import no.nav.vedtak.felles.xml.soeknad.kodeverk.v3.Oppholdsaarsaker;
 import no.nav.vedtak.felles.xml.soeknad.kodeverk.v3.Overfoeringsaarsaker;
 import no.nav.vedtak.felles.xml.soeknad.kodeverk.v3.Utsettelsesaarsaker;
 import no.nav.vedtak.felles.xml.soeknad.kodeverk.v3.Uttaksperiodetyper;
@@ -71,7 +70,6 @@ import no.nav.vedtak.felles.xml.soeknad.uttak.v3.Arbeidsgiver;
 import no.nav.vedtak.felles.xml.soeknad.uttak.v3.Fordeling;
 import no.nav.vedtak.felles.xml.soeknad.uttak.v3.Gradering;
 import no.nav.vedtak.felles.xml.soeknad.uttak.v3.LukketPeriodeMedVedlegg;
-import no.nav.vedtak.felles.xml.soeknad.uttak.v3.Oppholdsperiode;
 import no.nav.vedtak.felles.xml.soeknad.uttak.v3.Overfoeringsperiode;
 import no.nav.vedtak.felles.xml.soeknad.uttak.v3.Person;
 import no.nav.vedtak.felles.xml.soeknad.uttak.v3.Utsettelsesperiode;
@@ -131,7 +129,7 @@ public class V3ForeldrepengerDomainMapper  {
 
     private static JAXBElement<Endringssoeknad> endringssøknadFra(EndringssøknadForeldrepengerDto endring) {
         var endringssoeknad = new Endringssoeknad();
-        endringssoeknad.setFordeling(fordelingFra(endring.uttaksplan(), endring.annenForelder(), endring.vedlegg()));
+        endringssoeknad.setFordeling(fordelingFra(EndringsdatoFilter.uttaksplanFraEndringsdato(endring), endring.annenForelder(), endring.vedlegg()));
         endringssoeknad.setSaksnummer(endring.saksnummer().value());
         return ENDRING_FACTORY_V3.createEndringssoeknad(endringssoeknad);
     }
@@ -199,9 +197,9 @@ public class V3ForeldrepengerDomainMapper  {
     }
 
     private static List<LukketPeriodeMedVedlegg> fellesPerioderFra(List<UttakPeriodeDto> perioder, List<VedleggDto> vedlegg) {
-        return perioderTilFpsak(perioder).stream()
+        return søkersPerioder(perioder).stream()
             .map(periode -> {
-                var xml = periode.søker() != null ? lukketPeriodeFra(periode.søker()) : oppholdFra(periode.annenPart());
+                var xml = lukketPeriodeFra(periode.søker());
                 xml.setFom(periode.fom());
                 xml.setTom(periode.tom());
                 var referanser = dokumentasjonSomDokumentererUttaksperiode(vedlegg, new ÅpenPeriodeDto(periode.fom(), periode.tom()));
@@ -222,18 +220,6 @@ public class V3ForeldrepengerDomainMapper  {
             return overføringFra(søker);
         }
         return uttakFra(søker);
-    }
-
-    private static Oppholdsperiode oppholdFra(UttakDto annenPart) {
-        var xml = new Oppholdsperiode();
-        xml.setAarsak(oppholdsÅrsakFra(switch (annenPart.kontoType()) {
-            case MØDREKVOTE -> Oppholdsårsak.UTTAK_MØDREKVOTE_ANNEN_FORELDER;
-            case FEDREKVOTE -> Oppholdsårsak.UTTAK_FEDREKVOTE_ANNEN_FORELDER;
-            case FELLESPERIODE -> Oppholdsårsak.UTTAK_FELLESP_ANNEN_FORELDER;
-            case FORELDREPENGER -> Oppholdsårsak.UTTAK_FORELDREPENGER_ANNEN_FORELDER;
-            case FORELDREPENGER_FØR_FØDSEL -> throw new IllegalArgumentException("Foreldrepenger før fødsel kan ikke være oppholdsårsak");
-        }));
-        return xml;
     }
 
     private static Utsettelsesperiode utsettelseFra(UttakDto søker) {
@@ -360,20 +346,6 @@ public class V3ForeldrepengerDomainMapper  {
         utsettelsesÅrsak.setKode(årsak);
         utsettelsesÅrsak.setKodeverk(utsettelsesÅrsak.getKodeverk());
         return utsettelsesÅrsak;
-    }
-
-    private static Oppholdsaarsaker oppholdsÅrsakFra(Oppholdsårsak årsak) {
-        return Optional.ofNullable(årsak)
-                .map(Oppholdsårsak::name)
-                .map(V3ForeldrepengerDomainMapper::oppholdsÅrsakFra)
-                .orElseThrow(() -> new IllegalStateException("Oppholdsårsak må være satt"));
-    }
-
-    private static Oppholdsaarsaker oppholdsÅrsakFra(String årsak) {
-        var oppholdsÅrsak = new Oppholdsaarsaker();
-        oppholdsÅrsak.setKode(årsak);
-        oppholdsÅrsak.setKodeverk(oppholdsÅrsak.getKodeverk());
-        return oppholdsÅrsak;
     }
 
     private static Overfoeringsaarsaker overføringsÅrsakFra(String årsak) {
