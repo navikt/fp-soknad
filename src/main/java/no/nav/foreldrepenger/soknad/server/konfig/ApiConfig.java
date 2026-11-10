@@ -8,13 +8,13 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import io.swagger.v3.rest.integration.resources.OpenApiResource;
 import jakarta.ws.rs.ApplicationPath;
 import no.nav.foreldrepenger.konfig.Environment;
 import no.nav.foreldrepenger.soknad.innsending.SøknadRest;
 import no.nav.foreldrepenger.soknad.mellomlagring.MellomlagringRest;
-import no.nav.foreldrepenger.soknad.server.konfig.swagger.TypegenereringFrontendOpenApiReader;
 import no.nav.vedtak.openapi.OpenApiUtils;
+import no.nav.vedtak.openapi.TypegenereringOpenApiReader;
 import no.nav.vedtak.server.rest.AuthenticationFilter;
 import no.nav.vedtak.server.rest.FpRestJacksonFeature;
 import no.nav.vedtak.server.rest.RestSecureLogFeature;
@@ -53,7 +53,7 @@ public class ApiConfig extends ResourceConfig {
     private void registerOpenApi() {
         var contextPath = ENV.getProperty("context.path", "/fpsoknad");
         OpenApiUtils.openApiConfigFor("Fpsoknad - specifikasjon for typegenerering frontend", contextPath, this)
-            .readerClass(TypegenereringFrontendOpenApiReader.class)
+            .readerClass(TypegenereringOpenApiReader.class)
             .registerClasses(getApplicationClasses())
             .buildOpenApiContext();
         register(OpenApiResource.class);
