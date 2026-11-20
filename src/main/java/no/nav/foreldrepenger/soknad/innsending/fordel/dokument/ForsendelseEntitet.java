@@ -14,6 +14,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 
 @SequenceGenerator(name = "GLOBAL_PK_SEQ_GENERATOR", sequenceName = "SEQ_GLOBAL_PK")
 @Entity
@@ -24,10 +25,12 @@ public class ForsendelseEntitet {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GLOBAL_PK_SEQ_GENERATOR")
     private Long id;
 
-    @Column(name = "FORSENDELSE_ID")
+    @NotNull
+    @Column(name = "FORSENDELSE_ID", nullable = false, unique = true)
     private UUID forsendelseId;
 
-    @Column(name = "FODSELSNUMMER")
+    @NotNull
+    @Column(name = "FODSELSNUMMER", nullable = false)
     private String fodselsnummer;
 
     @Column(name = "SAKSNUMMER")
@@ -36,11 +39,13 @@ public class ForsendelseEntitet {
     @Column(name = "JOURNALPOST_ID")
     private String journalpostId;
 
+    @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "FORSENDELSE_STATUS")
+    @Column(name = "FORSENDELSE_STATUS", nullable = false)
     private ForsendelseStatus status;
 
-    @Column(name = "FORSENDELSE_MOTTATT")
+    @NotNull
+    @Column(name = "FORSENDELSE_MOTTATT", nullable = false)
     private LocalDateTime forsendelseMottatt;
 
     protected ForsendelseEntitet() {

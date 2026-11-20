@@ -13,6 +13,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import no.nav.foreldrepenger.soknad.kontrakt.vedlegg.DokumentTypeId;
 import no.nav.vedtak.exception.TekniskException;
 
@@ -24,9 +25,11 @@ public class DokumentEntitet {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GLOBAL_PK_SEQ_GENERATOR")
     private Long id;
 
-    @Column(name = "FORSENDELSE_ID")
+    @NotNull
+    @Column(name = "FORSENDELSE_ID", nullable = false)
     private UUID forsendelseId;
 
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "dokument_type_id", nullable = false)
     private DokumentTypeId dokumentTypeId;
@@ -35,6 +38,7 @@ public class DokumentEntitet {
     @Column(name = "arkiv_filtype")
     private ArkivFilType arkivFilType;
 
+    @NotNull
     @Column(name = "CONTENT", nullable = false)
     private byte[] content;
 
