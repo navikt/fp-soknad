@@ -55,19 +55,17 @@ class UttaksperioderValideringTest {
         assertThatCode(() -> UttaksperioderValidering.valider(søknad)).doesNotThrowAnyException();
     }
 
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void plan_med_bare_annen_parts_uttak_avvises(boolean endring) {
+    @org.junit.jupiter.api.Test
+    void førstegangssøknad_plan_med_bare_annen_parts_uttak_avvises() {
         var annenPart = new UttakPeriodeDto(START, START.plusDays(4), null, UTTAK, null);
-        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad(endring, List.of(annenPart))))
+        assertThatThrownBy(() -> UttaksperioderValidering.valider(søknad(false, List.of(annenPart))))
             .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("minst én");
     }
 
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void plan_med_bare_annen_parts_utsettelse_avvises(boolean endring) {
+    @org.junit.jupiter.api.Test
+    void førstegangssøknad_plan_med_bare_annen_parts_utsettelse_avvises() {
         var utsettelse = new UttakDto(Rolle.FAR_MEDMOR, null, UtsettelseÅrsak.ARBEID, null, null, null, null, false, null);
-        var søknadMedKunUtsettelse = søknad(endring, List.of(new UttakPeriodeDto(START, START.plusDays(4), null, utsettelse, null)));
+        var søknadMedKunUtsettelse = søknad(false, List.of(new UttakPeriodeDto(START, START.plusDays(4), null, utsettelse, null)));
         assertThatThrownBy(() -> UttaksperioderValidering.valider(søknadMedKunUtsettelse))
             .isInstanceOf(UttaksperioderValideringException.class).hasMessageContaining("minst én");
     }
@@ -265,7 +263,7 @@ class UttaksperioderValideringTest {
 
     private static SøknadDto søknad(boolean endring, List<UttakPeriodeDto> perioder) {
         return endring
-            ? new EndringssøknadBuilder(new Saksnummer("123456")).medRolle(BrukerRolle.MOR).medUttaksplan(perioder).build()
+            ? new EndringssøknadBuilder(new Saksnummer("123456")).medRolle(BrukerRolle.MOR).medUttaksplan(perioder).medEndringsdato(START).build()
             : new ForeldrepengerBuilder().medRolle(BrukerRolle.MOR).medUttaksplan(perioder).build();
     }
 

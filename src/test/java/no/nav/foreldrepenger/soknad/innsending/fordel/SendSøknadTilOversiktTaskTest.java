@@ -87,23 +87,6 @@ class SendSøknadTilOversiktTaskTest {
     }
 
     @Test
-    void senderIkkeEndringssøknadUtenEndringsdatoTilOversikt() {
-        var perioder = List.of(new UttakPeriodeDto(DAG, DAG.plusDays(4),
-            new UttakDto(Rolle.FAR_MEDMOR, FEDREKVOTE, null, null, null, null, null, false, null), null, null));
-        var søknad = new EndringssøknadBuilder(new Saksnummer("999888"))
-            .medRolle(BrukerRolle.FAR)
-            .medSøkerinfo(new SøkerDto(new Fødselsnummer("12345678901"), new SøkerDto.Navn("Fornavn", null, "Etternavn"), null))
-            .medBarn(new TerminDto(1, DAG, DAG.minusWeeks(2)))
-            .medUttaksplan(perioder)
-            .build();
-        var forsendelseId = lagreForsendelse(søknad, DokumentTypeId.I000050);
-
-        task.doTask(taskData(forsendelseId, "999888"));
-
-        assertThat(sendt).isEmpty();
-    }
-
-    @Test
     void sender_hele_planen_ved_endringsdato() {
         var før = new UttakPeriodeDto(DAG, DAG.plusDays(4),
             new UttakDto(Rolle.FAR_MEDMOR, FEDREKVOTE, null, null, null, null, null, false, null), null, null);

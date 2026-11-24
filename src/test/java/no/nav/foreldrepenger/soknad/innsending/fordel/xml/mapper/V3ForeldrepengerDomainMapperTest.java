@@ -143,7 +143,6 @@ class V3ForeldrepengerDomainMapperTest {
             new UttakPeriodeDto(TOM.plusDays(1), TOM.plusDays(5), null, utsettelse, null),
             new UttakPeriodeDto(TOM.plusDays(6), TOM.plusDays(10), uttak(KontoType.FELLESPERIODE), null, null));
         var xml = map(new UttaksplanDto(false, perioder), List.of(), endring);
-        // For endringssøknad uten endringsdato kan overgangsordningen i EndringsdatoFilter legge inn fri utsettelse først
         assertThat(xml.getPerioder()).filteredOn(Uttaksperiode.class::isInstance).singleElement();
         assertThat(xml.getPerioder()).allMatch(p -> p instanceof Uttaksperiode || p instanceof Utsettelsesperiode);
     }
@@ -296,7 +295,7 @@ class V3ForeldrepengerDomainMapperTest {
         String xml;
         if (endring) {
             xml = MAPPER.tilXML(new EndringssøknadForeldrepengerDto(mottatt, new Saksnummer("123456789"), null,
-                BrukerRolle.MOR, Målform.NB, barn, null, plan, vedlegg, null), mottatt, aktør);
+                BrukerRolle.MOR, Målform.NB, barn, null, plan, vedlegg, FOM), mottatt, aktør);
         } else {
             xml = MAPPER.tilXML(new ForeldrepengesøknadDto(mottatt, null, BrukerRolle.MOR, Målform.NB, barn,
                 null, null, List.of(), null, Dekningsgrad.HUNDRE, plan, List.of(), vedlegg), mottatt, aktør);

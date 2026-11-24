@@ -3,9 +3,6 @@ package no.nav.foreldrepenger.soknad.innsending.fordel;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import no.nav.foreldrepenger.kontrakter.felles.typer.Saksnummer;
@@ -29,8 +26,6 @@ public class SendSøknadTilOversiktTask implements ProsessTaskHandler {
 
     private DokumentRepository dokumentRepository;
     private FpOversiktTjeneste fpOversiktTjeneste;
-
-    private static final Logger LOG = LoggerFactory.getLogger(SendSøknadTilOversiktTask.class);
 
     public SendSøknadTilOversiktTask() {
         // CDI
@@ -59,11 +54,6 @@ public class SendSøknadTilOversiktTask implements ProsessTaskHandler {
         switch (søknad) {
             case ForeldrepengesøknadDto fp -> fpOversiktTjeneste.send(
                 new OversiktSøknadDto(saksnummer, mottattTidspunkt, mapRolle(fp.rolle()), fp.uttaksplan().perioder()));
-            // TODO: Overgangskode fram til frontend sender hele planen og endringsdato. Fjernes da.
-            // Eldre frontend sender bare perioder fra endringstidspunktet, og oversikt skal ikke lagre en ufullstendig
-            // plan som hele planen.
-            case EndringssøknadForeldrepengerDto endring when endring.endringsdato() == null ->
-                LOG.info("Endringssøknad uten endringsdato. Sender ikke søknadsplan til oversikt");
             case EndringssøknadForeldrepengerDto endring -> fpOversiktTjeneste.send(
                 new OversiktSøknadDto(saksnummer, mottattTidspunkt, mapRolle(endring.rolle()), endring.uttaksplan().perioder()));
             default -> throw new IllegalArgumentException("Uventet søknadstype for sending til oversikt: " + søknadDokument.getDokumentTypeId());

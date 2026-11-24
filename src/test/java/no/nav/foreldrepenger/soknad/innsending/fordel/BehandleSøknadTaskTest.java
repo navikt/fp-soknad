@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -175,6 +176,7 @@ class BehandleSøknadTaskTest {
                 new UttakPeriodeDto(familehendelseDato.plusWeeks(20), familehendelseDato.plusWeeks(31).minusDays(1),
                     new UttakDto(FellesUttaksplanDto.Rolle.MOR, FEDREKVOTE, null,
                         FellesUttaksplanDto.OverføringÅrsak.SYKDOM_ANNEN_FORELDER, null, null, null, false, null), null, null)))
+            .medEndringsdato(familehendelseDato.minusWeeks(3).with(DayOfWeek.MONDAY))
             .medAnnenForelder(AnnenforelderBuilder.norskMedRettighetNorge(new Fødselsnummer("0987654321")).build())
             .build();
         var forsendelseId = UUID.randomUUID();
