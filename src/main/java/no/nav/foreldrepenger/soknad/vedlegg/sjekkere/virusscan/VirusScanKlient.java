@@ -99,7 +99,7 @@ public class VirusScanKlient {
         if (status == HttpURLConnection.HTTP_OK || status == HttpURLConnection.HTTP_UNAVAILABLE) {
             try {
                 return List.of(DefaultJsonMapper.fromJson(body, ScanResult[].class));
-            } catch (RuntimeException e) {
+            } catch (RuntimeException _) {
                 throw new IntegrasjonException("F-468817", String.format("Uventet respons %s fra clamav", status), status);
             }
         }
