@@ -48,10 +48,9 @@ public final class UttaksperioderValidering {
         if (uttaksplan.perioder() == null) {
             throw new UttaksperioderValideringException("Uttaksplan mangler perioder. Gjelder " + søknadBeskrivelse);
         }
-        // Med endringsdato legger EndringsdatoFilter alltid inn en søkerperiode, så kravet om minst én gjelder ikke.
-        var harEndringsdato = søknad instanceof EndringssøknadForeldrepengerDto e && e.endringsdato() != null;
-        validerPerioder(uttaksplan.perioder(), søknadBeskrivelse, !harEndringsdato);
-        if (søknad instanceof EndringssøknadForeldrepengerDto endring && endring.endringsdato() != null) {
+        // EndringsdatoFilter legger alltid inn en søkerperiode for endringssøknad, så kravet om søkerperiode gjelder bare førstegangssøknad.
+        validerPerioder(uttaksplan.perioder(), søknadBeskrivelse, søknad instanceof ForeldrepengesøknadDto);
+        if (søknad instanceof EndringssøknadForeldrepengerDto endring) {
             validerEndringsdato(endring.endringsdato(), søknadBeskrivelse);
         }
     }
@@ -70,7 +69,6 @@ public final class UttaksperioderValidering {
         var antallSøkerperioder = perioder.stream().filter(p -> p.søker() != null).count();
         requireAntallUnderTerskel((int) antallSøkerperioder, MAKS_ANTALL_SØKERPERIODER, "søkerperioder");
         var søkerperioder = søkersPerioder(perioder);
-        // fp-oversikt lagrer bare planer med minst én periode. Uten endringsdato må det også være en søkerperiode.
         requireMinstEnPeriode(kreverSøkerperiode ? søkerperioder : perioder, søknadBeskrivelse);
         var ugyldigeDatoer = perioder.stream()
             .filter(p -> p.tom().isBefore(p.fom()))

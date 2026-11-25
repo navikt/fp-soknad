@@ -2,6 +2,7 @@ package no.nav.foreldrepenger.soknad.innsending.fordel.utils;
 
 import static no.nav.foreldrepenger.kontrakter.felles.kodeverk.KontoType.MØDREKVOTE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -114,38 +115,12 @@ class EndringsdatoFilterTest {
         assertThat(søknad.uttaksplan().perioder()).containsExactlyElementsOf(PLAN);
     }
 
-    // Overgangsordning for eldre frontend uten endringsdato
-
     @Test
-    void eldre_klient_med_søkerperiode_først_får_samme_perioder() {
-        var søknad = new EndringssøknadBuilder(new Saksnummer("123456")).medRolle(BrukerRolle.MOR).medUttaksplan(PLAN).build();
+    void endringssøknad_uten_endringsdato_feiler() {
+        var søknad = new EndringssøknadBuilder(new Saksnummer("123456")).medUttaksplan(PLAN).build();
 
-        var filtrert = EndringsdatoFilter.fraEndringsdato(søknad);
-
-        assertThat(filtrert.uttaksplan().perioder()).containsExactlyElementsOf(PLAN);
-        assertThat(filtrert.endringsdato()).isNull();
-    }
-
-    @Test
-    void eldre_klient_der_planen_starter_med_annen_parts_periode_gir_fri_utsettelse_fra_første_dag_i_planen() {
-        // Søker har fjernet sin del av samtidig uttak. Eldre frontend sendte annen parts periode som opphold.
-        var søknad = new EndringssøknadBuilder(new Saksnummer("123456")).medRolle(BrukerRolle.FAR)
-            .medUttaksplan(List.of(ANNEN_PART_FØR, PÅ_ENDRINGSDATO, ETTER)).build();
-
-        var filtrert = EndringsdatoFilter.fraEndringsdato(søknad);
-
-        assertThat(filtrert.uttaksplan().perioder()).containsExactly(
-            fri(Rolle.FAR_MEDMOR, ANNEN_PART_FØR.fom(), PÅ_ENDRINGSDATO.fom().minusDays(1)), ANNEN_PART_FØR, PÅ_ENDRINGSDATO, ETTER);
-        assertThat(filtrert.endringsdato()).as("utledet dato skal ikke inn i søknaden, ellers sendes den til fp-oversikt").isNull();
-        assertThat(søknad.uttaksplan().perioder()).containsExactly(ANNEN_PART_FØR, PÅ_ENDRINGSDATO, ETTER);
-    }
-
-    @Test
-    void eldre_klient_uten_søkerperioder_etter_annen_part_gir_én_dag_fri_utsettelse() {
-        var søknad = new EndringssøknadBuilder(new Saksnummer("123456")).medRolle(BrukerRolle.MOR)
-            .medUttaksplan(List.of(ETTER)).build();
-
-        assertThat(EndringsdatoFilter.uttaksplanFraEndringsdato(søknad).perioder())
-            .containsExactly(fri(Rolle.MOR, ETTER.fom(), ETTER.fom()), ETTER);
+        assertThatNullPointerException()
+            .isThrownBy(() -> EndringsdatoFilter.uttaksplanFraEndringsdato(søknad))
+            .withMessage("Endringssøknad mangler endringsdato");
     }
 }

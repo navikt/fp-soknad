@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -68,17 +67,6 @@ class DestinasjonsRuterTest {
     }
 
     @Test
-    void eldre_klient_der_planen_starter_med_annen_parts_uttak_bruker_første_dag_i_planen() {
-        // Overgangsordning: søker får fri utsettelse fra første dag i planen, se EndringsdatoFilter
-        var uttak = new UttakDto(Rolle.MOR, MØDREKVOTE, null, null, null, null, null, false, null);
-        var perioder = List.of(
-            new UttakPeriodeDto(START, START, null, uttak, null),
-            new UttakPeriodeDto(START.plusWeeks(1), START.plusWeeks(1), uttak, null, null));
-
-        assertThat(startdatoForEndringssøknad(perioder)).contains(START);
-    }
-
-    @Test
     void endringssøknad_med_utsatt_oppstart_bruker_endringsdato() {
         var uttak = new UttakDto(Rolle.MOR, MØDREKVOTE, null, null, null, null, null, false, null);
         var perioder = List.of(
@@ -92,15 +80,6 @@ class DestinasjonsRuterTest {
         var captor = ArgumentCaptor.forClass(VurderFagsystemDto.class);
         verify(fpsak).vurderFagsystem(captor.capture());
         assertThat(captor.getValue().getStartDatoForeldrepengerInntektsmelding()).contains(START);
-    }
-
-    private Optional<LocalDate> startdatoForEndringssøknad(List<UttakPeriodeDto> perioder) {
-        when(fpsak.vurderFagsystem(any())).thenReturn(new VurderFagsystemResultat(VurderFagsystemResultat.SendTil.FPSAK, "123456"));
-        var søknad = new EndringssøknadBuilder(new Saksnummer("123456")).medRolle(BrukerRolle.MOR).medPerioder(perioder).build();
-        rute(søknad, DokumentTypeId.I000050);
-        var captor = ArgumentCaptor.forClass(VurderFagsystemDto.class);
-        verify(fpsak).vurderFagsystem(captor.capture());
-        return captor.getValue().getStartDatoForeldrepengerInntektsmelding();
     }
 
     private void rute(List<UttakPeriodeDto> perioder) {

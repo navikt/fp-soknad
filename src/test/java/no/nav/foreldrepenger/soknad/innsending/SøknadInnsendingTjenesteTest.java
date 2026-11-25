@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Base64;
@@ -229,6 +230,7 @@ class SøknadInnsendingTjenesteTest {
                 uttak(FORELDREPENGER_FØR_FØDSEL, familehendelseDato.minusWeeks(3), familehendelseDato.minusDays(1)),
                 uttak(MØDREKVOTE, familehendelseDato, familehendelseDato.plusWeeks(15).minusDays(1)),
                 uttak(FELLESPERIODE, familehendelseDato.plusWeeks(15), familehendelseDato.plusWeeks(31).minusDays(1))))
+            .medEndringsdato(familehendelseDato.minusWeeks(3).with(DayOfWeek.MONDAY))
             .medAnnenForelder(AnnenforelderBuilder.norskMedRettighetNorge(new Fødselsnummer("0987654321")).build())
             .build();
         when(innloggetBruker.brukerFraKontekst()).thenReturn(fnr.value());
@@ -458,6 +460,7 @@ class SøknadInnsendingTjenesteTest {
             .medSøkerinfo(new SøkerDto(fnr, new SøkerDto.Navn("Per", null, null), null))
             .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
             .medUttaksplan(List.of(uttak(MØDREKVOTE, fom, tom)))
+            .medEndringsdato(fom.with(DayOfWeek.MONDAY))
             .medAnnenForelder(AnnenforelderBuilder.norskMedRettighetNorge(new Fødselsnummer("0987654321")).build())
             .build();
 
@@ -500,6 +503,7 @@ class SøknadInnsendingTjenesteTest {
             .medSøkerinfo(new SøkerDto(fnr, new SøkerDto.Navn("Per", null, null), null))
             .medBarn(new TerminDto(2, LocalDate.now().minusMonths(1), LocalDate.now().minusMonths(1).plusWeeks(2)))
             .medUttaksplan(List.of())
+            .medEndringsdato(LocalDate.now().with(DayOfWeek.MONDAY))
             .medAnnenForelder(AnnenforelderBuilder.norskMedRettighetNorge(new Fødselsnummer("0987654321")).build())
             .build();
 
