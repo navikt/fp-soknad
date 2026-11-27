@@ -1,6 +1,7 @@
 package no.nav.foreldrepenger.soknad.vedlegg.sjekkere.virusscan;
 
 
+import static no.nav.foreldrepenger.soknad.vedlegg.sjekkere.virusscan.Result.FOUND;
 import static no.nav.foreldrepenger.soknad.vedlegg.sjekkere.virusscan.Result.OK;
 
 import java.io.IOException;
@@ -41,7 +42,7 @@ import no.nav.vedtak.mapper.json.DefaultJsonMapper;
 public class VirusScanKlient {
     private static final Logger LOG = LoggerFactory.getLogger(VirusScanKlient.class);
     private static final Environment ENV = Environment.current();
-    private static final String SCAN_PATH = "/scan";
+    private static final String SCAN_PATH = "/api/v2/scan";
 
     private final HttpClient httpClient;
     private final RestConfig restConfig;
@@ -63,35 +64,51 @@ public class VirusScanKlient {
             .header("Content-Type", MediaType.APPLICATION_OCTET_STREAM)
             .PUT(HttpRequest.BodyPublishers.ofByteArray(vedlegg.bytes()))
             .build();
-        var scanResults = sendAndHandle(request, vedlegg);
+        var response = send(request, vedlegg);
+        håndterRespons(response.statusCode(), response.body(), vedlegg);
+    }
+
+    static void håndterRespons(int status, String body, Vedlegg vedlegg) {
+        var scanResults = tilScanResults(status, body);
         if (scanResults.size() != 1) {
             LOG.warn("Uventet respons med lengde {}, forventet lengde er 1", scanResults.size());
             throw new VedleggOpplastningVirusException(vedlegg.uuid());
         }
         var scanResult = scanResults.getFirst();
         LOG.trace("Fikk scan result {}", scanResult);
-        if (OK.equals(scanResult.getResult())) {
+        if (status == HttpURLConnection.HTTP_OK && OK.equals(scanResult.getResult())) {
             LOG.trace("Ingen virus i {}", vedlegg.uuid());
             return;
         }
-        LOG.warn("Fant virus!, status {}", scanResult.getResult());
-        throw new VedleggOpplastningVirusException(vedlegg.uuid());
+        if (FOUND.equals(scanResult.getResult())) {
+            LOG.warn("Fant virus i {}! virus {}", vedlegg.uuid(), scanResult.getVirus());
+            throw new VedleggOpplastningVirusException(vedlegg.uuid());
+        }
+        // API/v2 svarer 503 med result ERROR når scanning ikke ble fullført. Fail closed, men ikke rapporter som virus.
+        throw new IntegrasjonException("F-468818",
+            String.format("Virusscan av %s feilet med status %s: %s", vedlegg.uuid(), status, scanResult), status);
     }
 
-    private List<ScanResult> sendAndHandle(HttpRequest request, Vedlegg vedlegg) {
+    private static List<ScanResult> tilScanResults(int status, String body) {
+        if (status == HttpURLConnection.HTTP_NO_CONTENT) {
+            return List.of();
+        }
+        if (status == HttpURLConnection.HTTP_FORBIDDEN) {
+            throw new ManglerTilgangException("F-468816", "Feilet mot clamav");
+        }
+        if (status == HttpURLConnection.HTTP_OK || status == HttpURLConnection.HTTP_UNAVAILABLE) {
+            try {
+                return List.of(DefaultJsonMapper.fromJson(body, ScanResult[].class));
+            } catch (RuntimeException _) {
+                throw new IntegrasjonException("F-468817", String.format("Uventet respons %s fra clamav", status), status);
+            }
+        }
+        throw new IntegrasjonException("F-468817", String.format("Uventet respons %s fra clamav", status), status);
+    }
+
+    private HttpResponse<String> send(HttpRequest request, Vedlegg vedlegg) {
         try {
-            var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            int status = response.statusCode();
-            if (status == HttpURLConnection.HTTP_NO_CONTENT) {
-                return List.of();
-            }
-            if ((status >= HttpURLConnection.HTTP_OK && status < HttpURLConnection.HTTP_MULT_CHOICE)) {
-                return List.of(DefaultJsonMapper.fromJson(response.body(), ScanResult[].class));
-            }
-            if (status == HttpURLConnection.HTTP_FORBIDDEN) {
-                throw new ManglerTilgangException("F-468816", "Feilet mot clamav");
-            }
-            throw new IntegrasjonException("F-468817", String.format("Uventet respons %s fra clamav", status), status);
+            return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         } catch (HttpTimeoutException e) {
             throw new VedleggVirusscanTimeoutException(vedlegg, e);
         } catch (IOException e) {
